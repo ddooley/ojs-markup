@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
-
 <!--
   * version.xml
   *
-  * Copyright (c) 2003-2010 John Willinsky
+  * Copyright (c) 2003-2013 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   *
   * Plugin version information.
@@ -23,7 +22,7 @@ major   	minor   	revision   	build   	date_installed   	current   	product_type
 <version>
 	<application>markup</application>
 	<type>plugins.generic</type>
-	<release>1.0.0.6</release>
+	<release>1.0.0.7</release>
 	<date>2013-05-05</date>
 	<lazy-load>0</lazy-load>
 	<class>MarkupPlugin</class>

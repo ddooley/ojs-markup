@@ -1,4 +1,15 @@
-body,h1,h2,h3,h4,h5,h6,article,aside,dialog,figure,footer,header,hgroup,nav,section,blockquote,q,th,td,caption,table,div,span,object,iframe,p,pre,a,abbr,acronym,address,code,del,dfn,em,img,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,caption,tbody,tfoot,thead,tr {/* Adapted from https://github.com/hubgit/macrodocs/tree/gh-pages/css */
+body,h1,h2,h3,h4,h5,h6,article,aside,dialog,figure,footer,header,hgroup,nav,section,blockquote,q,th,td,caption,table,div,span,object,iframe,p,pre,a,abbr,acronym,address,code,del,dfn,em,img,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,caption,tbody,tfoot,thead,tr { 
+/**
+ * @file plugins/generic/markup/css/article.css
+ *
+ * Copyright (c) 2003-2013 John Willinsky
+ * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ *
+ * @ingroup plugins_generic_markup
+ *
+ * @brief css for display of document.html
+ * Adapted from https://github.com/hubgit/macrodocs/tree/gh-pages/css 
+ */
   border:0;
   font-weight:inherit;
   font-style:inherit;

@@ -3,7 +3,7 @@
 /**
  * @file plugins/generic/markup/MarkupPlugin.inc.php
  *
- * Copyright (c) 2003-2010 John Willinsky
+ * Copyright (c) 2003-2013 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class MarkupPlugin
@@ -28,7 +28,6 @@ If the article is being uploaded as a galley publish, this plugin will extract t
 	
 import('lib.pkp.classes.plugins.GenericPlugin');
 class MarkupPlugin extends GenericPlugin {
-
 	
 	/**
 	 * URL for Markup server
@@ -642,100 +641,93 @@ class MarkupPlugin extends GenericPlugin {
 		$articleFileDir = $articleFileManager->filesDir;
 		//fileStageToPath : see classes/file/ArticleFileManager.inc.php
 		$suppFilePath = $articleFileDir. $articleFileManager -> fileStageToPath( ARTICLE_FILE_SUPP ) . '/' . $suppFileName ;
-		
-		if (true==true) {
-			// LIVE VERSION RUNS HERE
-			//In authors array we just want the _data object.
-			$authors = $article->getAuthors();        
-			foreach($authors as &$author) {
-				$author = ($author -> _data);
-				unset($author["sequence"], $author["biography"]);
+
+
+		//In authors array we just want the _data object.
+		$authors = $article->getAuthors(); 
+		$authorsOut = array();
+		foreach($authors as $author) {
+			$author = ($author -> _data);
+			unset($author["sequence"], $author["biography"]);
+			$authorsOut[] = $author;
+		}
+		/* Other Author fields:
+			{"id":"1",
+				"submissionId":"1", "firstName":"Damion", "middleName":"", "lastName":"Dooley",
+				"country":"CA", "email":"damion@learningpoint.ca",
+				"url":"http:\/\/www.learningpoint.ca", "primaryContact":"1", "sequence":"1",
+				"affiliation":{"en_US":"Simon Fraser University"}, "biography":{"en_US":"a tiny bio."}
 			}
-			/* Other Author fields:
-				{"id":"1",
-					"submissionId":"1", "firstName":"Damion", "middleName":"", "lastName":"Dooley",
-					"country":"CA", "email":"damion@learningpoint.ca",
-					"url":"http:\/\/www.learningpoint.ca", "primaryContact":"1", "sequence":"1",
-					"affiliation":{"en_US":"Simon Fraser University"}, "biography":{"en_US":"a tiny bio."}
-				}
-					
-			*/	
-	
-			$cssURL = Request::getJournal() -> getUrl() . '/gateway/plugin/markup/css/';
+				
+		*/	
 
-			$cslStyle = $this -> _pluginSetting($settingsDao, $journalId, 'cslStyle');
-			
-			//Prepare request for pdfx server
-			$args = array(
-				'type' => 'PDFX.fileUpload',
-				'data' => array(
-					'user' => $hostUser, //login with these params or use guest if blank.
-					'pass' => $hostPass,
-					'cslStyle' => $cslStyle,
-					'cssURL' => $cssURL,
-					'title'	  => $article->getLocalizedTitle(),
-					'authors' => $authors,
-					'journalId' => $journalId,
-					'articleId' => $article -> getId(),
+		$cssURL = Request::getJournal() -> getUrl() . '/gateway/plugin/markup/css/';
 
-					'publicationName' => $journal -> getLocalizedTitle(),
-					'copyright' =>  strip_tags($journal->getLocalizedSetting('copyrightNotice')),
-					'publisher' => strip_tags($journal->getLocalizedSetting('publisherNote')),
-					'rights' => strip_tags($journal->getLocalizedSetting('openAccessPolicy')),
-					'eISSN' => $journal->getLocalizedSetting('onlineIssn'),
-					'ISSN' => $journal->getLocalizedSetting('printIssn'), // http://www.issn.org/
-
-					'DOI' => $article->getPubId('doi') //http://dx.doi.org
-
-				)
-			);
-
-			// This field has content only if header image actually exists in the right folder.
-			$ImageFileGlob =  Config::getVar('files', 'files_dir') . '/journals/' . $journalId . '/css/article_header.{jpg,png}';
-			$g = glob($ImageFileGlob,GLOB_BRACE);
-			$cssHeaderImageName = basename($g[0]);
-			if (strlen($cssHeaderImageName) > 0) 
-				$args['data']['cssHeaderImageURL'] = $cssURL.$cssHeaderImageName;
-						
-			// Provide some publication info
-			$issueDao =& DAORegistry::getDAO('IssueDAO');
-			$issue =& $issueDao->getIssueByArticleId($articleId, $journalId);
-			if ($issue && $issue->getPublished()) { // At what point are articles shunted into issues?
-				$args['data']['number'] = $issue -> getNumber();
-				$args['data']['volume'] = $issue -> getVolume();
-				$args['data']['year'] = $issue -> getYear();
-				$args['data']['publicationDate'] = $issue->getDatePublished();
-			};
-			//die(  $issue -> getYear()  .":". $issue -> getNumber() .":".  $issue -> getVolume().":". $issue->getDatePublished() .":". $issue-> getStoredPubId("DOI") .":". $journal -> getLocalizedTitle() );
-
-			$reviewVersion = $this -> _pluginSetting($settingsDao, $journalId,  'reviewVersion');
-			if ($reviewVersion == true) {
-				$args['data']['reviewVersion'] = true;
-			};
+		$cslStyle = $this -> _pluginSetting($settingsDao, $journalId, 'cslStyle');
 		
-			$postFields = array(
-				'jit_events' => json_encode(array($args)),
-				'userfile' => "@". $suppFilePath //FULL FILE PATH TO ARTICLE FILE - includes file suffix (important since it has to be recognized by service).
-			);
+		//Prepare request for pdfx server
+		$args = array(
+			'type' => 'PDFX.fileUpload',
+			'data' => array(
+				'user' => $hostUser, //login with these params or use guest if blank.
+				'pass' => $hostPass,
+				'cslStyle' => $cslStyle,
+				'cssURL' => $cssURL,
+				'title'	  => $article->getLocalizedTitle(),
+				'authors' => $authorsOut,
+				'journalId' => $journalId,
+				'articleId' => $article -> getId(),
+
+				'publicationName' => $journal -> getLocalizedTitle(),
+				'copyright' =>  strip_tags($journal->getLocalizedSetting('copyrightNotice')),
+				'publisher' => strip_tags($journal->getLocalizedSetting('publisherNote')),
+				'rights' => strip_tags($journal->getLocalizedSetting('openAccessPolicy')),
+				'eISSN' => $journal->getLocalizedSetting('onlineIssn'),
+				'ISSN' => $journal->getLocalizedSetting('printIssn'), // http://www.issn.org/
+
+				'DOI' => $article->getPubId('doi') //http://dx.doi.org
+
+			)
+		);
+
+		// This field has content only if header image actually exists in the right folder.
+		$ImageFileGlob =  Config::getVar('files', 'files_dir') . '/journals/' . $journalId . '/css/article_header.{jpg,png}';
+		$g = glob($ImageFileGlob,GLOB_BRACE);
+		$cssHeaderImageName = basename($g[0]);
+		if (strlen($cssHeaderImageName) > 0) 
+			$args['data']['cssHeaderImageURL'] = $cssURL.$cssHeaderImageName;
+					
+		// Provide some publication info
+		$issueDao =& DAORegistry::getDAO('IssueDAO');
+		$issue =& $issueDao->getIssueByArticleId($articleId, $journalId);
+		if ($issue && $issue->getPublished()) { // At what point are articles shunted into issues?
+			$args['data']['number'] = $issue -> getNumber();
+			$args['data']['volume'] = $issue -> getVolume();
+			$args['data']['year'] = $issue -> getYear();
+			$args['data']['publicationDate'] = $issue->getDatePublished();
+		};
+		//die(  $issue -> getYear()  .":". $issue -> getNumber() .":".  $issue -> getVolume().":". $issue->getDatePublished() .":". $issue-> getStoredPubId("DOI") .":". $journal -> getLocalizedTitle() );
+
+		$reviewVersion = $this -> _pluginSetting($settingsDao, $journalId,  'reviewVersion');
+		if ($reviewVersion == true) {
+			$args['data']['reviewVersion'] = true;
+		};
 	
-			//cURL sends article file to pdfx server for processing, and in 15-30+ seconds or so returns jobId which is folder where document.zip archive of converted documents sits.
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $markupHostURL."process.php"); // $this->getSetting(..
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //sends output to $contents
-			curl_setopt($ch, CURLOPT_VERBOSE, 1);
-			$contents = curl_exec ($ch);
-			$errorMsg = curl_error($ch);
-			curl_close ($ch);
-		}
-		else  {// FOR TESTING: QUICK URL RESPONSE TEST, MAKE THIS TRUE
-			// But you need to get a fresh jobId from pdfx server and enter it below since they expire within 24 hours of generation:
-			$errorMsg = "";
-			$testJobId = 'dd8a31fe5d487f5d96484f6c309c66fc';
-			$contents = '{"jit_events":[{"type":"PDFX.fileUpload","data":{"cslStyle":"chicago-fullnote-bibliography.csl","title":"Brownian Motion in Academic Papers","authors":[{"id":"1","submissionId":"1","firstName":"Damion","middleName":"","lastName":"Dooley","country":"CA","email":"damion@learningpoint.ca","url":"http:\/\/www.learningpoint.ca","primaryContact":"1","affiliation":{"en_US":"Simon Fraser University"}}],"links":["document.pdf","document.final.xml","document.final.html"],"jobId":"'.$testJobId.'","file":"1-1-1-SM.docx","jobFolder":"\/var\/www\/dev\/job\/362c8b6f886932fef7a5bb1dabcaaefd","unusedBibs":[]},"error":0,"message":"File uploaded"}]}';
-			// END TESTING
-		}
+		$postFields = array(
+			'jit_events' => json_encode(array($args)),
+			'userfile' => "@". $suppFilePath //FULL FILE PATH TO ARTICLE FILE - includes file suffix (important since it has to be recognized by service).
+		);
+
+		//cURL sends article file to pdfx server for processing, and in 15-30+ seconds or so returns jobId which is folder where document.zip archive of converted documents sits.
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $markupHostURL."process.php"); // $this->getSetting(..
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //sends output to $contents
+		curl_setopt($ch, CURLOPT_VERBOSE, 1);
+		$contents = curl_exec ($ch);
+		$errorMsg = curl_error($ch);
+		curl_close ($ch);
 
 		//This case handles possibility where user upploads file, but deletes supplementary file placeholder before pdfx server returns document.zip . Could just call _supplementaryFile() for the first time here.
 		//$suppFile = $this -> _supplementaryFile($articleId); 
@@ -952,6 +944,15 @@ class MarkupPlugin extends GenericPlugin {
 
 					case ROLE_ID_AUTHOR : //Find out if article has this submitter.
 						
+						die($userId . ";" . $article->getUserId());
+						$articleDao =& DAORegistry::getDAO('ArticleDAO');
+						$article =& $articleDao->getArticle($articleId, $journalId);
+						if ($article && $article->getUserId() == $userId && ($article->getStatus() == STATUS_QUEUED || $article->getStatus() == STATUS_PUBLISHED)) {
+							 return $roleType;
+						}
+						
+						
+						/*
 						$params = array(
 							(int) $articleId,
 							(int) $userId,
@@ -972,6 +973,7 @@ class MarkupPlugin extends GenericPlugin {
 						unset($result);
 						if ($found >0) 
 							return $roleType; 
+						*/
 						break;
 						
 					case ROLE_ID_REVIEWER :
