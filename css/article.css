@@ -415,6 +415,7 @@ section.collapsed .show {
 
 nav {
   margin-left: 3em;
+  margin-right: 3em; 
 }
 
 header .provider {

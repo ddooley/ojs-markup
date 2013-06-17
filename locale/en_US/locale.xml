@@ -60,19 +60,4 @@
 	
 	<message key="plugins.generic.markup.settings.cssHeaderImageURLHelp">When this plugin displays an article, it can have a png or jpg header image at top of first page that shows the journal branding.  Upload this header image here.  The image should be a maximum of 800px wide and 100px tall.  To remove it, use the </message> <!-- file manager -->
 	
-	<!--
-	<message key="plugins.generic.markup.settings.cssFonts">Fonts:</message>
-	
-	<message key="plugins.generic.markup.settings.cssFontsHelp">Select from this list of fonts. You can reorder your selected items by dragging and dropping them.</message>
-	
-	<message key="plugins.generic.markup.settings.cssBackgroundColour">Page Background Color:</message>
-	
-	<message key="plugins.generic.markup.settings.cssBackgroundColourHelp"></message>
-
-	<message key="plugins.generic.markup.settings.cssSectionHeaderColour">Section Header Background Color:</message>
-	
-	<message key="plugins.generic.markup.settings.cssSectionHeaderColourHelp"></message>
-	
-	<message key="plugins.generic.markup.settings.cssSectionHeaderFontColour">Section Header Font Color:</message>
-	-->
 </locale>

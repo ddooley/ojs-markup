@@ -25,9 +25,6 @@
 If the article is being uploaded as a galley publish, this plugin will extract the xml and pdf versions when they are ready, and will place them in the supplementary file folder so that web options can be provided for viewing.
  
  */
-
-//import('classes.plugins.GatewayPlugin');
-//class MarkupPlugin extends GatewayPlugin {
 	
 import('lib.pkp.classes.plugins.GenericPlugin');
 class MarkupPlugin extends GenericPlugin {
@@ -214,17 +211,10 @@ class MarkupPlugin extends GenericPlugin {
 			//Shoehorn part of this plugin into the gateway plugin class so we can call it with fetch();
 			HookRegistry::register('PluginRegistry::loadCategory', array(&$this, '_callbackLoadCategory'));
 				
-			
 			//This fires once for each individual supplementary file deleted.  TEST: Does it handle case where article as a whole is deleted?
 			// PROBLEM EDITOR doesn't have a hook for this.  Consequently, supplementary file subfolder deletion is handled in fetch() 
 			//HookRegistry::register('LayoutEditorAction::deleteSuppFile', array(&$this, '_deleteSuppFile'));
 
-			
-		// TESTING FOR ESTABLISHED HOOKS within GENERIC plugin environment
-		//$hooks =& HookRegistry::getHooks();
-		//if (!isset($hooks['SectionEditorAction::uploadCopyeditVersion'])) //{die("darn it");}
-		//die(implode(", ",array_keys($hooks)) );
-			
 		}
 
 		return $success;
@@ -478,7 +468,6 @@ class MarkupPlugin extends GenericPlugin {
 		$fileName =  $articleFileManager-> getUploadedFileName($fieldName);
 		$fileNameArray = explode(".",$fileName);
 		$suffix = $fileNameArray[count($fileNameArray)-1];
-		//$mimetype = $articleFileManager->getUploadedFileType($fieldName);
 		$newFilePath = $articleFilePath.".".$suffix;
 		$articleFileManager->copyFile($articleFilePath, $newFilePath);
 		
@@ -489,10 +478,114 @@ class MarkupPlugin extends GenericPlugin {
 	* THE GATEWAY PLUGIN COMPONENT OF THIS PLUGIN causes this fetch() function call to be received when http://[domain]/ojs/index.php/[journal name]/gateway/plugin/markup/ is accessed.  THIS IS NOT A HOOK.
 	*
 	* @param $args Array of relative url folders down from plugin
-	*/
+	 * Handle document xml, pdf, html, image and css fetch requests for this plugin.
+	 * ALL ACCESS IS VIEW ACCESS FOR NOW; 
+	 *
+	 * URL is generally of the form:
+	 * 		http://ubie/ojs/index.php/chaos/gateway/plugin/markup/[article id]
+	 *		- retrieves document.xml file manifest
+	 *		... /markup/1/0/document.html // retrieves document.html page and related images/media files.
+	 *		... /markup/1/
+	 *		... /markup/1/0/document.xml
+	 *		... /markup/1/0/document.pdf 		
+	 *		... /markup/1/0/document-review.pdf 	
+	 *		... /css/[filename] 		//stylesheets for given journal		
+	 *		... /[articleid]/refresh 	//generate zip file 
+	 *		... /[articleid]/refreshgalley 	//generate zip file and make galley links 
+	 *		... /[articleid]/0/[filename] // return galley pdf/xml/html
+	 *		... /[articleid]/[versionid]/[action] //FUTURE: access version.
+ */
+ 
 	
 	function fetch($args) {
-		require_once ("MarkupPluginFetch.inc.php");
+		
+		if (! $this->getEnabled() ) 
+			return $this -> _exitFetch("Document Markup Plugin needs to be enabled!");
+	
+		// Make sure we're within a Journal context
+		$journal =& Request::getJournal();
+		if (!$journal) 
+			return $this ->_exitFetch("Request needs a Journal.");
+		
+		$journalId = $journal->getId();
+	
+		/* See what kind of request this is: 
+			...plugin/markup/$param_1/$param_2/$fileName
+		*/
+		$param_1 = strtolower(array_shift($args));
+		$param_2 = strtolower(array_shift($args)); 
+		
+		$fileName = strtolower(array_shift($args)); 
+		// Clean filename, if any:
+		$fileName = preg_replace('/[^[:alnum:]\._-]/', '', $fileName );
+			
+		/* STYLESHEET HANDLING
+		* Recognizes any relative urls like "../../css/styles.css"
+		* Provide Journal specific stylesheet content.
+		* No need to check user permissions here
+		*/
+		if ($param_1 == "css") {
+			$folder =  Config::getVar('files', 'files_dir') . '/journals/' . $journalId . '/css/';
+			return $this -> _downloadFile($folder, $param_2);
+		}
+		
+		/* DEALING WITH A PARTICULAR ARTICLE HERE */
+	
+		$articleId = intval($param_1);
+		if (!$articleId) 
+			return $this -> _exitFetch("Article Id parameter is invalid or missing.");
+	
+		$articleDao = &DAORegistry::getDAO('ArticleDAO');
+		$article = &$articleDao->getArticle($articleId);
+		if (!$article) 
+			return $this -> _exitFetch('No such article!');
+	
+		if ($param_2 == 'refresh' ) {
+			$this -> _refresh($article, false);
+			return true; //Doesn't matter what is returned.  This is a separate curl() thread.
+		};
+		// As above, but galley links created too.
+		if ($param_2 == 'refreshgalley') {
+			$this -> _refresh($article, true);
+			return true; 
+		};	
+		
+		if (trim($fileName) == '')
+			return $this -> _exitFetch('File name is missing or misformatted.  Should be: .../markup/[article Id]/0/[file name]'); 
+	
+		/* Now we deliver any markup file request if its article's publish state allow it, or if user's credentials allow it. 
+		
+			$param_2 is /0/ for version/revision; a constant for now. 
+			$filename should be a file name.
+		
+		*/
+		
+		$markupFolder = $this -> _getSuppFolder($articleId).'/markup/';
+		
+		if (!file_exists($markupFolder.$fileName))
+			return $this -> _exitFetch('That file does not exist.'); 
+		
+		$status = $article->getStatus();
+	
+		// Most requests come in when an article is in its published state, so check that first.
+		if ($status == STATUS_PUBLISHED ) { 
+		
+			if ($this -> _publishedDownloadCheck($articleId, $journal, $fileName)) {
+				$this -> _downloadFile($markupFolder, $fileName);
+				return true;
+			}
+		}
+	
+		// Article not published, so access can only be granted if user is logged in and of the right type / connection to article
+		$user =& Request::getUser();	  //$request->getUser();	
+		$userId = $user?$user->getId():0;
+	
+		if (!$userId) return $this -> _exitFetch('You need to login to get access to this file!'); 
+		
+		if ($this -> _authorizedUser($userId, $articleId, $journalId, $fileName) )
+			$this -> _downloadFile($markupFolder, $fileName);
+
+		
 		return true; // Ensures that fetch() gets to display its status message if no file downloaded; otherwise automatic redirect to OJS home page occurs.
 	}
 
@@ -1092,11 +1185,11 @@ class MarkupPlugin extends GenericPlugin {
 	
 	/**
 	* HOOK CALL: Trigger this when Article is deleted.
-	* NOT IMPLEMENTED.  Since hooks NOT available for Editor, using different approach to delete old supp file subfolders.
+	* NOT IMPLEMENTED until appropriate hook is available for Editor.
 	* 	
 	* If request comes in for a supplementary file, and it doesn't exist anymore, then we want to delete its /var/[ojs uploads]/journals/x/articles/y/supp/markup folder contents.
 	
-	*/
+
 	function _deleteMarkupFolder(&$article, &$suppFile) {
 
 		$suppFolder = _getSuppFolder($article->getId()).'/markup/*';
@@ -1106,7 +1199,7 @@ class MarkupPlugin extends GenericPlugin {
 		//die("Folder to delete: " . $suppFolder);
 		return false;	
 	}
-	
+	*/
 	
 	function _getSuppFolder(&$articleId) {
 		import('classes.file.ArticleFileManager');	
@@ -1117,11 +1210,8 @@ class MarkupPlugin extends GenericPlugin {
 
 	
 	function _getMarkupURL($articleId) {
-		
-		//$journal =& $templateManager->get_template_vars('currentJournal');
 		$journal =& Request::getJournal();
 		return $journal-> getUrl() . '/gateway/plugin/markup/'.$articleId; 
-
 	}
 	
 }
