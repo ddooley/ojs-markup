@@ -214,6 +214,8 @@ class MarkupPlugin extends GenericPlugin {
 			// PROBLEM EDITOR doesn't have a hook for this.  Consequently, supplementary file subfolder deletion is handled in fetch() 
 			//HookRegistry::register('LayoutEditorAction::deleteSuppFile', array(&$this, '_deleteSuppFile'));
 
+			HookRegistry::register('ArticleGalleyDAO::deleteGalleyById', array(&$this, '_deleteGalley'));
+			
 		}
 
 		return $success;
@@ -584,8 +586,8 @@ class MarkupPlugin extends GenericPlugin {
 		if ($this -> _authorizedUser($userId, $articleId, $journalId, $fileName) )
 			$this -> _downloadFile($markupFolder, $fileName);
 
-		
-		return true; // Ensures that fetch() gets to display its status message if no file downloaded; otherwise automatic redirect to OJS home page occurs.
+		return $this -> _exitFetch('Your current login does not permit access to this file!'); 
+		//return true; // Ensures that fetch() gets to display its status message if no file downloaded; otherwise automatic redirect to OJS home page occurs.
 	}
 
 	/**
@@ -927,58 +929,85 @@ class MarkupPlugin extends GenericPlugin {
 			if ($role -> getJournalId() == $journalId) {
 
 				switch ($roleType) {
-					
+					// These users get global access
 					case ROLE_ID_JOURNAL_MANAGER :
-					case ROLE_ID_EDITOR :				
-					case ROLE_ID_SECTION_EDITOR :					
-					case ROLE_ID_LAYOUT_EDITOR : 
-					case ROLE_ID_PROOFREADER :
+					case ROLE_ID_EDITOR :	
 						return $roleType; 
 						break;
+						
+					case ROLE_ID_SECTION_EDITOR :		
 
-					case ROLE_ID_COPYEDITOR :
+						$sectionEditorSubmissionDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
+
+						$sectionEditorSubmission =& $sectionEditorSubmissionDao->getSectionEditorSubmission($articleId);
+			
+						if ($sectionEditorSubmission != null && $sectionEditorSubmission->getJournalId() == $journalId && $sectionEditorSubmission->getDateSubmitted() != null) {
+							// If this user isn't the submission's editor, they don't have access.
+							$editAssignments =& $sectionEditorSubmission->getEditAssignments();
+
+							foreach ($editAssignments as $editAssignment) {
+								if ($editAssignment->getEditorId() == $userId) {
+									//$templateMgr->assign('canEdit', $editAssignment->getCanEdit());
+									return $roleType; 
+								}
+							}
+						};
+		
+						break;
+						
+					case ROLE_ID_LAYOUT_EDITOR : 
+			
+						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
+						if ($signoffDao-> signoffExists('SIGNOFF_LAYOUT', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
+						//$layoutSignoff = $signoffDao->getBySymbolic('SIGNOFF_LAYOUT', ASSOC_TYPE_ARTICLE, $articleId);
+						//if (isset($layoutSignoff) && $layoutSignoff->getUserId() == $userId) {
+							/* if ($checkEdit) 
+							$layoutDao =& DAORegistry::getDAO('LayoutEditorSubmissionDAO');
+							$submission =& $layoutDao->getSubmission($articleId, $journalId);
+							$isValid = $this->_layoutEditingEnabled($submission);
+							*/
+							return $roleType;
+						}
+						break;
+						
+					/*		UNTESTED IN OJS 2.4 ; no such users.
+					case ROLE_ID_PROOFREADER :
+						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
+						if ($signoffDao-> signoffExists('SIGNOFF_PROOFING', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
+								return $roleType; 
+						}
+						break;
+
+					case ROLE_ID_COPYEDITOR : //'SIGNOFF_COPYEDITING'
 						$SESDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
 						if ($SESDao -> copyeditorExists($articleId, $userId) )
 							return $roleType; 
 						break;
-
+					*/
+					
 					case ROLE_ID_AUTHOR : //Find out if article has this submitter.
 						
-						die($userId . ";" . $article->getUserId());
 						$articleDao =& DAORegistry::getDAO('ArticleDAO');
 						$article =& $articleDao->getArticle($articleId, $journalId);
 						if ($article && $article->getUserId() == $userId && ($article->getStatus() == STATUS_QUEUED || $article->getStatus() == STATUS_PUBLISHED)) {
 							 return $roleType;
 						}
-						
-						
-						/*
-						$params = array(
-							(int) $articleId,
-							(int) $userId,
-							(int) $journalId
-						);
-						// Statuses: ARCHIVED, QUEUED PUBLISHED DECLINED
-						$result =& $this->retrieve(
-						'SELECT DISTINCT status
-						FROM articles
-						WHERE article_id = ?
-							AND user_id = ?
-							AND journal_id = ?
-							AND a.status IN ('.STATUS_QUEUED.','.STATUS_PUBLISHED.')',
-						$params
-						);
-						$found = $result->rowCount();
-						$result->Close();
-						unset($result);
-						if ($found >0) 
-							return $roleType; 
-						*/
 						break;
 						
 					case ROLE_ID_REVIEWER :
 						// Find out if article currently has this reviewer.
-						
+						$reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
+						$reviewAssignments = $reviewAssignmentDao -> getBySubmissionId($articleId);
+						foreach ($reviewAssignments as $assignment) {
+							if ($assignment -> getReviewerId() == $userId) {
+								//	REVIEWER ACCESS: If reviewers are not supposed to see list of authors, REVIEWER ONLY GETS TO SEE document-review.pdf version, which has all author information stripped.
+								$settingsDao =& DAORegistry::getDAO('PluginSettingsDAO');
+								if ($this -> _pluginSetting($settingsDao, $journalId, 'reviewVersion') != true || $fileName == 'document-review.pdf')
+									return $roleType; 
+								continue; // We've matched to user so no more tries.
+							}
+						}
+						/* Is above sufficient or do we need cancelled/declined/etc tests ...
 						$params = array(
 							(int) $userId,
 							(int) $articleId
@@ -999,11 +1028,10 @@ class MarkupPlugin extends GenericPlugin {
 						$result->Close();
 						unset($result);
 						if ($found >0) {
-							//	REVIEWER ACCESS: If reviewers are not supposed to see list of authors, REVIEWER ONLY GETS TO SEE document-review.pdf version, which has all author information stripped.
-							$settingsDao =& DAORegistry::getDAO('PluginSettingsDAO');
-							if ($this -> _pluginSetting($settingsDao, $journalId, 'reviewVersion') != true || $fileName == 'document-review.pdf')
-								return $roleType; 
+							
+							... see above.
 						}
+						 ... */
 						break;
 				}
 			}
@@ -1184,24 +1212,37 @@ class MarkupPlugin extends GenericPlugin {
 		
 	}
 		
-	
+
 	/**
-	* HOOK CALL: Trigger this when Article is deleted.
-	* NOT IMPLEMENTED until appropriate hook is available for Editor.
-	* 	
-	* If request comes in for a supplementary file, and it doesn't exist anymore, then we want to delete its /var/[ojs uploads]/journals/x/articles/y/supp/markup folder contents.
-	
-
-	function _deleteMarkupFolder(&$article, &$suppFile) {
-
-		$suppFolder = _getSuppFolder($article->getId()).'/markup/*';
-		$glob = glob($suppFolder);
-		foreach ($glob as $g) {unlink($g);}
-    	@rmdir($suppFolder);
-		//die("Folder to delete: " . $suppFolder);
+	* HOOK CALL: Trigger this when a Galley item is deleted.
+	* Checks for remote url type of galley, if it matches this plugin's type 
+	* of url, then we want to delete corresponding file(s).
+	* @param $galleyId //
+	**/
+function _deleteGalley($hookName, $params) {
+		$galleyId=$params[0];
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley =& $galleyDao -> getGalley($galleyId);
+		$data = $galley->_data;
+		$label = $data['label']; // HTML / PDF / XML
+		$articleId = $data['submissionId'];
+		$remoteURL = $data['remoteURL'];
+		//if trailing url is clearly made by this Plugin ...
+		if (preg_match("#plugin/markup/$articleId/[0-9]+/document(.html|-new.pdf|.xml)#", $remoteURL, $matches)) {
+			switch ($matches[1]) {
+				case ".xml": $suffix = '.xml'; break;
+				case "-new.pdf": $suffix = '.pdf'; break;
+				case ".html": $suffix = '.html,.jpg,.png'; break;
+				default: return false; //shouldn't occur
+			}
+			$suppFolder = $this->_getSuppFolder($articleId).'/markup/document*{'.$suffix.'}';
+			$glob = glob($suppFolder,GLOB_BRACE);
+			foreach ($glob as $g) {unlink($g);}
+		
+		}
 		return false;	
 	}
-	*/
+
 	
 	function _getSuppFolder(&$articleId) {
 		import('classes.file.ArticleFileManager');	
