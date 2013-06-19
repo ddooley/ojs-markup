@@ -22,7 +22,7 @@ class SettingsForm extends Form {
 	/** @var $plugin object */
 	var $plugin;
 
-	var $pdfxServerURLDefault = 'http://pkp-udev.lib.sfu.ca/dev/';//HARDCODED DEFAULT!!!
+	var $pdfxServerURLDefault = 'http://pkp-udev.lib.sfu.ca/';//HARDCODED DEFAULT!!!
 	var $cslStyleDefault = 'chicago-author-date.csl';
 	var $cslStyleNameDefault = 'Chicago Manual of Style (author-date)';
 	var $reviewVersions = "yes";
@@ -54,7 +54,7 @@ class SettingsForm extends Form {
 	 * Initialize form data.
 	 * .cslStyle holds the basic name (without .csl suffix) of the selected csl style 
 	 * .cslStyleName holds the plain english name of the style
-	 * .markupHostURL holds URL of pdfx server (e.g. DEVELOPMENT SERVER:  http://pkp-udev.lib.sfu.ca/dev/ )
+	 * .markupHostURL holds URL of pdfx server (e.g. DEVELOPMENT SERVER:  http://pkp-udev.lib.sfu.ca/ )
 	 * .curlSupport indicates whether or not php curl has been installed
 	 */
 	function initData() {
