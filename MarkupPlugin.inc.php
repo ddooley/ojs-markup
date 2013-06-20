@@ -721,7 +721,9 @@ class MarkupPlugin extends GenericPlugin {
 			'jit_events' => json_encode(array($args)),
 			'userfile' => "@". $suppFilePath //FULL FILE PATH TO ARTICLE FILE - includes file suffix (important since it has to be recognized by service).
 		);
-
+		// Uncomment to record an example of server to server call:
+		//@file_put_contents('/var/www/ojs/plugins/generic/markup/curlExample.txt',  json_encode(array($args)) );
+		
 		//cURL sends article file to pdfx server for processing, and in 15-30+ seconds or so returns jobId which is folder where document.zip archive of converted documents sits.
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $markupHostURL."process.php");
@@ -779,7 +781,11 @@ class MarkupPlugin extends GenericPlugin {
 		if ($galleyLinkFlag) {
 			if (! $this->_unzipSuppFile($articleId, $suppFile, $suppFileDao, $galleyLinkFlag) ) 
 				return true; // Any errors are reported within call. 
-		};
+		}
+		else {
+			// This makes sure no galleys are accidentally left around from earlier versions of this document.  It means the last upload of the document should be to the Layout files list.  If for some reason the article is re-uploaded for another reason, then an editor needs to re-upload it to the Layout section to get back article galley links. 
+			$this->_deleteGalleys($articleId);	
+		}
 		
 		return $this->_exitFetchStatus("Completed: Journal $journalId, Article $articleId, Job $jobId", $suppFile, $suppFileDao);
 
@@ -1121,7 +1127,7 @@ class MarkupPlugin extends GenericPlugin {
 		$zip->close();
 		
 		if ($galleyLinkFlag) {
-			//Now write contents of $suppFileId document.zip to /journals/[x]/articles/[y]/supp/[z]/markup/
+			//Now write contents of $suppFileId document.zip to [/var/www_uploads]/journals/[x]/articles/[y]/supp/[z]/markup/
 			$this->_setupGalleyForMarkup($articleId, "document.html");
 			$this->_setupGalleyForMarkup($articleId, "document-new.pdf");
 			$this->_setupGalleyForMarkup($articleId, "document.xml");
@@ -1245,6 +1251,25 @@ function _deleteGalley($hookName, $params) {
 		return false;	
 	}
 
+	function _deleteGalleys($articleId) {
+		// Delete all markup files
+		$suppFolder = $this->_getSuppFolder($articleId).'/markup/*';
+		$glob = glob($suppFolder);
+		foreach ($glob as $g) {unlink($g);}
+		
+		// Delete galley links
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$gals =& $galleyDao->getGalleysByArticle($articleId);
+		foreach ($gals as $galley) {
+			//$galley =& $galleyDao->getGalley($galleyId);
+			$data = $galley->_data;
+			//if trailing url is clearly made by this Plugin ...
+			if (preg_match("#plugin/markup/$articleId/[0-9]+/#", $data['remoteURL'])) {
+				$galleyDao -> deleteGalley($galley);
+			}
+		}
+	}
+	
 	
 	function _getSuppFolder(&$articleId) {
 		import('classes.file.ArticleFileManager');	
