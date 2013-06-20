@@ -78,7 +78,7 @@ class SettingsForm extends Form {
 		$this->setData('cslStyle', $plugin->getSetting($journalId, 'cslStyle'));
 		$this->setData('cslStyleName', $plugin->getSetting($journalId, 'cslStyleName'));
 		
-		$this->setData('cssFolder', Request::getJournal()-> getUrl() . '/gateway/plugin/markup/css/');
+		$this->setData('cssFolder', Request::getJournal()->getUrl() . '/gateway/plugin/markup/css/');
 
 		// This field has content only if header image actually exists in the right folder.
 		$g = glob(Config::getVar('files', 'files_dir') . '/journals/' . $journalId . '/css/article_header.{jpg,png}',GLOB_BRACE);
@@ -92,12 +92,21 @@ class SettingsForm extends Form {
 		//User assigned but should never change (view only).
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
 		
+		/*
 		// Signals indicating plugin compatibility		
 		$this->setData('curlSupport', function_exists('curl_init') ? "Installed": "Not Installed");
 		$this->setData('zipSupport', extension_loaded('zlib') ? "Installed": "Not Installed");
-
+		*/
 	}
 
+	function display() {
+		$templateMgr =& TemplateManager::getManager();
+		// Signals indicating plugin compatibility		
+		$templateMgr->assign('curlSupport', function_exists('curl_init') ? "Installed": "Not Installed");
+		$templateMgr->assign('zipSupport', extension_loaded('zlib') ? "Installed": "Not Installed");
+		parent::display();
+	}
+	
 	/**
 	 * Assign form data to user-submitted data.
 	 */
@@ -127,7 +136,7 @@ class SettingsForm extends Form {
 			$journalFileManager = new JournalFileManager($journal);		
 			if ($journalFileManager->uploadedFileExists('cssHeaderImage') ) {
 				// upload jpg or png
-				$newFileName = $journalFileManager-> getUploadedFileName('cssHeaderImage');
+				$newFileName = $journalFileManager->getUploadedFileName('cssHeaderImage');
 				if (preg_match("/(\.jpg|\.png)$/i", $newFileName))
 					$journalFileManager->uploadFile('cssHeaderImage', "/css/article_header.png");
 			}

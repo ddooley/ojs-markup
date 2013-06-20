@@ -22,8 +22,9 @@ major   	minor   	revision   	build   	date_installed   	current   	product_type
 <version>
 	<application>markup</application>
 	<type>plugins.generic</type>
-	<release>1.0.0.8</release>
-	<date>2013-05-05</date>
+	<release>1.0.0.11
+	</release>
+	<date>2013-06-19</date>
 	<lazy-load>0</lazy-load>
 	<class>MarkupPlugin</class>
 </version>
