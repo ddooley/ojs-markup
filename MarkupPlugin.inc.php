@@ -16,13 +16,14 @@
  When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module submits it to the pdfx server specified in the configuration file.  The following files are returned in gzip'ed archive file (X-Y-Z-AG.tar.gz) file which is added (or replaces a pre-existing version in) the Supplementary files section.
  
  	manifest.xml
- 	document.pdf (may be generated if input format is not pdf)
-	document.nlm.xml (NLM National Library of Medicine standard xml)
-	document.html
-	document.bib (a bibtex file)
-	document.refs (a text file of the article's citations and their bibliographic references, formatted according to selected CSL style.  It provides an indication of which references were unused in body of article.)
+ 	document.pdf (used for parsing; generated if input is not PDF)
+ 	document-new.pdf (layout version of PDF)
+	document.nlm.xml (NLM-XML3/JATS-compliant)
+	document.html (web-viewable article version)
+	document.bib (JSON-like format for structured citations)
+	document.refs (a text file of the article's citations and their bibliographic references, formatted according to selected CSL style. Also indicates when references were unused in body of article.)
 	
-If the article is being uploaded as a galley publish, this plugin will extract the xml and pdf versions when they are ready, and will place them in the supplementary file folder so that web options can be provided for viewing.
+If the article is being uploaded as a galley publish, this plugin will extract the html, xml and pdf versions when they are ready, and will place them in the supplementary file folder.
  
  */
 	
