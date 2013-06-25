@@ -82,6 +82,14 @@ class MarkupPlugin extends GenericPlugin {
 	}
 	
 	/**
+	 * Constructor
+	 
+	function MarkupPlugin() {
+		parent::GenericPlugin();
+	}
+	*/
+
+	/**
 	 * Get the management verbs for this plugin
 	 */
 	function getManagementVerbs() {
@@ -114,6 +122,10 @@ class MarkupPlugin extends GenericPlugin {
 			
 			case 'settings':
 				$journal =& Request::getJournal();
+				
+				$templateMgr =& TemplateManager::getManager();
+				$templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
+				
 				$this->import('SettingsForm');
 				$form = new SettingsForm($this, $journal->getId());
 
@@ -221,7 +233,7 @@ class MarkupPlugin extends GenericPlugin {
 
 		return $success;
 	}
-	
+
 	/**
 	 * Register as a block and gateway plugin, even though this is a generic plugin.
 	 * This will allow the plugin to behave as a block and gateway plugin

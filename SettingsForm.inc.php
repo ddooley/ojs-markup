@@ -25,7 +25,7 @@ class SettingsForm extends Form {
 	var $pdfxServerURLDefault = 'http://pkp-udev.lib.sfu.ca/';//HARDCODED DEFAULT!!!
 	var $cslStyleDefault = 'chicago-author-date.csl';
 	var $cslStyleNameDefault = 'Chicago Manual of Style (author-date)';
-	var $reviewVersions = "yes";
+	var $reviewVersionDefault = "yes";
 	
 	/**
 	 * Constructor 
@@ -69,11 +69,11 @@ class SettingsForm extends Form {
 		if ($plugin->getSetting($journalId, 'markupHostURL') == '') {
 			$plugin->updateSetting($journalId, 'markupHostURL', $this->pdfxServerURLDefault );
 		}
-		
-		if ($plugin->getSetting($journalId, 'reviewVersion') == '') {
-			$plugin->updateSetting($journalId, 'reviewVersion', $this->reviewVersion );
+		/* How to get default value in here???
+		if ($plugin->getSetting($journalId, 'reviewVersion') == null) {
+			$plugin->updateSetting($journalId, 'reviewVersion', $this->reviewVersionDefault );
 		}	
-
+*/
 
 		$this->setData('cslStyle', $plugin->getSetting($journalId, 'cslStyle'));
 		$this->setData('cslStyleName', $plugin->getSetting($journalId, 'cslStyleName'));
@@ -82,8 +82,10 @@ class SettingsForm extends Form {
 
 		// This field has content only if header image actually exists in the right folder.
 		$g = glob(Config::getVar('files', 'files_dir') . '/journals/' . $journalId . '/css/article_header.{jpg,png}',GLOB_BRACE);
-		$this->setData('cssHeaderImageName', basename($g[0]));
-
+		if (count($g)) {
+			$this->setData('cssHeaderImageName', basename($g[0]));
+		}
+		
 		$this->setData('markupHostUser', $plugin->getSetting($journalId, 'markupHostUser'));
 		$this->setData('markupHostPass', $plugin->getSetting($journalId, 'markupHostPass'));
 		
@@ -92,11 +94,11 @@ class SettingsForm extends Form {
 		//User assigned but should never change (view only).
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
 		
-		/*
+/*
 		// Signals indicating plugin compatibility		
 		$this->setData('curlSupport', function_exists('curl_init') ? "Installed": "Not Installed");
 		$this->setData('zipSupport', extension_loaded('zlib') ? "Installed": "Not Installed");
-		*/
+*/
 	}
 
 	function display() {
@@ -104,8 +106,11 @@ class SettingsForm extends Form {
 		// Signals indicating plugin compatibility		
 		$templateMgr->assign('curlSupport', function_exists('curl_init') ? "Installed": "Not Installed");
 		$templateMgr->assign('zipSupport', extension_loaded('zlib') ? "Installed": "Not Installed");
+		
+		//Plugin_Url not found????
 		parent::display();
 	}
+
 	
 	/**
 	 * Assign form data to user-submitted data.
@@ -132,7 +137,7 @@ class SettingsForm extends Form {
 		if (isset($_FILES['cssHeaderImage'])) {
 
 			import('classes.file.JournalFileManager');
-			$journal =& Request::getJournal($journal); 
+			$journal =& Request::getJournal(); 
 			$journalFileManager = new JournalFileManager($journal);		
 			if ($journalFileManager->uploadedFileExists('cssHeaderImage') ) {
 				// upload jpg or png
