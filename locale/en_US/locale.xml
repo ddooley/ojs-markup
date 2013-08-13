@@ -73,10 +73,6 @@
 	<message key="plugins.generic.markup.archive.no_job">Software Error: No Job Id was generated: </message>
 	
 	<message key="plugins.generic.markup.archive.bad_zip">Zip issue:</message>
-	<message key="plugins.generic.markup.archive."></message>
-	
-	<message key="plugins.generic.markup.archive."></message>
-	<message key="plugins.generic.markup.archive."></message>
 	
 	<message key="plugins.generic.markup.archive.portalTitle">PKP Open Journal Systems Document Markup Plugin</message>
 	<message key="plugins.generic.markup.archive.portalSubTitle">Document Status</message>
@@ -85,7 +81,7 @@
 	<message key="plugins.generic.markup.archive.no_journal">Request needs a Journal.</message>
 	<message key="plugins.generic.markup.archive.no_articleID">"Article Id parameter is invalid or missing."</message>
 	<message key="plugins.generic.markup.archive.no_article">No such article!</message>
-	<message key="plugins.generic.markup.archive.bad_filename">'File name is missing or misformatted.  Should be: .../markup/[article Id]/0/[file name]'</message>
+	<message key="plugins.generic.markup.archive.bad_filename">File name is missing or misformatted.  Should be: .../markup/[article Id]/0/[file name]</message>
 	<message key="plugins.generic.markup.archive.no_file">That file does not exist.</message>
 	<message key="plugins.generic.markup.archive.login">You need to login to get access to this file!</message>
 	<message key="plugins.generic.markup.archive.no_access">Your current login does not permit access to this file!</message>	
@@ -94,5 +90,5 @@
 	
 	<message key="plugins.generic.markup.archive.supp_file_missing">Although a "Document Markup Files" supplementary record exists, its file is missing.</message>
 	<message key="plugins.generic.markup.archive.is_zip">Supplementary file is already a zip archive.</message>
-	''
+
 </locale>
