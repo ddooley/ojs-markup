@@ -1,19 +1,21 @@
 {**
- * plugins/generic/markup/settingsForm.tpl
- *
- * Copyright (c) 2003-2013 John Willinsky
- * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
- *
- * Document Markup gateway plugin settings
- *
- *}
+* plugins/generic/markup/settingsForm.tpl
+*
+* Copyright (c) 2003-2013 John Willinsky
+* Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+*
+* Document Markup gateway plugin settings
+*
+*}
 {strip} 
 {assign var="pageTitle" value="plugins.generic.markup.displayName"}
 {include file="common/header.tpl"}
 {/strip}
 
-{url|assign:"directoryUrl" page="generic" op="plugin" path="MarkupPlugin"}
+{url|assign:"urlFileManager" page="manager" op="files" path='css'}
+
 <div id="markupSettings">
+
 	<h3>{translate key="plugins.generic.markup.settings"}</h3>
 	
 	<form method="post" action="{plugin_url path="settings"}"  enctype="multipart/form-data" autocomplete="off">
@@ -43,16 +45,15 @@
 					{fieldLabel name="cssStyles" key="plugins.generic.markup.settings.cssStyles"}
 				</td>
 				<td width="65%" class="value">
-					<div style="width:150px;float:right !important">
-						{fieldLabel key="plugins.generic.markup.settings.cssStylesHelp"}
-						<a href="{url page="manager" op="files"}/css" target="_blank">{fieldLabel key="plugins.generic.markup.settings.cssFileManager"}</a>
+					<div style="width:200px;float:right !important">
+						{translate key="plugins.generic.markup.settings.cssStylesHelp"  url=$urlFileManager}						
 					</div>
 					
-					<a href="{$cssFolder}article.css" target="_blank">article.css</a><br/>
-					<a href="{$cssFolder}article_font.css" target="_blank">article_font.css</a><br/>
-					<a href="{$cssFolder}article_print.css" target="_blank">article_print.css</a><br/>
-					<a href="{$cssFolder}article_small.css" target="_blank">article_small.css</a><br/>
-					<a href="{$cssFolder}article_wide.css" target="_blank">article_wide.css</a><br/>
+					<a href="{$urlFileManager}/article.css" target="_blank">article.css</a><br/>
+					<a href="{$urlFileManager}/article_font.css" target="_blank">article_font.css</a><br/>
+					<a href="{$urlFileManager}/article_print.css" target="_blank">article_print.css</a><br/>
+					<a href="{$urlFileManager}/article_small.css" target="_blank">article_small.css</a><br/>
+					<a href="{$urlFileManager}/article_wide.css" target="_blank">article_wide.css</a><br/>
 					
 					<br clear="all" />
 					<br clear="all" />
@@ -61,13 +62,12 @@
 		
 			<tr valign="top">
 				<td width="35%" class="label" align="right">
-					{fieldLabel name="cssHeaderImage" key="plugins.generic.markup.settings.cssHeaderImageURL"}
+					{fieldLabel name="cssHeaderImage" id="cssHeaderImage"  key="plugins.generic.markup.settings.cssHeaderImageURL"}
 				</td>
 				<td width="65%" class="value">
-					<a href="{$cssFolder}{$cssHeaderImageName}" target="_blank">{$cssHeaderImageName}</a> <br/>
+					<a href="{$urlFileManager}/{$cssHeaderImageName}" target="_blank">{$cssHeaderImageName}</a> <br/>
 					<input type="file" name="cssHeaderImage" /><br/>
-					{translate key="plugins.generic.markup.settings.cssHeaderImageURLHelp"} 
-					<a href="{url page="manager" op="files"}/css" target="_blank">{fieldLabel key="plugins.generic.markup.settings.cssFileManager"}</a>
+					{translate key="plugins.generic.markup.settings.cssHeaderImageURLHelp"  url=$urlFileManager}
 					<br/>
 					<br/>
 				</td>
@@ -80,7 +80,6 @@
 				</td>
 				<td width="65%" class="value">
 					<input type="checkbox" name="reviewVersion" id="reviewVersion" value="yes" {if $reviewVersion == "yes"}checked="checked"{/if} />
-					
 					{translate key="plugins.generic.markup.settings.reviewVersionHelp"}
 					<br/>
 				</td>
@@ -117,7 +116,7 @@
 					<br/>
 				</td>
 			</tr>
-			
+
 			<tr>	
 				<td width="35%" class="label" align="right" valign="top">
 					{fieldLabel key="plugins.generic.markup.settings.markupHostURL"}
@@ -128,7 +127,17 @@
 					{translate key="plugins.generic.markup.settings.markupHostURLHelp"}
 				</td>
 			</tr>
-			
+
+			<tr>	
+				<td width="35%" class="label" align="right" valign="top">
+					{fieldLabel key="plugins.generic.markup.settings.php5Support"}
+				</td>
+				<td width="65%" class="value">
+					<b>{$php5Support|escape}</b><br/>
+					{translate key="plugins.generic.markup.settings.php5SupportHelp"}
+				</td>
+			</tr>
+					
 			<tr>	
 				<td width="35%" class="label" align="right" valign="top">
 					{translate key="plugins.generic.markup.settings.curlSupport"}
@@ -150,7 +159,18 @@
 					{translate key="plugins.generic.markup.settings.zipSupportHelp"}
 				</td>
 			</tr>
-		
+
+			<tr>	
+				<td width="35%" class="label" align="right" valign="top">
+					{fieldLabel key="plugins.generic.markup.settings.pathInfo"}
+				</td>
+				<td width="65%" class="value">
+					<b>{$pathInfo|escape}</b><br/>
+					
+					{translate key="plugins.generic.markup.settings.pathInfoHelp"}
+				</td>
+			</tr>
+			
 		</table>
 		<br/>
 		

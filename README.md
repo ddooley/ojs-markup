@@ -5,33 +5,44 @@ Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 
 This README file contains a general description of this module's functionality (also available at http://http://pkp.sfu.ca/wiki/index.php/XML_Publishing).  All settings required for its functionality are managed on its plugin settings page (after installation).
 
-This project implements an OJS plugin for producing NLM standard article XML, as well as pdf and HTML document versions for any article uploaded to an OJS journal.
+Requirements: OJS 2.4 or greater, PHP 5.x, PHP CURL, PHP Zlib
 
-This plugin has a few settings fields. One field enables selecting a CSL style (that pertains to the OJS journal) from a dynamic list. This controls the format of citations and bibliography entries. Another setting controls whether a pdf version of the article intended only for reviewers is produced. As well, an upload field is provided to send a header image for inclusion in pdf and html versions. Finally, using the OJS file manager, Journal Managers can change the styling of displayed html documents.
+This project implements an OJS plugin for automatically parsing NLM 3 XML from uploaded articles and generating published PDF and HTML versions from that XML.
 
-When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module (using a separate thread) submits it to the pdfx server specified in the configuration file. The following files are returned in a gzip'ed archive file (X-Y-Z-AG.tar.gz) which is added (or replaces a pre-existing version in) the Supplementary files section.
+The plugin contains the following settings fields:
+
+	- CSL Style: this allows you to choose any citation style from https://github.com/citation-style-language/styles (find-as-you-type) for automatically reformatting citations of an uploaded article.
+
+	- Create reviewer version: this allows you to automatically strip out author and affiliation details from parsed articles for blind peer review.
+
+	- Header image: this allows you to upload a header image which is automatically placed at the top of generated HTML/PDF documents.
+
+	- Stylesheets: these allow you to replace the CSS used to display the HTML version of the article with stylesheets of your own design.
+
+When an author, copyeditor or editor uploads a new version of an article in a supported format (Microsoft Word .doc/docx, OpenOffice .odt/.docx, or PDF), this module submits it to our parsing server at http://pkp-udev.lib.sfu.ca. The following files are returned in a archive file (X-Y-Z-AG.tar.gz) which is added to the Supplementary files section.
 
  	manifest.xml
- 	document.pdf (used for parsing; generated if input is not PDF)
-	document-review.pdf (included for reviewers only, it has 1st page author information stripped out)
+ 	document.pdf (used for parsing; generated only if input is not PDF)
+	document-review.pdf (included for reviewers only; has author details stripped out)
  	document-new.pdf (layout version of PDF)
 	document.nlm.xml (NLM-XML3/JATS-compliant)
-	document.html (web-viewable article version)
+	document.html (web-viewable article)
 	document.bib (JSON-like format for structured citations)
 	document.refs (a text file of the article's citations and their bibliographic references, formatted according to selected CSL style. Also indicates when references were unused in body of article.)
 
-If the article is being uploaded as a galley publish, this plugin will extract the xml, html and pdf versions when they are ready, and will place them in the supplementary file folder so that web options can be provided for viewing.
-This process is triggered each time an article is submitted to enable the bibliographic reference work to be available at early stages of review and during copyedit.
+If the article is being uploaded as a publishing-ready galley, this plugin will extract the XML, HTML and PDF as layout versions when they are ready. There may be a few minutes' delay between uploaded a galley copy and receiving the layout versions from our service.
+
+This process is triggered each time an article is submitted, to enable the bibliographic reference work to be available at early stages of review and during copyedit.
 
 Installation
 
-Use the OJS plugin manager install. Provide the markup branch as "markup.tar.gz" tarball.  It will be installed in the /ojs/plugins/generic/ folder.
+IF THIS MODULE WAS DISTRIBUTED WITH OJS, PLEASE SKIP THE FOLLOWING PARAGRAPH. Use the OJS plugin manager to install. Provide the plugin as "markup.tar.gz."  It will be installed into /ojs/plugins/generic/.
 
-This plugin uses both gateway and generic plugin functionality.  It uses gateway (see the fetch() function) for providing public articles to all, and draft or subscription articles to logged-in users.  It uses generic functionality for hooks to create and manage converted articles and galley links.  It is installed within the generic folder; and its settings form only appears under the generic category.   
+This plugin uses both gateway and generic plugin functionality.  It is installed within the generic folder; and its settings form only appears under the generic category.   
 
 OJS User Experience
 
-While in the Editing tab of an article submission, a journal editor or section editor can directly access the HTML, PDF, and XML files generated by the Document Markup Plugin. These are contained in a zipfile titled "Document Markup Files" found in the "Layout" section "Supplementary Files" list. To provide a reviewer/proofreader/etc. with the converted document.pdf or document-review.pdf (the latter of which has authorship details stripped out for blind peer review), you should extract this file from this zip archive.
+While in the Editing tab of an article submission, a journal editor or section editor can directly access the HTML, PDF, and XML files generated by the Document Markup Plugin. These are contained in a zipfile titled "Document Markup Files" found in the "Supplementary Files" list. To provide a reviewer/proofreader/etc. with the converted document.pdf or document-review.pdf (the latter of which has authorship details stripped out for blind peer review), you should extract this file from this zip archive.
 
 In advance of publishing, it is possible to provide reviewers/proofreaders/etc. with direct links to files, provided that galley versions have been established. To create the galley links, just use the "Upload file to Layout Version" option at the bottom of the Layout section; this will automatically create links to HTML, PDF, and XML versions. These will be accessible to all users with the appropriate permissions, and can be selectively deleted.
 
