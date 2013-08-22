@@ -178,7 +178,14 @@ class SettingsForm extends Form {
 
 		$plugin->updateSetting($journalId, 'cslStyle', $this->getData('cslStyle'));
 		$plugin->updateSetting($journalId, 'cslStyleName', $this->getData('cslStyleName'));
-		$plugin->updateSetting($journalId, 'markupHostURL', $this->getData('markupHostURL'));
+		
+		// Ensure document server url has http:// ... / in it.
+		$markupHostURL = $this->getData('markupHostURL');
+		if (strlen($markupHostURL) > 0) {
+			if (substr($markupHostURL,0,4) != "http") $markupHostURL = "http://" . $markupHostURL;
+			if (substr($markupHostURL,-1) != '/') $markupHostURL .= '/';
+		}
+		$plugin->updateSetting($journalId, 'markupHostURL', $markupHostURL);
 		
 		$markupHostUser = $this->getData('markupHostUser');
 		$plugin->updateSetting($journalId, 'markupHostUser', $markupHostUser);
@@ -196,7 +203,7 @@ class SettingsForm extends Form {
 
 		$plugin->updateSetting($journalId, 'reviewVersion', $this->getData('reviewVersion'));
 		
-		// Upload article header image if given.
+		// Upload article header image if given. Image suffix already validated above.
 		if (isset($_FILES['cssHeaderImage'])) {
 
 			import('classes.file.JournalFileManager');

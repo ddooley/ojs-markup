@@ -1,68 +1,46 @@
 <?php
 
 	/**
-	* @file plugins/generic/markup/MarkupPlugin.inc.php
-	*
-	* Copyright (c) 2003-2013 John Willinsky
-	* Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
-	*
-	* @class MarkupPlugin
-	* @ingroup plugins_generic_markup
-	*
-	* @brief NLM XML and HTML transform plugin class
-	*
-	* Specification:
-	*
-	* When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module submits it to the pdfx server specified in the configuration file.  The following files are returned in gzip'ed archive file (X-Y-Z-AG.tar.gz) file which is added (or replaces a pre-existing version in) the Supplementary files section.
-	*
-	* manifest.xml
-	* document.pdf (used for parsing; generated if input is not PDF)
-	* document-new.pdf (layout version of PDF)
-	* document.nlm.xml (NLM-XML3/JATS-compliant)
-	* document.html (web-viewable article version)
-	* document.bib (JSON-like format for structured citations)
-	* document.refs (a text file of the article's citations and their bibliographic references, formatted according to selected CSL style. Also indicates when references were unused in body of article.)
-	* 
-	* If the article is being uploaded as a galley publish, this plugin will extract the html, xml and pdf versions when they are ready, and will place them in the supplementary file folder.
-	*/
-	
-import('lib.pkp.classes.plugins.GenericPlugin');
+	 * @file plugins/generic/markup/MarkupPlugin.inc.php
+	 *
+	 * Copyright (c) 2003-2013 John Willinsky
+	 * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+	 *
+	 * @class MarkupPlugin
+	 * @ingroup plugins_generic_markup
+	 *
+	 * @brief NLM XML and HTML transform plugin class
+	 *
+	 * Specification:
+	 *
+	 * When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module submits it to the pdfx server specified in the configuration file.  The following files are returned in gzip'ed archive file (X-Y-Z-AG.tar.gz) file.  An article supplementary file is created/updated to hold the archive.
+	 *
+	 * manifest.xml
+	 * document-new.pdf (layout version of PDF)
+	 * document-review.pdf (review version of PDF, header author info stripped)
+	 * document.xml (NLM-XML3/JATS-compliant)
+	 * document.html (web-viewable article version)
+	 * 
+	 * If the article is being uploaded as a galley publish, this plugin extracts the html, xml and pdf versions and places them in the galley; and image or other media files go into a special supplementary file subfolder called "markup".
+	 *
+	 * @see technicalNotes.md file for details on the interface between this plugin and the Document Markup Server.
+	 */
+	 
+define("MARKUP_GATEWAY_FOLDER",'markup'); //plugin gateway path folder.
 
+import('lib.pkp.classes.plugins.GenericPlugin');
 class MarkupPlugin extends GenericPlugin {
 	
 	/**
-	* URL for Markup server
-	* @var string
-	*/
-	var $_host;
-
-	/**
-	* Set the host
-	* @param $host string
-	*/
-	function setHost($host) {
-	    $this->_host = $host;
+	 * Get the system name of this plugin. 
+	 * The name must be unique within its category. It enables a simple URL to an articles markup files, e.g. ... /index.php/chaos/gateway/plugin/markup/1/0/document.html
+	 * 
+	 * @return string name of plugin
+	 */
+	function getName() {
+		return 'markup'; // DEFAULT is markupplugin
 	}
-
-	/**
-	* Get the host
-	* @return string
-	*/
-	function getHost() {
-	    return $this->_host;
-	}
-	
-	/**
-	* Get the system name of this plugin. 
-	* The name must be unique within its category. This name is short since it enables a simple URL to an articles markup files, e.g. http://ubie/ojs/index.php/chaos/gateway/plugin/markup/1/0/document.html
-	* 
-	* @return string name of plugin
-	*/
-	//function getName() {
-	//	return 'markup'; 
-	//}
-	// DEFAULT is markupplugin - i.e. name of class, lowercase
-	
+		
 	function getDisplayName() {
 		return __('plugins.generic.markup.displayName');
 	}
@@ -71,29 +49,28 @@ class MarkupPlugin extends GenericPlugin {
 		return __('plugins.generic.markup.description');
 	}
 	
+
 	/**
-	* Get the management verbs for this plugin
-	*/
+	 * Display verbs for the management interface.
+	 */
 	function getManagementVerbs() {
-		$verbs = parent::getManagementVerbs();
-		if (!$this->getEnabled()) return $verbs; // enable/upgrade/delete
-		$verbs[] = array(
-			'settings', __('plugins.generic.markup.settings')
-		);
-		return $verbs;
+		$verbs = array();
+		if ($this->getEnabled()) {
+			$verbs[] = array('settings',  __('plugins.generic.markup.settings'));
+		}
+		return parent::getManagementVerbs($verbs);
 	}
 	
 	/**
-	* Provides enable / disable / settings form options
-	*
-	* @param $verb string.
-	* @param $args ? (unused)
-	*/
+	 * Provides enable / disable / settings form options
+	 *
+	 * @param $verb string.
+	 * @param $args ? (unused)
+	 */
 	function manage($verb, $args, &$message, &$messageParams) {
-
+		if (!parent::manage($verb, $args, $message, $messageParams)) return false;
 		$messageParams = array('pluginName'=> $this->getDisplayName());
-		/* If manage() returns true, parent's manage() handler is skipped.  Enable/disable still seem to need to be handled in parent as well as here.  Settings is handled here entirely.
-		*/
+
 		switch ($verb) {
 
 			case 'enable':
@@ -117,10 +94,10 @@ class MarkupPlugin extends GenericPlugin {
 
 				if (Request::getUserVar('save')) {
 					$form->readInputData();
-					// NOTIFICATION_TYPE_FORM_ERROR
 					if ($form->validate()) {
 						$form->execute();
-						$this->_notificationService(__('plugins.generic.markup.settings.saved'));
+						$this->import('MarkupPluginUtilities');
+						MarkupPluginUtilities::notificationService(__('plugins.generic.markup.settings.saved'));
 						return false;
 					} else {
 						$form->display();
@@ -132,6 +109,7 @@ class MarkupPlugin extends GenericPlugin {
 				}
 				break;
 			default:
+				assert(false);
 				return false;
 		}
 		return true;
@@ -139,23 +117,23 @@ class MarkupPlugin extends GenericPlugin {
 
 	
 	/**
-	* Called as a plugin is registered to the registry.
-	* We avoid reviewer upload hooks since user may be uploading commentary
-	* Tech notes: Because EDITOR doesn't have a hook like LayoutEditorAction::deleteSuppFile we don't use it for tidying up.
-	* Ignored AuthorAction::uploadRevisedVersion
-	*
-	* @param $category String Name of category plugin was registered to
-	*
-	* @return boolean True iff plugin initialized successfully; if false, the plugin will not be registered.
-	*/
+	 * Install triggers for various file upload points.
+	 * We avoid reviewer upload hooks since user may be uploading commentary. Also, because EDITOR doesn't have a hook like LayoutEditorAction::deleteSuppFile we don't use it for tidying up. Also, ignoring AuthorAction::uploadRevisedVersion
+	 *
+	 * @param $category String Name of category plugin was registered to
+	 *
+	 * @return boolean True iff plugin initialized successfully; if false, the plugin will not be registered.
+	 */
 	function register($category, $path) { 
-		// See lib/pkp/classes/plugins/ HookRegistry
 		$success = parent::register($category, $path);
 		$this->addLocaleData();
 
 		if ($success && $this->getEnabled()) {
 
-			// For User > Author > Submissions > New Submission: Any step in form.  Triggers at step 5, after entry of title and authors.			SEE line 155 of /current/html/SubmitHandler.inc.php: 
+			//Add gateway plugin class to handle markup content requests;
+			HookRegistry::register('PluginRegistry::loadCategory', array(&$this, 'callbackLoadCategory'));
+			
+			// For User > Author > Submissions > New Submission: Any step in form.  Triggers at step 5, after entry of title and authors.	SEE line 155 of /current/html/SubmitHandler.inc.php: 
 			HookRegistry::register('Author::SubmitHandler::saveSubmit', array(&$this, '_authorNewSubmissionConfirmation'));
 
 			// The following hooks fire AFTER Apache upload of file, but before it is brought into OJS and assigned an id 
@@ -167,10 +145,8 @@ class MarkupPlugin extends GenericPlugin {
 			// For User > Author > Submissions > X > Editing: Author Copyedit: 
 			HookRegistry::register('AuthorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup'));
 	
-			// Copyeditor user handled in future versions of OJS I believe.
-			HookRegistry::register('CopyeditorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup')); // receives array(&$copyeditorSubmission));
+			HookRegistry::register('CopyeditorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup')); 
 			
-			// SEE clases/submission/sectionEditor/SectionEditorAction.inc.php
 			// For Submissions >x> Review: Submission: 
 			HookRegistry::register('SectionEditorAction::uploadReviewVersion', array(&$this, '_fileToMarkup'));	
 			// For Submissions >x> Review: Editor Decision: 
@@ -179,19 +155,16 @@ class MarkupPlugin extends GenericPlugin {
 			// For Submissions >x> Editing: Copyediting: 
 			HookRegistry::register('SectionEditorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup'));	
 			
-			// EDITOR ON BEHALF OF REVIEWER: AVOID THIS?
-			// For User > Editor > Submissions > #4 > Review: Peer Review (reviewer) : Upload review: 
-			// hook receives array(&$reviewAssignment, &$reviewer)
+			// For User > Editor > Submissions > #4 > Review: Peer Review (reviewer) : Upload review (editor on behalf of reviewer):
 			HookRegistry::register('SectionEditorAction::uploadReviewForReviewer', array(&$this, '_fileToMarkup'));	
 
 			// For Submissions >x> Editing: Layout: 
 			HookRegistry::register('SectionEditorAction::uploadLayoutVersion', array(&$this, '_fileToMarkup'));	
 			HookRegistry::register('LayoutEditorAction::uploadLayoutVersion', array(&$this, '_fileToMarkup'));	
 
-			HookRegistry::register('ArticleGalleyDAO::deleteGalleyById', array(&$this, 'deleteGalley'));
+			HookRegistry::register('ArticleGalleyDAO::deleteGalleyById', array(&$this, 'deleteGalleyMedia'));
 			
-			//Add gateway plugin class to handle markup content requests;
-			HookRegistry::register('PluginRegistry::loadCategory', array(&$this, '_callbackLoadCategory'));
+			HookRegistry::register('TemplateManager::display', array(&$this, 'displayGalley'));
 		}
 
 		return $success;
@@ -199,33 +172,35 @@ class MarkupPlugin extends GenericPlugin {
 
 	
 	/**
-	* Register as a gateway plugin too.
-	* This allows the fetch() function to respond to requests for article files.  
-	*
-	* @param $hookName string
-	* @param $args array [category string, plugins array]
-	*/
-	function _callbackLoadCategory($hookName, $args) {
+	 * Register as a gateway plugin too.
+	 * This allows the fetch() function to respond to requests for article files.  
+	 *
+	 * @param $hookName string
+	 * @param $args array [category string, plugins array]
+	 */
+	function callbackLoadCategory($hookName, $args) {
 		$category =& $args[0];
 		$plugins =& $args[1];
+			
 		switch ($category) {
 			case 'gateways': // Piggyback gateway accesss to this plugin.
-				 $this->import('MarkupGatewayPlugin');
-				 $gatewayPlugin = new MarkupGatewayPlugin($this->getName());
-				 $plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
+
+				$this->import('MarkupGatewayPlugin');
+				$gatewayPlugin = new MarkupGatewayPlugin($this->getName());
+				$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
 				break;
 		}
 		return false;
 	}
-	
+	 
 	
 	/**
-	* Trigger document conversion when an author confirms a new submission (step 5).
-	* Triggered at User > Author > a > New Submission, any step in form.
-	*
-	* @param $hookName string 
-	* @param $params array [&$step, &$article, &$submitForm]
-	*/
+	 * Trigger document conversion when an author confirms a new submission (step 5).
+	 * Triggered at User > Author > a > New Submission, any step in form.
+	 *
+	 * @param $hookName string 
+	 * @param $params array [&$step, &$article, &$submitForm]
+	 */
 	function _authorNewSubmissionConfirmation($hookName, $params) {
 		$step =& $params[0];
 		if($step == 5) { // Only Interested in final confirmation step
@@ -235,27 +210,22 @@ class MarkupPlugin extends GenericPlugin {
 			$journal =& Request::getJournal();
 			$journalId	 = $journal->getId();
 			
-			//Ensure a supplementary file record is in place. (not nec. file itself).
-			$suppFile = $this->_supplementaryFile($articleId);
-					
-			$fileId	= $article->getSubmissionFileId(); //Id of doc just uploaded.
-			
+			// 1) Check if upload of user's doc succeeded
+			$fileId	= $article->getSubmissionFileId(); 
 			$articleFileDao =& DAORegistry::getDAO('ArticleFileDAO'); 
 			$articleFile =& $articleFileDao->getArticleFile($fileId);
-	
 			if (!isset($articleFile)) {
 				return false;
 			}
+
+			// 2) Ensure a supplementary file record titled "Document Markup Files" is in place.
+			$suppFile = $this->_supplementaryFile($articleId);
 			
-			//Need article file manager just to get the file path of article.
+			// 3) Set supplementary file record's file id and folder location of uploaded article file 
 			import('classes.file.ArticleFileManager');
 			$articleFileManager = new ArticleFileManager($articleId);
 			$articleFileDir = $articleFileManager->filesDir;
-			
-			//fileStageToPath : see classes/file/ArticleFileManager.inc.php
-			//REPLACE $articleFilePath WITH PATH TO UPLOADED FILE ABOVE
 			$articleFilePath = $articleFileDir. $articleFileManager->fileStageToPath( $articleFile->getFileStage() ) . '/' . $articleFile->getFileName();
-			
 			$this->_setSuppFileId($suppFile, $articleFilePath, $articleFileManager); 
 			
 			// Submit the article to the pdfx server
@@ -267,13 +237,12 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	* Trigger document conversion from various hooks for editor, section editor, layout editor etc. uploading of documents.
-	* FUTURE: check valid file suffix before proceeding?
-	*
-	* @param $hookName string , eg. SectionEditorAction::uploadCopyeditVersion
-	* @param $params array [article object , ...]
-	*
-	*/
+	 * Trigger document conversion from various hooks for editor, section editor, layout editor etc. uploading of documents.
+	 *
+	 * @param $hookName string 
+	 * @param $params array [article object , ...]
+	 *
+	 */
 	function _fileToMarkup($hookName, $params) {
 		
 		$article =& $params[0]; 
@@ -285,7 +254,6 @@ class MarkupPlugin extends GenericPlugin {
 		$suppFile = $this->_supplementaryFile($articleId);
 
 		// The form $fieldname of the uploaded file differs in one case of the calling hooks.  For the "Submissions >x> Editing: Layout:" call (SectionEditorAction::uploadLayoutVersionFForm) the file is called 'layoutFile', while in all other cases it is called 'upload'. 
-
 		$fieldName = 'upload'; 
 		if ($hookName == "SectionEditorAction::uploadLayoutVersion") {
 			$fieldName = 'layoutFile'; 
@@ -301,13 +269,13 @@ class MarkupPlugin extends GenericPlugin {
 			$newPath = MarkupPluginUtilities::copyTempFilePlusExt($articleId, $fieldName);
 			if ($newPath !== false) { 
 				$this->_setSuppFileId($suppFile, $newPath, $articleFileManager); 
-				@unlink($newPath);// Delete our temp copy of uploaded file. 
+				@unlink($newPath);// Delete our temp copy of upload 
 	
 				// If we have Layout upload then trigger galley link creation.
 				if (strpos($hookName, 'uploadLayoutVersion') >0) 
-					$galleyFlag = "galley";
+					$galleyFlag = true;
 				else
-					$galleyFlag = "";
+					$galleyFlag = false;
 					
 				// Submit the article to the pdfx server
 				$this->_submitURL($articleId, $galleyFlag);
@@ -318,18 +286,20 @@ class MarkupPlugin extends GenericPlugin {
 	}
 	
 	/** 
-	* Make a new supplementary file record or copy over an existing one.
-	* Depends on mime_content_type() to get suffix of uploaded file.
-	*
-	* @param $suppFile object
-	* @param $suppFilePath string file path		
-	* @param $articleFileManager object, already initialized with an article id.
-	*/
-	function _setSuppFileId(&$suppFile, &$suppFilePath, &$articleFileManager) {
+	 * Make a new supplementary file record or copy over an existing one.
+	 * Depends on mime_content_type() to get suffix of uploaded file.
+	 *
+	 * @param $suppFile object
+	 * @param $suppFilePath string file path		
+	 * @param $articleFileManager object, already initialized with an article id.
+	 */
+	function _setSuppFileId(&$suppFile, $suppFilePath, &$articleFileManager) {
+
+		//$articleFileManager= new ArticleFileManager($articleId);
 		$mimeType = String::mime_content_type($suppFilePath);	
 		$suppFileId = $suppFile->getFileId();
 
-		if ($suppFileId == 0) { // There is no current supplementary file
+		if ($suppFileId == 0) { // There is no current supplementary file. 
 			$suppFileId = $articleFileManager->copySuppFile($suppFilePath, $mimeType);
 			$suppFile->setFileId($suppFileId);
 			
@@ -337,151 +307,177 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFileDao->updateSuppFile($suppFile);
 		}
 		else {
-			// See copySuppFile() in classes/file/ArticleFileManager.inc.php
 			$articleFileManager->copySuppFile($suppFilePath, $mimeType, $suppFileId, true);
 		}
 	}
 	
 	/**
-	* Web URL call triggers separate thread to do document conversion on  uploaded document.
-	* URL request goes out to this same plugin.  The url path is enabled by the  gateway fetch() part of this plugin.  Then php continues on in 1 second ...
-	*
-	* @param $articleId int 
-	* @param $galleyFlag boolean communicates whether or not galley links should be created (i.e. article is being published) 
-	*/
+	 * Web URL call triggers separate thread to do document conversion on  uploaded document.
+	 * URL request goes out to this same plugin.  The url path is enabled by the  gateway fetch() part of this plugin.  Then php continues on in 1 second ...
+	 * Note: A bad $curlError response is: 'Timeout was reached', which occurs when not enough time alloted to get request going. Seems like 1000 ms is minimum.  Otherwise URL fetch not even triggered. The right $curlError response which allows thread to continue is: 'Operation timed out after XYZ milliseconds with 0 bytes received'
+	 *
+	 * @param $articleId int 
+	 * @param $galleyFlag boolean communicates whether or not galley links should be created (i.e. article is being published) 
+	 */
 	function _submitURL($articleId, $galleyFlag) {
 		
 		$args = array(
 			'articleId' => $articleId,
-			'action' => 'refresh'.$galleyFlag
+			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
 		);
 		$this->import('MarkupPluginUtilities');
 		$url = MarkupPluginUtilities::getMarkupURL($args);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //sends output to $contents
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_TIMEOUT_MS, 1000);
 		curl_setopt($ch, CURLOPT_VERBOSE, 1);
 		$contents = curl_exec ($ch);
-
-		/* The right $curlError response is:
-		'Operation timed out after XYZ milliseconds with 0 bytes received'
-		Bad response is: 'Timeout was reached'
-		Occurs when not enough time alloted to get process going. Seems like 1000 ms is minimum.  Otherwise URL fetch not even triggered.
-		*/
 		$curlError = curl_error($ch);
-		
 		curl_close ($ch);
+		
 		return false;
 	}
 
 	/**
-	* Ensures that a single "Document Markup Files" supplementary file record exists for given article.
-	* The title name of this file must be unique so it can be found.
-	*
-	* @param: $articleId int
-	* @var $locale string controlled by current locale, eg. en_US
-	*/
+	 * Ensures that a single "Document Markup Files" supplementary file record exists for given article.
+	 * The title name of this file must be unique so it can be found again by this plugin.
+	 * Skipping search indexing since this content is a repetition of article.
+	 *
+	 * @param: $articleId int
+	 * @var $locale string controlled by current locale, eg. en_US
+	 */
 	function _supplementaryFile($articleId) {
 
-		//SEE: classes/article/SuppFileDAO.inc.php
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title','Document Markup Files', $articleId);
-		$locale = AppLocale::getLocale();// eg. 'en_US'); 
+		$locale = AppLocale::getLocale();
 			
 		if (count($suppFiles) == 0) {
 
-			// Insert article_supp_file
-			// Adapted from classes/submission/form/supFileForm.inc.php
-			//SubmissionFile->classes.article.ArticleFile
 			import('classes.article.SuppFile');
-			$suppFile = new SuppFile(); //See classes/article/SuppFile.inc.php
+			$suppFile = new SuppFile(); 
 			$suppFile->setArticleId($articleId);
 
-			// DO NOT CHANGE (LOCALIZE) THIS NAME - IT IS MATCHED LATER TO OVERWRITE INITIAL PDF/DOCX WIH ADJUSTED zip contents.
+			// DO NOT CHANGE THIS NAME - IT IS MATCHED LATER TO OVERWRITE INITIAL PDF/DOCX WIH ADJUSTED zip contents.
 			$suppFile->setTitle('Document Markup Files', $locale );
 			$suppFile->setType(''); //possibly 'common.other'
 			$suppFile->setTypeOther("zip", $locale);
 			$suppFile->setDescription(__('plugins.generic.markup.archive.description'), $locale);
 			$suppFile->setDateCreated( Core::getCurrentDate() );
 			$suppFile->setShowReviewers(0);
-			$suppFile->setFileId(0); //has to be set (zero) for new create.
+			$suppFile->setFileId(0); // Ensures new record created.
 			// Unused: subject, source, language
 			$suppId = $suppFileDao->insertSuppFile($suppFile);
 			$suppFile->setId($suppId);
 		}
-				
+
 		else {//Supplementary file exists, so just overwrite its file.
 			$suppFile = $suppFiles[0];
 		}
-		// Skipping search index since this content is a repetition of article	
-		$this->_notificationService(__('plugins.generic.markup.archive.processing'));
+		$this->import('MarkupPluginUtilities');
+		MarkupPluginUtilities::notificationService(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 				
 		return $suppFile;
 	}
 	
 	
+
 	/**
-	 * Provide notification messages for Document Markup Server job status
-	 * $message is already translated, i.e. caller takes responsibility for setting up the text correctly.  $typeFlag for now signals just success or failure style of message.
+	 * HOOK Sees if there are any HTML or XML galleys left if galley item is deleted.  If not, delete all markup related file(s).
 	 *
-	 * @param $message string translated text to display
-	 * @param $typeFlag bool 
-	 */
-	function _notificationService($message, $typeFlag = true) {
-		import('classes.notification.NotificationManager');
-		$notificationManager = new NotificationManager();
-
-		$notificationType = NOTIFICATION_TYPE_SUCCESS;		
-		if ($typeFlag == false){
-			$notificationType = NOTIFICATION_TYPE_ERROR;
-		}
-		$user = Request::getUser();
-		$params= array('itemTitle' => $this->getDisplayName() ); 
-		$notificationManager->createTrivialNotification(
-             $user->getId(), 
-             $notificationType,
-             array('contents' => $message)
-         );
-	}
-
-
-	/**
-	* HOOK Sees if there are any HTML or XML galleys left if galley item is deleted.  If not, delete all markup related file(s).
-	*
-	* @param $hookName string
-	* @param $params array [$galleyId]
-	*
-	* @see register()
-	**/
-	function deleteGalley($hookName, $params) {
-		$galleyId=$params[0];
+	 * @param $hookName string
+	 * @param $params array [$galleyId]
+	 *
+	 * @see register()
+	 **/
+	function deleteGalleyMedia($hookName, $params) {
+		$galleyId = $params[0];
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley =& $galleyDao->getGalley($galleyId);
 		$articleId = $galley->getSubmissionId();
-		//FIXME: New approach deletes all media files if no HTML or XML galley exists anymore for this $articleId
-		//$this->_deleteGalleyMedia($articleId);
-		/*
-		$remoteURL = $galley->getRemoteURL();
-		//if trailing url is clearly made by this Plugin ...
-		if (preg_match("#plugin/markup/$articleId/[0-9]+/document(\.html|-new\.pdf|\.xml)$#", $remoteURL, $matches)) {
-			switch ($matches[1]) {
-				case ".xml": $suffix = '.xml'; break;
-				case "-new.pdf": $suffix = '.pdf'; break;
-				case ".html": $suffix = '.html,.jpg,.png'; break;
-				default: return false; //shouldn't occur
-			}
-			$suppFolder =  MarkupPluginUtilities::getSuppFolder($articleId).'/markup/document*{'.$suffix.'}';
-			$glob = glob($suppFolder,GLOB_BRACE);
-			foreach ($glob as $g) {unlink($g);}
-		
-		}
-		*/
-		
-		//Issue of removing associated media....
+		$type = $galley->getLabel();
+		$this->import('MarkupPluginUtilities');
+		MarkupPluginUtilities::checkGalleyMedia($articleId,$type); 
 		return false;	
 	}
 
-}
-?>
+	/**
+	 * This hook handles display of any HTML & XML ProofGalley links that were generated by this plugin.  PDFs are not handled here.
+	 * It displays html file with relative urls modified to reference plugin location for article's media.
+	 * Note: permissions for 5 user types (author, copyeditor, layouteditor,proofreader,sectioneditor) have already been decided in caller's proofGalley() methods.
+	 * ALSO: Do NOT pass hook $params by reference, or this hook will mysteriously never fire!
+	 *
+	 * @param $hookName string
+	 * @param $params array [$galleyId]
+	 *
+	 **/
+	function displayGalley($hookName, $params) {
+
+		if ($params[1] != 'submission/layout/proofGalley.tpl') return false; 
+		
+		$templateMgr = $params[0];
+		$galleyId = $templateMgr->get_template_vars('galleyId');
+		$articleId = $templateMgr->get_template_vars('articleId');
+		if (!$articleId) return false;
+		
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley =& $galleyDao->getGalley($galleyId, $articleId);
+		if (!$galley) return false;
+		
+		$label = strtoupper($galley->getLabel());
+
+		// Final test of gallery types we allow this plugin to handle. 
+		$keepers = array('HTML'); // Add XML when appropriate rewrite determined
+		if (!in_array($label,$keepers)) return false;
+
+		// Now we know we have a markup galley
+		$filepath = $galley->getFilePath();
+		$fileManager = new FileManager();
+		$fileExt = $fileManager->parseFileExtension($filepath);
+
+		$mimeType = ($fileExt == 'xml') ?  'application/xml' : 'text/html';
+		header('Content-Type: ' . $mimeType . '; charset=UTF-8');
+		header('Cache-Control: ' . $templateMgr->cacheability);
+		header('Content-Length: ' . filesize($filepath));
+		ob_clean();
+		flush();
+
+		// Get article's plugin file folder
+		$args = array(
+			'articleId' => $articleId,
+			'fileName' => ''
+		);
+		$this->import('MarkupPluginUtilities');
+		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
+		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER,null), null);
+		
+		$html = file_get_contents($filepath);
+
+		// 1) get rid of relative path to markup root:
+		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1'.$markupURL.'$4$5', $html);
+		
+		// 2) Insert document base url into all relative urls except anchorlinks.
+		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1'.$articleURL.'$3$4', $html);
+
+		// Converts remaining file name to path[] param.  Will need 1 more call if media subfolders exist.
+		if (Request::isPathInfoEnabled()==false) {
+			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
+		}
+
+		// Inject iframe at top of page that enables return to previous page.
+		$backURL = Request::url(null, null, 'proofGalleyTop', $articleId, null);
+		$iframe = '<iframe src="'.$backURL.'" noresize="noresize" frameborder="0" scrolling="no" height="40" width="100%"></iframe>';
+		$insertPtr = strpos($html,'<body>')+6;
+		$html = substr($html,0,$insertPtr)
+			."\n\t"
+			.$iframe
+			.substr($html,$insertPtr);
+			
+		echo($html);
+		
+		return true;
+
+	}
+}?>

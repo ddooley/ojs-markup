@@ -3,11 +3,11 @@ Document Markup Server Notes
 Copyright (c) 2003-2013 John Willinsky
 Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 
-This technical_notes.md file contains a description of the data protocol/process that the OJS Document Markup Plugin (markup plugin) uses to communicate with the Document Markup Server (markup server).  All settings required for the plugin / server functionality are managed on the plugin settings page (after installation).
+This technical_notes.md file contains a description of the data protocol/process that the OJS Document Markup Plugin (markup plugin) uses to communicate with the Document Markup Server (markup server).  All settings required for the plugin / server functionality are managed on the plugin settings page.
 
 The Document Markup Server, provided by the PKP Group (http://pkp.sfu.ca) provides a service for converting pdf, doc, docx or odt documents into XML and HTML.  It includes a citation parsing engine.  The description of the interation below will focus on the markup plugin interaction; there is a similar process for conversions done through the Markup Server website's html form.
 
-The markup server service has very little required input - just a file name and a citation style language name for input; the markup plugin is set up to send additional meta info from OJS records related to the article to be converted.  The data sent (to the markup server's process.php script) is structured in a curl HTTP POST as:
+The markup server service has very little required input - just a file name and a citation style language name for input; the markup plugin  also sends additional meta info from OJS records related to the article to be converted.  The data sent (to the markup server's process.php script) is structured in a curl HTTP POST as JSON data.
 
 The markup plugin first requests a conversion using _refresh().  If the file upload is a success and is of the right type, the markup server generates a randomly named 32 character long alphanumeric folder which contains the converted documents and bibliography information.  This folder name is known as the "jobId".  The job folder and files are available for 24 hours although the markup plugin fetches the results immediately.
 
@@ -16,7 +16,7 @@ The markup plugin first requests a conversion using _refresh().  If the file upl
 	userfile	// Form field file attachment
 	jit_events	// Form field containing JSON string
 	
-Here is a minimal pseudo example of the jit_events field's JSON content:
+Here is a minimal pseudo example of the "jit_events" field JSON content:
 		[{
 			"type":"PDFX.fileUpload",
 			"data":{

@@ -7,6 +7,9 @@ This README file contains a general description of this module's functionality (
 
 Requirements: OJS 2.4 or greater, PHP 5.x, PHP CURL, PHP Zlib
 
+See technicalNotes.md for description of interface between this module and the Document Markup Server.
+
+
 This project implements an OJS plugin for automatically parsing NLM 3 XML from uploaded articles and generating published PDF and HTML versions from that XML.
 
 The plugin contains the following settings fields:
@@ -22,17 +25,15 @@ The plugin contains the following settings fields:
 When an author, copyeditor or editor uploads a new version of an article in a supported format (Microsoft Word .doc/docx, OpenOffice .odt/.docx, or PDF), this module submits it to our parsing server at http://pkp-udev.lib.sfu.ca. The following files are returned in a archive file (X-Y-Z-AG.tar.gz) which is added to the Supplementary files section.
 
  	manifest.xml
- 	document.pdf (used for parsing; generated only if input is not PDF)
 	document-review.pdf (included for reviewers only; has author details stripped out)
  	document-new.pdf (layout version of PDF)
-	document.nlm.xml (NLM-XML3/JATS-compliant)
+	document.xml (NLM-XML3/JATS-compliant)
 	document.html (web-viewable article)
-	document.bib (JSON-like format for structured citations)
-	document.refs (a text file of the article's citations and their bibliographic references, formatted according to selected CSL style. Also indicates when references were unused in body of article.)
 
 If the article is being uploaded as a publishing-ready galley, this plugin will extract the XML, HTML and PDF as layout versions when they are ready. There may be a few minutes' delay between uploaded a galley copy and receiving the layout versions from our service.
 
 This process is triggered each time an article is submitted, to enable the bibliographic reference work to be available at early stages of review and during copyedit.
+
 
 Installation
 
