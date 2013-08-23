@@ -1,6 +1,3 @@
-
-SourceOptions
-XPath/RenderXSL
 <!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
 <!--
   * @file plugins/generic/markup/locale/de_DE/locale.xml
