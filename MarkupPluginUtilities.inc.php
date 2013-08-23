@@ -1,17 +1,17 @@
 <?php
 
-/**
-* @file plugins/generic/markup/MarkupPluginUtilities.inc.php
-*
-* Copyright (c) 2003-2013 John Willinsky
-* Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
-*
-* @class MarkupPluginUtilities
-* @ingroup plugins_generic_markup
-*
-* @brief helper functions
-*
-*/
+	/**
+	 * @file plugins/generic/markup/MarkupPluginUtilities.inc.php
+	 *
+	 * Copyright (c) 2003-2013 John Willinsky
+	 * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+	 *
+	 * @class MarkupPluginUtilities
+	 * @ingroup plugins_generic_markup
+	 *
+	 * @brief helper functions
+	 *
+	 */
 
 define("MARKUP_GATEWAY_FOLDER",'markup'); //plugin gateway path folder.
 
@@ -191,7 +191,7 @@ class MarkupPluginUtilities {
 	
 	/**
 	 * Do all necessary checks to see if user is allowed to download this file if it has been published.
-	 * Basically a variation on /ojs/pages/article/ArticleManager.inc.php validate() AND /ojs/pages/issue/IssueManager.inc.php validate() 
+	 * A variation on /ojs/pages/article/ArticleManager.inc.php validate()
 	 *
 	 * @param $user object
 	 * @param $articleId int

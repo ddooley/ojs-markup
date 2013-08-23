@@ -1,17 +1,18 @@
 <?php
 
-/**
-* @file plugins/generic/markup/MarkupGatewayPlugin.inc.php
-*
-* Copyright (c) 2003-2013 John Willinsky
-* Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
-*
-* @class MarkupGatewayPlugin
-* @ingroup plugins_generic_markup
-*
-* @brief Responds to requests for markup files for particular journal article; sends request to markup an article to Document Markup Server.
-*
-*/
+	/**
+	 * @file plugins/generic/markup/MarkupGatewayPlugin.inc.php
+	 *
+	 * Copyright (c) 2003-2013 John Willinsky
+	 * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+	 *
+	 * @class MarkupGatewayPlugin
+	 * @ingroup plugins_generic_markup
+	 *
+	 * @brief Responds to requests for markup files for particular journal article; sends request to markup an article to Document Markup Server.
+	 *
+	 */
+	 
 define("MARKUP_GATEWAY_FOLDER",'markup'); //plugin gateway path folder.
 
 import('classes.plugins.GatewayPlugin');
@@ -123,7 +124,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *		... /css/[fileName]	 			// get stylesheets		
 	 *		... /refresh/[articleid] 		//generate zip file 
 	 *		... /refreshgalley/[articleid] 	//updates zip file 
-	 *		... /0/[articleid]/[fileName] // return galley pdf/xml/html
 	 * When disable_path_info is true URL conveys the above in path[] parameter array.
 	 *
 	 * @param $args Array of relative url folders down from plugin
