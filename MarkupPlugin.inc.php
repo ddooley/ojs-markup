@@ -417,7 +417,8 @@ class MarkupPlugin extends GenericPlugin {
 		$article = $params[0];
 		$galley = $params[1];
 		$articleId = $article->getId();			
-		return  $this->rewriteArticleHTML($articleId, $galley, false);
+		$this->rewriteArticleHTML($articleId, $galley, false);
+		exit;// Otherwise journal page tacked on end
 	}
 	
 	/**
@@ -443,6 +444,7 @@ class MarkupPlugin extends GenericPlugin {
 		if (!$galley) return false;
 
 		return $this->rewriteArticleHTML($articleId, $galley, true);
+
 	}
 	
 	/**
