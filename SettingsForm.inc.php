@@ -154,10 +154,10 @@ class SettingsForm extends Form {
 	function display() {
 		$templateMgr =& TemplateManager::getManager();
 		// Signals indicating plugin compatibility		
-		$templateMgr->assign('curlSupport', function_exists('curl_init') ? "Installed": "Not Installed");
-		$templateMgr->assign('zipSupport', extension_loaded('zlib') ? "Installed": "Not Installed");
-		$templateMgr->assign('php5Support', checkPhpVersion('5.0.0') ? "Installed": "Not Installed");
-		$templateMgr->assign('pathInfo', Request::isPathInfoEnabled() ? "Disabled": "Enabled" ); 
+		$templateMgr->assign('curlSupport', function_exists('curl_init') ? __('plugins.generic.markup.installed') : __('plugins.generic.markup.not_installed'));
+		$templateMgr->assign('zipSupport', extension_loaded('zlib') ? __('plugins.generic.markup.installed') : __('plugins.generic.markup.not_installed') );
+		$templateMgr->assign('php5Support', checkPhpVersion('5.0.0') ? __('plugins.generic.markup.installed') : __('plugins.generic.markup.not_installed') );
+		$templateMgr->assign('pathInfo', Request::isPathInfoEnabled() ? __('plugins.generic.markup.enabled') : __('plugins.generic.markup.disabled') ); 
 		parent::display();
 	}
 
@@ -210,7 +210,9 @@ class SettingsForm extends Form {
 			$journal =& Request::getJournal(); 
 			$journalFileManager = new JournalFileManager($journal);		
 			if ($journalFileManager->uploadedFileExists('cssHeaderImage') ) {
-				$journalFileManager->uploadFile('cssHeaderImage', "/css/article_header.png");
+				$type = $journalFileManager->getUploadedFileType('cssHeaderImage');
+				$ext = $journalFileManager->getImageExtension($type);
+				$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header'.$ext);
 			}
 		}
 		

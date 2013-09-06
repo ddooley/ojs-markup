@@ -16,6 +16,11 @@
 	
 	<message key="plugins.generic.markup.settings">Settings</message>
 	<message key="plugins.generic.markup.settings.saved">Settings saved!</message>
+
+	<message key="plugins.generic.markup.installed">Installed</message>
+	<message key="plugins.generic.markup.not_installed">Not installed</message>
+	<message key="plugins.generic.markup.disabled">Disabled</message>
+	<message key="plugins.generic.markup.enabled">Enabled</message>
 	
 	<message key="plugins.generic.markup.required.cslStyle">Citation Style is required!</message>
 	<message key="plugins.generic.markup.optional.cslStyleName">Citation Style Name is optional</message>
@@ -97,7 +102,7 @@
 	<message key="plugins.generic.markup.archive.no_journal">Request needs a Journal.</message>
 	<message key="plugins.generic.markup.archive.no_articleID">"Article Id parameter is invalid or missing."</message>
 	<message key="plugins.generic.markup.archive.no_article">No such article!</message>
-	<message key="plugins.generic.markup.archive.bad_filename">File name is missing or misformatted.  Should be: .../markup/[article Id]/0/[file name]</message>
+	<message key="plugins.generic.markup.archive.bad_filename">File name is missing or misformatted.  Should be: .../markup/0/[article Id]/[file name]</message>
 	<message key="plugins.generic.markup.archive.no_file">That file does not exist.</message>
 	<message key="plugins.generic.markup.archive.login">You need to login to get access to this file!</message>
 	<message key="plugins.generic.markup.archive.no_access">Your current login does not permit access to this file!</message>	

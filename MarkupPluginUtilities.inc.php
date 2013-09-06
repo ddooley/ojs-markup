@@ -13,25 +13,26 @@
 	 *
 	 */
 
-define("MARKUP_GATEWAY_FOLDER",'markup'); //plugin gateway path folder.
 
+define('MARKUP_SUPP_FOLDER', '/markup/'); // Name of folder inside article's suppl folder for holding unarchived files.
+	 
 class MarkupPluginUtilities {
 
 	/**
 	 * Provide notification messages for Document Markup Server job status
-	 * $message is already translated, i.e. caller takes responsibility for setting up the text correctly.  $typeFlag for now signals just success or failure style of message.
+	 * $message is already translated, i.e. caller takes responsibility for setting up the text correctly.  $typeFlag
 	 *
 	 * @param $message string translated text to display
-	 * @param $typeFlag bool optional
+	 * @param $typeFlag bool optional  for now signals just success or failure style of message.
 	 * @param $userId int optional explicit user id
 	 */
-	function notificationService($message, $typeFlag = true, $userId) {
+	function notificationService($message, $typeFlag, $userId) {
 
 		import('classes.notification.NotificationManager');
 		$notificationManager = new NotificationManager();
 
 		$notificationType = NOTIFICATION_TYPE_SUCCESS;		
-		if ($typeFlag == false){
+		if ($typeFlag === false){
 			$notificationType = NOTIFICATION_TYPE_ERROR;
 		}
 		
@@ -54,13 +55,15 @@ class MarkupPluginUtilities {
 	 * Return server's folder path that points to an article's supplementary file folder.  
 	 *
 	 * @param $articleId int
+	 * @param $markupFolderFlag bool flag indicates to include /markup/
 	 *
 	 * @return string supplementary file folder path.
 	 */
-	function getSuppPath($articleId) {
+	function getSuppPath($articleId , $markupFolderFlag = false) {
 		import('classes.file.ArticleFileManager');	
 		$articleFileManager = new ArticleFileManager((int) $articleId);
-		return ($articleFileManager->filesDir) . $articleFileManager->fileStageToPath( ARTICLE_FILE_SUPP );
+		return $articleFileManager->filesDir . $articleFileManager->fileStageToPath( ARTICLE_FILE_SUPP ) .
+		($markupFolderFlag == true ? MARKUP_SUPP_FOLDER : '/');
 	}
 	
 	/**
@@ -68,7 +71,9 @@ class MarkupPluginUtilities {
 	 * e.g. ... /index.php/praxis/gateway/plugin/markup/1/refresh
 	 * or ... index.php?journal=praxis&page=gateway&op=plugin&path[]=markup&path[]=1&path[]=refresh
 	 *
-	 * @param $args Array [action, articleId, userId] or [folder, fileName] or [0, articleId, fileName]
+	 * @param $args Array [action, articleId, userId]
+	 *	or [folder, fileName]
+	 *	or [0, articleId, fileName]
 	 *
 	 * @return string URL
 	 *
@@ -140,7 +145,7 @@ class MarkupPluginUtilities {
 		$fileManager = new FileManager();
 		
 		if (!$fileManager->fileExists($filePath,'file')) {
-			return $this->_exitFetch( __('plugins.generic.markup.archive.no_file').' : '.$fileName);
+			return $this->_exitFetch( __('plugins.generic.markup.archive.no_file'));
 		}
 		$mimeType = String::mime_content_type($fileName);
 		// Some servers don't recognize 'text/css' for .css suffixes:
@@ -170,7 +175,7 @@ class MarkupPluginUtilities {
 			if ($label == 'HTML' && $type != 'HTML') $keepers->HTML = true;
 			if ($label == 'PDF' && $type != 'PDF') $keepers->PDF = true;
 		}; 
-		$suppFolder = MarkupPluginUtilities::getSuppPath($articleId) .'/markup/';
+		$suppFolder = MarkupPluginUtilities::getSuppPath($articleId, true);
 
 		// No markup galley files found so delete all markup media.
 		if ($keepers->XML || $keepers->HTML || $keepers->PDF) {
@@ -399,7 +404,7 @@ class MarkupPluginUtilities {
 								//	REVIEWER ACCESS: If reviewers are not supposed to see list of authors, REVIEWER ONLY GETS TO SEE document-review.pdf version, which has all author information stripped.
 								if ($this->getSetting($journalId, 'reviewVersion') != true || $fileName == 'document-review.pdf')
 									return $roleType; 
-								continue; // We've matched to user so no more tries.
+								break; // We've matched to user so no more tries.
 							}
 						}
 

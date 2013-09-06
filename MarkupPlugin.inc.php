@@ -13,7 +13,7 @@
 	 *
 	 * Specification:
 	 *
-	 * When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module submits it to the pdfx server specified in the configuration file.  The following files are returned in gzip'ed archive file (X-Y-Z-AG.tar.gz) file.  An article supplementary file is created/updated to hold the archive.
+	 * When an author, copyeditor or editor uploads a new version (odt, docx, doc, or pdf format) of an article, this module submits it to the DMS server specified in the configuration file.  The following files are returned in gzip'ed archive file (X-Y-Z-AG.tar.gz) file.  An article supplementary file is created/updated to hold the archive.
 	 *
 	 * manifest.xml
 	 * document-new.pdf (layout version of PDF)
@@ -231,7 +231,7 @@ class MarkupPlugin extends GenericPlugin {
 			$articleFilePath = $articleFileDir. $articleFileManager->fileStageToPath( $articleFile->getFileStage() ) . '/' . $articleFile->getFileName();
 			$this->_setSuppFileId($suppFile, $articleFilePath, $articleFileManager); 
 			
-			// Submit the article to the pdfx server
+			// Submit the article to the DMS server
 			$this->_submitURL($articleId);
 
 		}
@@ -280,7 +280,7 @@ class MarkupPlugin extends GenericPlugin {
 				else
 					$galleyFlag = false;
 					
-				// Submit the article to the pdfx server
+				// Submit the article to the DMS server
 				$this->_submitURL($articleId, $galleyFlag);
 			}
 		}
@@ -485,17 +485,18 @@ class MarkupPlugin extends GenericPlugin {
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER,null), null);
 		
 		$html = file_get_contents($filepath);
-
-		// 1) get rid of relative path to markup root:
+		
+		// FIXME: Moving this up front, requires different regexp.
+		// For disabled  path info situations, converts src="[fileName]" cases to path[] param.
+		if (Request::isPathInfoEnabled()==false) {
+			//$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
+		}
+		
+		// Get rid of relative path to markup root:
 		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1'.$markupURL.'$4$5', $html);
 		
-		// 2) Insert document base url into all relative urls except anchorlinks.
+		// Insert document base url into all relative urls except anchorlinks.
 		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1'.$articleURL.'$3$4', $html);
-
-		// Converts remaining file name to path[] param.  Will need 1 more call if media subfolders exist.
-		if (Request::isPathInfoEnabled()==false) {
-			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
-		}
 
 		if ($backLinkFlag == true) {
 			// Inject iframe at top of page that enables return to previous page.

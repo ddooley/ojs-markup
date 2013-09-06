@@ -12,6 +12,14 @@
 <message key="plugins.generic.markup.settings">Einstellungen</message>
 <message key="plugins.generic.markup.description">Wenn ein/e Autor/in, Lektor/in oder Redakteur/in eine neue Version (im Format odt, doc, docx oder pdf) eines Artikels hochlädt, übermittelt dieses Modul sie an den in der Konfigurationsdatei genannten Dokumenten-Markup-Server und erhält eine gezippte Datei mit PDF-, XML- und HTML-Versionen dieses Artikels zusammen mit einem Literaturverzeichnis, das nach den Richtlinien der Zeitschrift formatiert ist. Diese gezippte Datei wird in dem Zusatzdateienordner aufbewahrt, damit sie im Begutachtungsprozess untersucht werden kann. Wenn der Artikel veröffentlicht werden kann, werden die PDF-, XML- und HTML-Fahnen ausgepackt und über das Inhaltsverzeichnis der Zeitschrift zugänglich gemacht.</message>
 <message key="plugins.generic.markup.errors.errorMessage">Kann keine XML- und HTML-Versionen von Artikeln holen. Das Dokumenten-Markup-Plug-In muss aktiviert sein, und der Zitationsstil muss in den Zeitschrifteneinstellungen angegeben werden.</message>
+
+
+	<message key="plugins.generic.markup.installed"></message>
+	<message key="plugins.generic.markup.not_installed"></message>
+	<message key="plugins.generic.markup.disabled"></message>
+	<message key="plugins.generic.markup.enabled"></message>
+	
+	
 <message key="plugins.generic.markup.settings.cslStyle">Zitationsstil (CSL) auswählen:</message>
 <message key="plugins.generic.markup.settings.cslStyleFieldHelp">Geben Sie einen Teil des Namens einer Organisation oder Publikation ein, um den Zitationsstil aus der lokalen CSL-Datenbank zu suchen. Unsere Datenbank wird regelmäßig aus ihrer Quelle http://citationstyles.org/styles/ aktualisiert.</message>
 <message key="plugins.generic.markup.settings.markupHostURL">Dokumenten-Markup-Server:</message>

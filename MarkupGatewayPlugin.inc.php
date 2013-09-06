@@ -177,7 +177,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if ($fileName == '')
 			return $this->_exitFetch( __('plugins.generic.markup.archive.bad_filename')); 
 
-		$markupFolder =  MarkupPluginUtilities::getSuppPath($articleId).'/markup/';
+		$markupFolder =  MarkupPluginUtilities::getSuppPath($articleId, true);
 		
 		if (!file_exists($markupFolder.$fileName))
 			return $this->_exitFetch( __('plugins.generic.markup.archive.no_file')); 
@@ -264,15 +264,15 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$args =& $this->_jobMetaData($article, $journal);
 		$argsArray = array($args);
-		$uploadFile = MarkupPluginUtilities::getSuppPath($articleId). '/' . $suppFileName;
+		$uploadFile = MarkupPluginUtilities::getSuppPath($articleId) . $suppFileName;
 
 		import('lib.pkp.classes.core.JSONManager');
 		$postFields = array(
-			'jit_events' => JSONManager::encode($argsArray),
+			'portal_events' => JSONManager::encode($argsArray),
 			'userfile' => "@". $uploadFile
 		);
 
-		//CURL sends article file to pdfx server for processing, and (since no timeout given) in 15-30+ seconds or so returns jobId which is folder where document.zip archive of converted documents sits.
+		//CURL sends article file to DMS server for processing, and (since no timeout given) in 15-30+ seconds or so returns jobId which is folder where document.zip archive of converted documents sits.
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $this->getSetting($journalId, 'markupHostURL') . "process.php");
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -286,17 +286,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if ($contents === false) return $this->_exitFetch($errorMsg, true);
 		
 		$events = JSONManager::decode($contents);		
-		$responses = $events->jit_events;
+		$responses = $events->portal_events;
 		$response = $responses[0]; //Should only be 1 element in array
 
-		if ($response->error > 0) // Document markup server provides plain text error message details.
-			return $this->_exitFetch($response->message.':'.$contents, true);
+		//if ($response->error > 0) // Document markup server provides plain text error message details.
+			return $this->_exitFetch($response->message.': '.$contents, true);
 
 		// With a $jobId, we can fetch URL of zip file and enter into supplimentary file record.
 		$jobId = $this->_getResponseJobId($response);
 		if (strlen($jobId) == 0 || strlen($jobId) > 32) 
 			return $this->_exitFetch( __('plugins.generic.markup.archive.no_job').$jobId, true);
-				
+
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
 		
 		// Unzip file and launch galleys ONLY during Layout upload
@@ -345,7 +345,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		
 		//Prepare request for Document Markup Server
 		$args = array(
-			'type' => 'PDFX.fileUpload',
+			'type' => 'DMS.fileUpload',
 			'data' => array(
 				'user' => $this->getSetting($journalId, 'markupHostUser'),
 				'pass' => $this->getSetting($journalId, 'markupHostPass'),
@@ -424,7 +424,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$articleFileManager = new ArticleFileManager($articleId);
 		
 		$jobURL = $this->getSetting($journalId, 'markupHostURL') . 'job/'.$jobId.'/document.zip';
-			
+
 		$suppFileId = $suppFile->getFileId();
 		if ($suppFileId == 0) { // no current supplementary file on drive 
 			$suppFileId = $articleFileManager->copySuppFile($jobURL, 'application/zip');
@@ -461,7 +461,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFolder =  MarkupPluginUtilities::getSuppPath($articleId);		
 
 		$zip = new ZipArchive;
-		$res = $zip->open($suppFolder.'/'.$suppFileName, ZIPARCHIVE::CHECKCONS);
+		$res = $zip->open($suppFolder . $suppFileName, ZIPARCHIVE::CHECKCONS);
 		
 		if ($res !== TRUE) {
 			$errorMsg = $zip->getStatusString();
@@ -488,15 +488,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
  		}
 	
 		// Write contents of $suppFileId document.zip to ... /journals/[x]/articles/[y]/supp/[z]/markup/
-	
-		// PHP docs say extractTo() returns false on failure, but its triggering this, and yet returning "No error" for $errorMsg below.
-		if ($zip->extractTo($suppFolder.'/markup', $extractFiles) === false) {
+		$suppFolder =  MarkupPluginUtilities::getSuppPath($articleId, $true);
+		if ($zip->extractTo($suppFolder, $extractFiles) === false) {
 			$errorMsg = $zip->getStatusString();
-			if ($errorMsg != 'No error') {
-				$zip->close();
-				$this->_exitFetch( __('plugins.generic.markup.archive.bad_zip').$errorMsg, true);
-				return false;
-			}
+			$zip->close();
+			$this->_exitFetch( __('plugins.generic.markup.archive.bad_zip').$errorMsg, true);
+			return false;
 		}
 		$zip->close();
 		
@@ -523,7 +520,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$articleFileManager = new ArticleFileManager($articleId);
     	$fileExt = strtoupper(ArticleFileManager::parseFileExtension($fileName) );
     	$this->import('MarkupPluginUtilities');
-		$archiveFile = MarkupPluginUtilities::getSuppPath($articleId).'/markup/'.$fileName;
+		$archiveFile = MarkupPluginUtilities::getSuppPath($articleId, true) . $fileName;
     	$suppFileId = $articleFileManager->copySuppFile($archiveFile, $mimeType);
     	
     	$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
