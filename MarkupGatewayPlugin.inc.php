@@ -18,6 +18,7 @@ define("MARKUP_GATEWAY_FOLDER",'markup'); //plugin gateway path folder.
 import('classes.plugins.GatewayPlugin');
 
 class MarkupGatewayPlugin extends GatewayPlugin {
+	
 	var $parentPluginName;
 	var $userId; // string, interactive user's id.
 	
@@ -289,8 +290,10 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$responses = $events->portal_events;
 		$response = $responses[0]; //Should only be 1 element in array
 
-		//if ($response->error > 0) // Document markup server provides plain text error message details.
-			return $this->_exitFetch($response->message.': '.$contents, true);
+		if ($response->error > 0) // Document markup server provides plain text error message details.
+			// FOR DEBUGGING:
+			// return $this->_exitFetch($response->message.': <code>'.$contents.'</code>', true);
+			return $this->_exitFetch($response->message, true);
 
 		// With a $jobId, we can fetch URL of zip file and enter into supplimentary file record.
 		$jobId = $this->_getResponseJobId($response);
@@ -302,9 +305,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Unzip file and launch galleys ONLY during Layout upload
 		if ($galleyFlag) {
 			if ($this->_unzipSuppFile($articleId, $suppFile, $galleyFlag) ) {
-				$this->_setupGalleyForMarkup($articleId, "document.html");
-				$this->_setupGalleyForMarkup($articleId, "document-new.pdf");
-				$this->_setupGalleyForMarkup($articleId, "document.xml");
+				$this->_setupGalleyForMarkup($articleId, 'document.html');
+				$this->_setupGalleyForMarkup($articleId, 'document-new.pdf');
+				$this->_setupGalleyForMarkup($articleId, 'document.xml');
 			} 
 			else return true;
 		}
@@ -488,7 +491,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
  		}
 	
 		// Write contents of $suppFileId document.zip to ... /journals/[x]/articles/[y]/supp/[z]/markup/
-		$suppFolder =  MarkupPluginUtilities::getSuppPath($articleId, $true);
+		$suppFolder = MarkupPluginUtilities::getSuppPath($articleId, true);
 		if ($zip->extractTo($suppFolder, $extractFiles) === false) {
 			$errorMsg = $zip->getStatusString();
 			$zip->close();
