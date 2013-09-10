@@ -1,4 +1,3 @@
-body,h1,h2,h3,h4,h5,h6,article,aside,dialog,figure,footer,header,hgroup,nav,section,blockquote,q,th,td,caption,table,div,span,object,iframe,p,pre,a,abbr,acronym,address,code,del,dfn,em,img,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,caption,tbody,tfoot,thead,tr { 
 /**
  * @file plugins/generic/markup/css/article.css
  *
@@ -8,16 +7,17 @@ body,h1,h2,h3,h4,h5,h6,article,aside,dialog,figure,footer,header,hgroup,nav,sect
  * @ingroup plugins_generic_markup
  *
  * @brief css for display of document.html
- * Adapted from https://github.com/hubgit/macrodocs/tree/gh-pages/css 
+ * Adapted from https: //github.com/hubgit/macrodocs/tree/gh-pages/css
  */
-  border:0;
-  font-weight:inherit;
-  font-style:inherit;
-  font-size:100%;
-  font-family:inherit;
-  vertical-align:baseline;
-  margin:0;
-  padding:0;
+body,h1,h2,h3,h4,h5,h6,article,aside,dialog,figure,footer,header,hgroup,nav,section,blockquote,q,th,td,caption,table,div,span,object,iframe,p,pre,a,abbr,acronym,address,code,del,dfn,em,img,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,caption,tbody,tfoot,thead,tr {
+	border: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+	margin: 0;
+	padding: 0;
 }
 
 body {
@@ -30,36 +30,36 @@ body {
 header {
 	text-align: center;
 	padding: 0 4rem;
-  margin: 2rem 0;
-  line-height: 1;
+	margin: 2rem 0;
+	line-height: 1;
 }
 
 h1, h2, h3, h4, h5, h6 {
 	color: #222;
-  line-height: 1;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+	line-height: 1;
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
 }
 
 h1, h2, h3 {
-  padding: 0 4rem;
+	padding: 0 4rem;
 }
 
 h1 {
-  font-size: 2.2rem;
-  margin: 1.5rem 0;
-  padding: 0;
-  letter-spacing: -1px;
+	font-size: 2.2rem;
+	margin: 1.5rem 0;
+	padding: 0;
+	letter-spacing: -1px;
 }
 
 h2 {
-  font-weight: 100;
+	font-weight: 100;
 	background: #444;
 	color: #DDD8C5;
-  font-size: 1.8rem;
+	font-size: 1.8rem;
 	margin-top: 2rem;
 	margin-bottom: 2rem;
-  line-height: 2;
+	line-height: 2;
 }
 
 h3 {
@@ -67,73 +67,73 @@ h3 {
 }
 
 h4 {
-  font-size: 1.4rem;
-  padding: 0 2rem;
+	font-size: 1.4rem;
+	padding: 0 2rem;
 }
 
 p {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-hyphens: auto;
+	hyphens: auto;
 }
 
 li {
-  line-height: 1.3;
+	line-height: 1.3;
 }
 
 figure, .table-wrap {
-  padding: 2rem 3rem 1rem;
-  margin: 2rem 0;
+	padding: 2rem 3rem 1rem;
+	margin: 2rem 0;
 	text-align: left;
 	overflow-y: auto;
 	background: white;
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 section section > figure,
 section section .table-wrap {
-  padding-left: 2rem;
-  padding-right: 2rem;
+	padding-left: 2rem;
+	padding-right: 2rem;
 }
 
 figure .image-container {
-  text-align: center;
-  margin-right: 2rem;
+	text-align: center;
+	margin-right: 2rem;
 }
 
 figure img {
 	margin: 0 2rem 1rem 0;
-  max-height: 840px;
-  cursor: pointer;
+	max-height: 840px;
+	cursor: pointer;
 }
 
 figcaption .heading,
 .table-wrap .heading {
 	margin: 0 0 1rem;
-  padding: 0 !important;
-  font-size: 1.2rem;
+	padding: 0 !important;
+	font-size: 1.2rem;
 }
 
 figcaption p,
 .caption p {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  margin-bottom: 0.5rem;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	margin-bottom: 0.5rem;
 }
 
 .table-wrap .alternatives .graphic {
-  display: none;
+	display: none;
 }
 
 header .context {
-  font-size: 1.2rem;
+	font-size: 1.2rem;
 }
 
 header .authors {
 	font-size: 1.5rem;
 	margin: 2rem auto;
-  line-height: 1.1;
+	line-height: 1.1;
 }
 
 section > p,
@@ -144,135 +144,135 @@ footer > div {
 }
 
 footer > div h2 {
-  margin-left: -3rem;
-  margin-right: -3rem;
+	margin-left: -3rem;
+	margin-right: -3rem;
 }
 
 a {
-  color: #15C;
+	color: #15C;
 }
 
 p {
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
+	line-height: 1.5;
+	margin-bottom: 1.5rem;
 }
 
 .body > section > section {
-  margin: 2rem;
-  border: 1px solid transparent; /* enforce margins within */
-  background: #F1F0E8;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-  border-radius: 3px;
-  z-index: 10;
-  position: relative;
+	margin: 2rem;
+	border: 1px solid transparent;
+	background: #F1F0E8;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+	border-radius: 3px;
+	z-index: 10;
+	position: relative;
 }
 
 .body > section > section h3 {
-  padding-left: 2rem;
-  padding-right: 2rem;
+	padding-left: 2rem;
+	padding-right: 2rem;
 }
 
 .body > section > section p {
-  margin-left: 2rem;
-  margin-right: 2rem;
+	margin-left: 2rem;
+	margin-right: 2rem;
 }
 
 figure {
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: flex;
-  -webkit-flex-flow: row wrap;
-  -moz-flex-flow: row wrap;
-  flex-flow: row wrap;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: flex;
+	-webkit-flex-flow: row wrap;
+	-moz-flex-flow: row wrap;
+	flex-flow: row wrap;
 }
 
 figure .image-container,
 figure figcaption {
-  -webkit-flex: 1 25rem;
-  -moz-flex: 1 25rem;
-  flex: 1 25rem;
+	-webkit-flex: 1 25rem;
+	-moz-flex: 1 25rem;
+	flex: 1 25rem;
 }
 
 figure > p {
-  margin: 0 !important;
-  padding: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 figure > p[content-type="supplemental-figure"] {
-  margin: 1rem 0;
-  background-color: #DDD8C5;
-  padding: 1rem 0;
+	margin: 1rem 0;
+	background-color: #DDD8C5;
+	padding: 1rem 0;
 }
 
 section p > figure, section p > .table-wrap {
-  margin-left: -2rem !important;
-  margin-right: -2rem !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
+	margin-left: -2rem !important;
+	margin-right: -2rem !important;
+	padding-left: 2rem !important;
+	padding-right: 2rem !important;
 }
 
 p > .row {
-  width: auto;
+	width: auto;
 }
 
-.body > section > section figure:last-child,
-.body > section > section .table-wrap:last-child {
-  margin-bottom: 0;
+.body > section > section figure: last-child,
+.body > section > section .table-wrap: last-child {
+	margin-bottom: 0;
 }
 
-.body > section > section p:last-child {
-  margin-bottom: 1.5rem;
+.body > section > section p: last-child {
+	margin-bottom: 1.5rem;
 }
 
 .object-id {
-  display: none;
+	display: none;
 }
 
 .disp-formula {
-  text-align: center;
-  margin: 1em;
+	text-align: center;
+	margin: 1em;
 }
 
 .disp-formula .label {
-  font-weight: bold;
-  float: right;
+	font-weight: bold;
+	float: right;
 }
 
 .inline-formula img {
-  margin: 0 0.25em;
-  vertical-align: text-bottom;
+	margin: 0 0.25em;
+	vertical-align: text-bottom;
 }
 
 .bold {
-  font-weight: bold;
+	font-weight: bold;
 }
 
 .italic {
-  font-style: italic;
+	font-style: italic;
 }
 
 .sc {
-  font-variant: small-caps;
+	font-variant: small-caps;
 }
 
 .strike {
-  text-decoration: line-through;
+	text-decoration: line-through;
 }
 
 .sub {
-  vertical-align: sub;
-  font-size: smaller;
-  line-height: 0;
+	vertical-align: sub;
+	font-size: smaller;
+	line-height: 0;
 }
 
 .sup {
-  vertical-align: super;
-  font-size: smaller;
-  line-height: 0;
+	vertical-align: super;
+	font-size: smaller;
+	line-height: 0;
 }
 
 .underline {
-  text-decoration: underline;
+	text-decoration: underline;
 }
 
 .name {
@@ -280,221 +280,214 @@ p > .row {
 }
 
 .xref {
-  white-space: nowrap;
+	white-space: nowrap;
 }
 
 .label {
-  color: inherit;
-  padding: 0;
-  font-size: inherit;
-  background: none;
-  text-shadow: none;
+	color: inherit;
+	padding: 0;
+	font-size: inherit;
+	background: none;
+	text-shadow: none;
 }
 
 .badge {
-  font-size: inherit;
-  line-height: normal;
-  cursor: pointer;
+	font-size: inherit;
+	line-height: normal;
+	cursor: pointer;
 }
 
 [content-type="supplemental-figure"] {
-  clear: both;
+	clear: both;
 }
 
 [position=float] {
-  clear: both;
-  overflow: auto;
+	clear: both;
+	overflow: auto;
 }
-
-/*
-[position=float] img {
-  float: left;
-}
-*/
 
 .boxed-text {
-  background: white;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  padding: 10px;
-  margin: 10px 0;
+	background: white;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	padding: 10px;
+	margin: 10px 0;
 }
 
 
 .fig-group {
-  margin: 0 -2rem;
+	margin: 0 -2rem;
 }
 
 .fn-group {
-  margin: 0 ;
+	margin: 0 ;
 }
 
 .fn-group > div {
-  margin: 0 3rem;
+	margin: 0 3rem;
 }
 
 table {
-  border: 1px solid #AAA;
-  margin: 1rem 0;
+	border: 1px solid #AAA;
+	margin: 1rem 0;
 }
 
 thead {
-  background: whiteSmoke;
-  border-bottom: 1px solid #AAA;
+	background: whiteSmoke;
+	border-bottom: 1px solid #AAA;
 }
 
 th, td {
-  padding: 2px 5px;
-  font-size: 90%;
+	padding: 2px 5px;
+	font-size: 90%;
 }
 
 col {
-  border: 1px solid #AAA;
+	border: 1px solid #AAA;
 }
 
 thead, th {
-  font-weight: bold;
+	font-weight: bold;
 }
 
 td {
-  text-align: right;
-  border: 1px solid #CCC;
+	text-align: right;
+	border: 1px solid #CCC;
 }
 
 table *[align=left] td {
-  text-align: left;
+	text-align: left;
 }
 
 ul, ol {
-  margin:  0 0 1rem 4rem;
+	margin: 0 0 1rem 4rem;
 }
 
 li p {
-  margin-bottom: 0 !important;
-  margin-left: 0 !important;
+	margin-bottom: 0 !important;
+	margin-left: 0 !important;
 }
 
 .body > p {
-  padding: 0 1rem;
+	padding: 0 1rem;
 }
 
 .table-wrap-foot {
-  display: table;
+	display: table;
 }
 
 .table-wrap-foot .fn {
-  display: table-row;
+	display: table-row;
 }
 
 .table-wrap-foot .fn > * {
-  display: table-cell;
+	display: table-cell;
 }
 
 .table-wrap-foot .fn p {
-  padding-left: 0.5em !important;
+	padding-left: 0.5em !important;
 }
 
-tr:nth-of-type(even) td {
-  background: #EEE;
+tr: nth-of-type(even) td {
+	background: #EEE;
 }
 
 a.xref[ref-type="table-fn"] {
-  vertical-align: super;
-  font-size: smaller;
+	vertical-align: super;
+	font-size: smaller;
 }
 
 section.collapsed > * {
-  display: none;
+	display: none;
 }
 
 section.collapsed > h2 {
-  display: block;
+	display: block;
 }
 
 section .show {
-  display: none;
-  cursor: pointer;
+	display: none;
+	cursor: pointer;
 }
 
-section .show:hover {
-  color: white;
+section .show: hover {
+	color: white;
 }
 
 section.collapsed .show {
-  display: block;
+	display: block;
 }
 
 nav {
-  margin-left: 3em;
-  margin-right: 3em; 
+	margin-left: 3em;
+	margin-right: 3em;
 }
 
 header .provider {
-  white-space: nowrap;
+	white-space: nowrap;
 }
 
 dl {
-  margin: 0 1rem;
+	margin: 0 1rem;
 }
 
 dt {
-  display: run-in;
-  font-weight: bold;
+	display: run-in;
+	font-weight: bold;
 }
 
-dt:after {
-  content: " ";
+dt: after {
+	content: " ";
 }
 
 .supplementary-material {
-  padding: 2rem;
-  margin: 0;
-  background: white;
+	padding: 2rem;
+	margin: 0;
+	background: white;
 }
 
 /******************** REFERENCE SECTION *******************/
 
 .ref-list {
-  display: table;
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+	display: table;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
 }
 
 .ref {
-  display: table-row;
-  margin-bottom: 10px;
+	display: table-row;
+	margin-bottom: 10px;
 }
 
 .ref > * {
-  display: table-cell;
-  padding: 0 0.5rem 0.5rem;
+	display: table-cell;
+	padding: 0 0.5rem 0.5rem;
 }
 
 .ref .ref-publication {
-  white-space: nowrap;
-  max-width: 20em;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 20em;
+	overflow-x: hidden;
+	text-overflow: ellipsis;
 }
 
 .ref .label {
-  text-align: right;
+	text-align: right;
 }
 
 .ref .source  {
-  font-style: italic;
+	font-style: italic;
 }
 
 .ref .pub-id {
-  display: none;
+	display: none;
 }
 
 .ref .person-group {
-  color: #555;
+	color: #555;
 }
 
-.ref .person-group .etal:after {
-  content: "";
+.ref .person-group .etal: after {
+	content: "";
 }
-

@@ -7,18 +7,7 @@
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   *
   * Plugin version information.
-  
-  
-major   	minor   	revision   	build   	date_installed   	current   	product_type   	product   	product_class_name   
-
- INSERT INTO versions (major, minor, revision, build, date_installed,current,product_type,product,product_class_name,lazy_load)
- SELECT 1,0,0,0, now(),1,'plugins.gateways','markup','MarkupPlugin',1
- 
- ALSO NOTE: TO DELETE PLUGIN ENTIRELY, AND RE-replace it, esp if ojs delete didn't work due to folder permissions, you may need to run:
- 
-  DELETE from versions where product ='markupplugin'
-  
-  -->
+-->
 <version>
 	<application>markup</application>
 	<type>plugins.generic</type>

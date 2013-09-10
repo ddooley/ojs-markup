@@ -1,5 +1,4 @@
-@page {
- /**
+/**
  * @file plugins/generic/markup/css/article_print.css
  *
  * Copyright (c) 2003-2013 John Willinsky
@@ -8,14 +7,14 @@
  * @ingroup plugins_generic_markup
  *
  * @brief css for print of document.html
- * Adapted from https://github.com/hubgit/macrodocs/tree/gh-pages/css 
- */	
+ * Adapted from https: //github.com/hubgit/macrodocs/tree/gh-pages/css
+ */
+@page {
 	prince-shrink-to-fit: auto;
 	size: A4;
 }
 
-.popover,
-[download] {
+.popover, [download] {
 	display: none !important;
 }
 
@@ -34,8 +33,8 @@ p {
 	line-height: 1.2;
 }
 
-p:not(:first-of-type) {
-  text-indent: 1em;
+p: not(: first-of-type) {
+	text-indent: 1em;
 }
 
 .sup, .sub {
@@ -99,7 +98,7 @@ figure {
 }
 
 figure .image-container {
-  	text-align: center;
+	text-align: center;
 }
 
 [position="float"] {
@@ -121,11 +120,11 @@ figcaption .heading {
 }
 
 section.collapsed > * {
-  	display: block;
+	display: block;
 }
 
 section.collapsed .show {
-  	display: none;
+	display: none;
 }
 
 #related-articles,
@@ -133,14 +132,14 @@ section.collapsed .show {
 	display: none;
 }
 
-table { page-break-inside:auto; page-break-after:auto }
-tr    { page-break-inside:avoid; page-break-after:auto }
-td    { page-break-inside:avoid; page-break-after:auto }
-thead { display:table-header-group }
-tfoot { display:table-footer-group }
+table { page-break-inside: auto; page-break-after: auto; }
+tr { page-break-inside: avoid; page-break-after: auto; }
+td { page-break-inside: avoid; page-break-after: auto; }
+thead { display: table-header-group; }
+tfoot { display: table-footer-group; }
 
 .heading {
-	page-break-after:avoid;
+	page-break-after: avoid;
 }
 
 

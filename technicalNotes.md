@@ -15,7 +15,7 @@ The markup plugin first requests a conversion using _refresh().  If the file upl
 
 	userfile	// Form field file attachment
 	jit_events	// Form field containing JSON string
-	
+
 Here is a minimal pseudo example of the "jit_events" field JSON content:
 		[{
 			"type":"PDFX.fileUpload",
@@ -42,14 +42,14 @@ A full spec of the data parameter shows the OJS article information that the mar
 		"eISSN" : (string), // electronic ISSN
 		"ISSN" : (string), // http://www.issn.org/
 		"DOI" : (string), // http://dx.doi.org,
-		
+
 		"number" : (string), // Publication issue, if any
 		"volume" : (string), // ditto
 		"year" : (integer), // ditto
 		"datePublished" : (datetime) // ditto
 	}
-		
-		
+
+
 2) SERVER SIDE RESPONSE
 
 The Markup server response is handled by a php function called jit_PDFX_fileUpload(). It processes the file uploaded by Apache.  Response includes the above event type and data if any, as well as a newly generated "jobId" which maps to a publicly accessible folder where document conversion files exist.
@@ -63,10 +63,10 @@ The server responds with HTTP content consisting of a JSON string:
 {jit_events:[{
 		"type" : "PDFX.fileUpload",
 		"data" : {
-			"cslStyle":"chicago-author-date.csl"},	// eg. 
+			"cslStyle":"chicago-author-date.csl"},	// eg.
 			"jobId" : "f74f3867fe944bdefc7367567994c9de",
 			"links" : ["document.doc","document.pdf"]	// main doc products
-			... and a reiteration of the data fields sent in by the OJS markup plugin request.	
+			... and a reiteration of the data fields sent in by the OJS markup plugin request.
 		}
 		"error: : 0 // Error code if one occurs
 		"message" : "File Uploaded" // File uploaded message by default, or error message if error occured.
@@ -80,21 +80,21 @@ If all goes well, the plugin fetches document.zip and incorporates desired files
 
 
 SOME TECHNICAL NOTES ON JSON REQUEST FORMAT
-	
+
 On the markup server each incoming request is renamed an "event".  Events have associated data, events can succeed, or end badly.  Events happen in a particular sequence.
 
 The data format of incoming requests is as follows.  "jit_events" is either a POST form field or a GET url parameter that contains 1 or more requests.
-	
+
 	jit_events=[
 		{request 1},
-		{request 2}, 
+		{request 2},
 		etc.
 	];
 
 At the very least, each request event is formatted as (expressed in JSON):
-	
+
 	{type:"myRequestType"}
-	
+
 This would trigger (if allowed) a function call to jit_myRequestType() on the server.  On the markup server we access a function called "PDFX.fileUpload" to do our document conversion.
 
 Other optional parameters that an event can have are:
@@ -102,28 +102,28 @@ Other optional parameters that an event can have are:
 jit_events=[{
 		type: "myEventType",
 		data: { attribute1: value1, //value can be a string, integer, object or array.
-				attribute2: value2, 
+				attribute2: value2,
 				etc.
 		}
 		domID:	//HTML id of dom element that triggered this request if desired. This info is returned
 				//back to browser to allow it to change state of the element for example.
 	}]
-	
-On processing a particular event, the server function call may add or modify the event's data parameter.  The event is then sent back to the browser with the modified data.  In some cases if needed, we drop data from the round trip, e.g. passwords, or data that was only needed for submission. 
-	
+
+On processing a particular event, the server function call may add or modify the event's data parameter.  The event is then sent back to the browser with the modified data.  In some cases if needed, we drop data from the round trip, e.g. passwords, or data that was only needed for submission.
+
 On encountering a php or 3rd party error while processing a particular event, the programmer may add these fields to the event:
 
 	{	error: //numeric error code, see function jit_process_error in utilities.php
 		message: //textual version of error
 	}
 
-	
-Potentially requests can be sent as GET requests, though normally POST requests are done.  GET requests are handy for testing as they can be done in a browser address bar.  For example, type 
-	
+
+Potentially requests can be sent as GET requests, though normally POST requests are done.  GET requests are handy for testing as they can be done in a browser address bar.  For example, type
+
 	[markup server url]/process.php
-	
+
 and one will receive a JSON jit_events array back:
 
 {"jit_events":[{"type":"JSONError","error":10,"message":"No HTML POST \"jit_events\" parameter provided"}]}
-		
-	
+
+
