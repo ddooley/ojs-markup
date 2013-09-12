@@ -87,15 +87,16 @@ class MarkupPluginUtilities {
 	 */
 	function getMarkupURL($args) {
 		$path = array(MARKUP_GATEWAY_FOLDER);
-		$articleId = (int) $args['articleId'];
+		$args['articleId'] = (int) $args['articleId'];
+
 		if ($args['action']) {
 			$user =& Request::getUser();
 			// Actions need a userId for notifications.
-			array_push($path, $args['action'], $articleId, $user->getId());
+			array_push($path, $args['action'], $args['articleId'], $user->getId());
 		} elseif ($args['folder']) {
 			array_push($path, $args['folder'], $args['fileName']);
 		} else {
-			array_push($path, 0, $articleId, $args['fileName']);
+			array_push($path, 0, $args['articleId'], $args['fileName']);
 		}
 
 		return Request::url(null, 'gateway', 'plugin', $path);
