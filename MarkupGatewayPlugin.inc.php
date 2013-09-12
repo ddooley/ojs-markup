@@ -16,7 +16,7 @@
 import('classes.plugins.GatewayPlugin');
 
 class MarkupGatewayPlugin extends GatewayPlugin {
-	var $userId;
+	var $_userId;
 
 	//
 	// Plugin Setup
@@ -94,24 +94,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	// Public plugin methods
 	//
 	/**
-	 * Get userId of user interacting with this plugin
-	 * (used by notification system only).
-	 * @return String user Id (Request::getUser()->getID is string)
-	 */
-	function getUserId() {
-		return $this->userId;
-	}
-
-	/**
-	 * Set userId of plugin user.
-	 * Passed with curl requests for actions on behalf of an editor etc.
-	 * @param String user Id
-	 */
-	function setUserId($id) {
-		$this->userId = strval($id);
-	}
-
-	/**
 	 * Gateway single point of entry.
 	 * All other methods below spun off of fetch().
 	 * Handles URL request to trigger document markup processing for given
@@ -164,7 +146,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// conversion archive file. With 'refreshgalley' option. User
 		// permissions don't matter here.
 		if (substr($args[0], 0, 7) == 'refresh') {
-			$this->setUserId((int) $args[2]);
+			$this->_setUserId((int) $args[2]);
 			$this->_refreshArticleArchive($article, ($paramA == 'refreshgalley'));
 			return true;
 		};
@@ -212,6 +194,28 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	//
 	// Protected helper methods
 	//
+	/**
+	 * Get userId of user interacting with this plugin
+	 * (used by notification system only).
+	 * @return String user Id (Request::getUser()->getID is string)
+	 */
+	function _getUserId() {
+		if (empty($this->_userId)) {
+			$user =& Request::getUser();
+			$this->_setUserId($user->getId());
+		}
+		return $this->_userId;
+	}
+
+	/**
+	 * Set userId of plugin user.
+	 * Passed with curl requests for actions on behalf of an editor etc.
+	 * @param String user Id
+	 */
+	function _setUserId($id) {
+		$this->_userId = strval($id);
+	}
+
 	/**
 	 * Provide Journal specific css stylesheets
 	 * CSS is public so no permission check. Returns css files for relative
@@ -589,7 +593,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			$this->import('MarkupPluginUtilities');
 			// FIXME: for now all notifications are success types
 			MarkupPluginUtilities::notificationService(
-				__('plugins.generic.markup.archive.status') . ' ' . $msg, true, $this->getUserId()
+				__('plugins.generic.markup.archive.status') . ' ' . $msg, true, $this->_getUserId()
 			);
 		}
 		$templateMgr =& TemplateManager::getManager();
