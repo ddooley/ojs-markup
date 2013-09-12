@@ -60,14 +60,6 @@ class MarkupPlugin extends GenericPlugin {
 		'_downloadArticleCallback' => 'ArticleHandler::downloadFile',
 	);
 
-	/**
-	 * Constructor
-	 */
-	function MarkupPlugin() {
-		$this->import('MarkupPluginUtilities');
-		parent::GenericPlugin();
-	}
-
 	//
 	// Plugin Setup
 	//
@@ -140,6 +132,7 @@ class MarkupPlugin extends GenericPlugin {
 					$form->readInputData();
 					if ($form->validate()) {
 						$form->execute();
+						$this->import('MarkupPluginUtilities');
 						MarkupPluginUtilities::notificationService(__('plugins.generic.markup.settings.saved'));
 						return false;
 					} else {
@@ -175,14 +168,22 @@ class MarkupPlugin extends GenericPlugin {
 		$success = parent::register($category, $path);
 		$this->addLocaleData();
 
-		// Register plugin hook callbacks
 		if ($success && $this->getEnabled()) {
-			foreach ($this->_callbackMap as $callback => $hook) {
+			$this->registerCallbacks();
+		}
+		return $success;
+	}
+
+	/**
+	 * Register plugin callbacks
+	 */
+	function registerCallbacks(){
+		foreach ($this->_callbackMap as $callback => $hooks) {
+			if (!is_array($hooks)) $hooks = array($hooks);
+			foreach ($hooks as $hook) {
 				HookRegistry::register($hook, array(&$this, $callback));
 			}
 		}
-
-		return $success;
 	}
 
 	//
@@ -217,9 +218,9 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $params array [&$step, &$article, &$submitForm]
 	 */
 	function _authorNewSubmissionConfirmationCallback($hookName, $params) {
-		$step =& $params[0];
+		$step = $params[0];
 
-		// Only Interested in final confirmation step
+		// Only interested in the final confirmation step
 		if ($step != 5) return false;
 
 		$article =& $params[1];
@@ -282,6 +283,7 @@ class MarkupPlugin extends GenericPlugin {
 		if ($articleFileManager->uploadedFileExists($fieldName)) {
 
 			// Uploaded temp file must have an extension to continue
+			$this->import('MarkupPluginUtilities');
 			$newPath = MarkupPluginUtilities::copyTempFilePlusExt($articleId, $fieldName);
 			if ($newPath !== false) {
 				$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
@@ -313,6 +315,7 @@ class MarkupPlugin extends GenericPlugin {
 		$galley =& $galleyDao->getGalley($galleyId);
 		$articleId = $galley->getSubmissionId();
 		$type = $galley->getLabel();
+		$this->import('MarkupPluginUtilities');
 		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
 
 		return false;
@@ -410,6 +413,7 @@ class MarkupPlugin extends GenericPlugin {
 			'articleId' => $articleId,
 			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
 		);
+		$this->import('MarkupPluginUtilities');
 		$url = MarkupPluginUtilities::getMarkupURL($args);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -458,6 +462,7 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFile = $suppFiles[0];
 		}
 
+		$this->import('MarkupPluginUtilities');
 		MarkupPluginUtilities::notificationService(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 
@@ -494,6 +499,8 @@ class MarkupPlugin extends GenericPlugin {
 			'articleId' => $articleId,
 			'fileName' => ''
 		);
+
+		$this->import('MarkupPluginUtilities');
 		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
