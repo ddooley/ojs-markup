@@ -291,14 +291,12 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * Hook sees if there are any HTML or XML galleys left when galley item is
+	 * Checks if there are any HTML or XML galleys left when galley item is
 	 * deleted. If not, delete all markup related file(s).
 	 *
 	 * @param $hookName string
 	 * @param $params array [$galleyId]
-	 *
-	 * @see register()
-	 **/
+	 */
 	function _deleteGalleyMediaCallback($hookName, $params) {
 		$galleyId = $params[0];
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');

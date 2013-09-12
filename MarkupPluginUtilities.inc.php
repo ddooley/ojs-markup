@@ -57,15 +57,13 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Return server's folder path that points to an article's supplementary
-	 * file folder.
+	 * Return article's supplementary files directory.
 	 *
 	 * @param $articleId int
 	 *
 	 * @return string supplementary file folder path.
 	 */
-	 // TODO: check if this can be renamed
-	function getSuppPath($articleId) {
+	function getSupplementaryDirectory($articleId) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager((int) $articleId);
 		return $articleFileManager->filesDir . $articleFileManager->fileStageToPath(ARTICLE_FILE_SUPP);
@@ -175,47 +173,47 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Delete markup plugin media files related to an Article if NO XML or HTML
-	 * galley links are left (that would need media).
+	 * Delete markup plugin media files related to an article if no XML or HTML
+	 * galley links are left.
 	 * The idea is that if a user has disallowed viewing of a particular kind of
 	 * content, then the plugin should not offer that through its gateway. Some
 	 * extra complexity because this has to anticipate $type will be deleted,
-	 * though it isn't yet since hook fires before action is completed.
+	 * though it isn't yet since hook fires before the action is completed.
 	 *
 	 * @param $articleId int
-	 *
-	 * @see _refresh()
 	 */
 	function checkGalleyMedia($articleId, $type) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$gals =& $galleyDao->getGalleysByArticle($articleId);
-		// TODO: change that
-		$keepers = new StdClass();
-		$keepers->XML = $keepers->HTML = $keepers->PDF = false;
-		foreach ($gals as $galley) {
-			$label = $galley->getLabel();
-			if ($label == 'XML' && $type != 'XML') $keepers->XML = true;
-			if ($label == 'HTML' && $type != 'HTML') $keepers->HTML = true;
-			if ($label == 'PDF' && $type != 'PDF') $keepers->PDF = true;
-		};
-		$suppFolder = MarkupPluginUtilities::getSuppPath($articleId) . '/markup/';
+		$galleys =& $galleyDao->getGalleysByArticle($articleId);
 
-		// No markup galley files found so delete all markup media.
-		if ($keepers->XML || $keepers->HTML || $keepers->PDF) {
-			if (!$keepers->XML) {
-				unlink($suppFolder . 'document.xml');
+		$keep = array();
+		foreach ($galleys as $galley) {
+			$label = $galley->getLabel();
+			if ($label == 'XML' && $type != 'XML') $keep['xml'] = true;
+			if ($label == 'HTML' && $type != 'HTML') $keep['html'] = true;
+			if ($label == 'PDF' && $type != 'PDF') $keep['pdf'] = true;
+		};
+
+		$supplementaryDirectory = MarkupPluginUtilities::getSupplementaryDirectory($articleId) . '/markup/';
+
+		$delete = array();
+		if ($keep) {
+			if (!isset($keep['xml'])) {
+				$delete[] = $supplementaryDirectory . 'document.xml';
 			}
-			if (!$keepers->HTML) {
-				unlink($suppFolder . 'document.html');
+			if (!isset($keep['html'])) {
+				$delete[] = $supplementaryDirectory . 'document.html';
 			}
-			if (!$keepers->PDF) {
-				unlink($suppFolder . 'document-new.pdf');
-				unlink($suppFolder . 'document-review.pdf');
+			if (!isset($keep['pdf'])) {
+				$delete[] = $supplementaryDirectory . 'document-new.pdf';
+				$delete[] = $supplementaryDirectory . 'document-review.pdf';
 			}
-		} else { // Remove all media
-			$glob = glob($suppFolder . '*');
-			foreach ($glob as $g) { unlink($g); }
+		} else {
+			// No markup galley files found so delete all markup media.
+			$delete = glob($supplementaryDirectory . '*');
 		}
+
+		foreach ($delete as $file) { unlink($file); }
 
 		return true;
 	}
