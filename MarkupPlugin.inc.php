@@ -363,8 +363,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $articleFileManager object, already initialized with an article id.
 	 */
 	function _setSuppFileId(&$suppFile, $suppFilePath, &$articleFileManager) {
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mimeType = finfo_file($finfo, $suppFilePath);
+		$mimeType = $this->_getMimeType($suppFilePath);
 		$suppFileId = $suppFile->getFileId();
 
 		if ($suppFileId == 0) {
@@ -463,15 +462,12 @@ class MarkupPlugin extends GenericPlugin {
 	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
 		if (strtoupper($galley->getLabel()) != 'HTML') return false;
 
-		// Now we know we have a markup galley
-		$filepath = $galley->getFilePath();
-		$fileManager = new FileManager();
-		$fileExt = $fileManager->parseFileExtension($filepath);
+		$filePath = $galley->getFilePath();
+		$mimeType = $this->_getMimeType($filePath);
 
-		$mimeType = ($fileExt == 'xml') ? 'application/xml' : 'text/html';
 		header('Content-Type: ' . $mimeType . '; charset=UTF-8');
 		header('Cache-Control: ' . $templateMgr->cacheability);
-		header('Content-Length: ' . filesize($filepath));
+		header('Content-Length: ' . filesize($filePath));
 		ob_clean();
 		flush();
 
@@ -484,9 +480,10 @@ class MarkupPlugin extends GenericPlugin {
 		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
-		$html = file_get_contents($filepath);
+		$html = file_get_contents($filePath);
 
 		// Get rid of relative path to markup root
+		// TODO use DOM/XPATH for that
 		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1' . $markupURL . '$4$5', $html);
 
 		// Insert document base url into all relative urls except anchorlinks
@@ -501,6 +498,7 @@ class MarkupPlugin extends GenericPlugin {
 		if ($backLinkFlag == true) {
 			// Inject iframe at top of page that enables return to previous page.
 			$backURL = Request::url(null, null, 'proofGalleyTop', $articleId, null);
+			// TODO: DOM/XPATH
 			$iframe = '<iframe src="' . $backURL . '" noresize="noresize" frameborder="0" scrolling="no" height="40" width="100%"></iframe>';
 			$insertPtr = strpos($html, '<body>') + 6;
 			$html = substr($html, 0, $insertPtr)
@@ -512,5 +510,10 @@ class MarkupPlugin extends GenericPlugin {
 		echo $html;
 
 		return true;
+	}
+
+	function _getMimeType($file) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		return finfo_file($finfo, $filePath);
 	}
 }
