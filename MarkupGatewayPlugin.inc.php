@@ -117,13 +117,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		foreach ($args as &$arg) { $arg = strtolower($arg); }
 
 		if (!$this->getEnabled()) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.enable'));
+			return $this->_response(__('plugins.generic.markup.archive.enable'));
 		}
 
 		// Make sure we're within a Journal context
 		$journal =& Request::getJournal();
 		if (!$journal) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_journal'));
+			return $this->_response(__('plugins.generic.markup.archive.no_journal'));
 		}
 
 		// Handles relative urls like "../../css/styles.css"
@@ -134,12 +134,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Load the article
 		$articleId = (int) $args[1];
 		if (!$articleId) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_articleID'));
+			return $this->_response(__('plugins.generic.markup.archive.no_articleID'));
 		}
 		$articleDao = &DAORegistry::getDAO('ArticleDAO');
 		$article = &$articleDao->getArticle($articleId);
 		if (!$article) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_article'));
+			return $this->_response(__('plugins.generic.markup.archive.no_article'));
 		}
 
 		// Replace supplementary document file with Document Markup Server
@@ -155,16 +155,16 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// state allows it, or if user's credentials allow it. $args[0] is /0/, a
 		// constant for now. $fileName should be a file name.
 		if ((int) $args[0] != 0) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_article'));
+			return $this->_response(__('plugins.generic.markup.archive.no_article'));
 		}
 
 		if (!$fileName = MarkupPluginUtilities::cleanFileName($args[2])) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.bad_filename'));
+			return $this->_response(__('plugins.generic.markup.archive.bad_filename'));
 		}
 
 		$markupFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
 		if (!file_exists($markupFolder . $fileName)) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_file'));
+			return $this->_response(__('plugins.generic.markup.archive.no_file'));
 		}
 
 
@@ -180,7 +180,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Article is not published, so access can only be granted if user is
 		// logged in and of the right type / connection to article
 		if (!$user = Request::getUser()) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.login'));
+			return $this->_response(__('plugins.generic.markup.archive.login'));
 		}
 
 		if (MarkupPluginUtilities::getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
@@ -188,7 +188,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return true;
 		}
 
-		return $this->_exitFetch(__('plugins.generic.markup.archive.no_access'));
+		return $this->_response(__('plugins.generic.markup.archive.no_access'));
 	}
 
 	//
@@ -262,14 +262,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		if (count($suppFiles) == 0) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.supp_missing'), true);
+			return $this->_response(__('plugins.generic.markup.archive.supp_missing'), true);
 		}
 
 		$suppFile = $suppFiles[0]; // There should only be one.
 
 		$fileId = $suppFile->getFileId();
 		if ($fileId == 0) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.supp_file_missing'), true);
+			return $this->_response(__('plugins.generic.markup.archive.supp_file_missing'), true);
 		}
 
 		$suppFileName = $suppFile->getFileName();
@@ -277,7 +277,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// If supplementary file is already a zip, there's nothing to do. Its
 		// been converted.
 		if (preg_match('/.*\.zip/', strtolower($suppFileName))) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.is_zip'));
+			return $this->_response(__('plugins.generic.markup.archive.is_zip'));
 		}
 
 		$args =& $this->_jobMetaData($article, $journal);
@@ -305,7 +305,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		curl_close($ch);
 
 		if ($content === false) {
-			return $this->_exitFetch($errorMsg, true);
+			return $this->_response($errorMsg, true);
 		}
 
 		$events = JSONManager::decode($content);
@@ -313,14 +313,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$response = $responses[0];
 
 		if ($response->error > 0) {
-			return $this->_exitFetch($response->message . ':' . $content, true);
+			return $this->_response($response->message . ':' . $content, true);
 		}
 
 		// With a $jobId, we can fetch URL of zip file and enter into
 		// supplimentary file record.
 		$jobId = $this->_getResponseJobId($response);
 		if (strlen($jobId) == 0 || strlen($jobId) > 32) {
-			return $this->_exitFetch(__('plugins.generic.markup.archive.no_job') . $jobId, true);
+			return $this->_response(__('plugins.generic.markup.archive.no_job') . $jobId, true);
 		}
 
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
@@ -340,7 +340,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			MarkupPluginUtilities::checkGalleyMedia($articleId);
 		}
 
-		$this->_exitFetch(__('plugins.generic.markup.completed') . " $articleId (Job $jobId)", true);
+		$this->_response(__('plugins.generic.markup.completed') . " $articleId (Job $jobId)", true);
 
 		return true;
 	}
@@ -494,7 +494,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$zip = new ZipArchive;
 		if (!$zip->open($suppFolder . '/' . $suppFileName, ZIPARCHIVE::CHECKCONS)) {
 			$errorMsg = $zip->getStatusString();
-			$this->_exitFetch(
+			$this->_response(
 				__('plugins.generic.markup.archive.bad_zip') . ':' . $suppFileName . ':' . $errorMsg, true
 			);
 			return false;
@@ -525,7 +525,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			$errorMsg = $zip->getStatusString();
 			if ($errorMsg != 'No error') {
 				$zip->close();
-				$this->_exitFetch(__('plugins.generic.markup.archive.bad_zip') . $errorMsg, true);
+				$this->_response(__('plugins.generic.markup.archive.bad_zip') . $errorMsg, true);
 				return false;
 			}
 		}
@@ -588,7 +588,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $msg string status indicating job success or error
 	 * @param $notification boolean indicating if user should be notified.
 	 */
-	function _exitFetch($msg, $notification) {
+	function _response($msg, $notification) {
 		if ($notification == true) {
 			$this->import('MarkupPluginUtilities');
 			// FIXME: for now all notifications are success types
