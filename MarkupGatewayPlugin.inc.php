@@ -18,6 +18,9 @@ import('classes.plugins.GatewayPlugin');
 class MarkupGatewayPlugin extends GatewayPlugin {
 	var $userId;
 
+	//
+	// Plugin Setup
+	//
 	/**
 	 * Get the name of this plugin. The name must be unique within
 	 * its category.
@@ -87,6 +90,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		return array();
 	}
 
+	//
+	// Public plugin methods
+	//
 	/**
 	 * Get userId of user interacting with this plugin
 	 * (used by notification system only).
@@ -203,6 +209,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		return $this->_exitFetch(__('plugins.generic.markup.archive.no_access'));
 	}
 
+	//
+	// Protected helper methods
+	//
 	/**
 	 * Provide Journal specific css stylesheets
 	 * CSS is public so no permission check. Returns css files for relative
