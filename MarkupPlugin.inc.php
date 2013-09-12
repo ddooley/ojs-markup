@@ -40,6 +40,37 @@ define('MARKUP_GATEWAY_FOLDER', 'markup');
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class MarkupPlugin extends GenericPlugin {
+	/** Callback to hook mappings for this plugin */
+	var $_callbackMap = array(
+		'_loadCategoryCallback' => 'PluginRegistry::loadCategory',
+		'_authorNewSubmissionConfirmationCallBack' => 'Author::SubmitHandler::saveSubmit',
+		'_fileToMarkupCallback' => array(
+			'AuthorAction::uploadRevisedVersion',
+			'AuthorAction::uploadCopyeditVersion',
+			'CopyeditorAction::uploadCopyeditVersion',
+			'SectionEditorAction::uploadReviewVersion',
+			'SectionEditorAction::uploadEditorVersion',
+			'SectionEditorAction::uploadCopyeditVersion',
+			'SectionEditorAction::uploadReviewForReviewer',
+			'SectionEditorAction::uploadLayoutVersion',
+			'LayoutEditorAction::uploadLayoutVersion',
+		),
+		'_deleteGalleyMediaCallback' => 'ArticleGalleyDAO::deleteGalleyById',
+		'_displayGalleyCallback' => 'TemplateManager::display',
+		'_downloadArticleCallback' => 'ArticleHandler::downloadFile',
+	);
+
+	/**
+	 * Constructor
+	 */
+	function MarkupPlugin() {
+		$this->import('MarkupPluginUtilities');
+		parent::GenericPlugin();
+	}
+
+	//
+	// Plugin Setup
+	//
 	/**
 	 * Get the system name of this plugin.
 	 * The name must be unique within its category. It enables a simple URL to
@@ -109,7 +140,6 @@ class MarkupPlugin extends GenericPlugin {
 					$form->readInputData();
 					if ($form->validate()) {
 						$form->execute();
-						$this->import('MarkupPluginUtilities');
 						MarkupPluginUtilities::notificationService(__('plugins.generic.markup.settings.saved'));
 						return false;
 					} else {
@@ -145,76 +175,33 @@ class MarkupPlugin extends GenericPlugin {
 		$success = parent::register($category, $path);
 		$this->addLocaleData();
 
+		// Register plugin hook callbacks
 		if ($success && $this->getEnabled()) {
-			// Add gateway plugin class to handle markup content requests
-			HookRegistry::register('PluginRegistry::loadCategory', array(&$this, 'callbackLoadCategory'));
-
-			// For User > Author > Submissions > New Submission: Any step in
-			// form. Triggers at step 5, after entry of title and authors.
-			// see line 155 of /current/html/SubmitHandler.inc.php:
-			// TODO: remove line number reference
-			HookRegistry::register('Author::SubmitHandler::saveSubmit', array(&$this, '_authorNewSubmissionConfirmation'));
-
-			// The following hooks fire after upload of file, but before it is
-			// brought into OJS and assigned an id
-
-			// See classes/submission/author/authorAction.inc.php
-			// For User > Author > Submissions > X > Review: Upload Author
-			HookRegistry::register('AuthorAction::uploadRevisedVersion', array(&$this, '_fileToMarkup'));
-
-			// For User > Author > Submissions > X > Editing: Author Copyedit
-			HookRegistry::register('AuthorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup'));
-
-			HookRegistry::register('CopyeditorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup'));
-
-			// For Submissions > X > Review: Submission
-			HookRegistry::register('SectionEditorAction::uploadReviewVersion', array(&$this, '_fileToMarkup'));
-
-			// For Submissions > X > Review: Editor Decision
-			HookRegistry::register('SectionEditorAction::uploadEditorVersion', array(&$this, '_fileToMarkup'));
-
-			// For Submissions > X > Editing: Copyediting
-			HookRegistry::register('SectionEditorAction::uploadCopyeditVersion', array(&$this, '_fileToMarkup'));
-
-			// For User > Editor > Submissions > #4 >
-			// Review: Peer Review (reviewer) : Upload review (editor on behalf of reviewer)
-			HookRegistry::register('SectionEditorAction::uploadReviewForReviewer', array(&$this, '_fileToMarkup'));
-
-			// For Submissions > X > Editing: Layout
-			HookRegistry::register('SectionEditorAction::uploadLayoutVersion', array(&$this, '_fileToMarkup'));
-
-			HookRegistry::register('LayoutEditorAction::uploadLayoutVersion', array(&$this, '_fileToMarkup'));
-
-			HookRegistry::register('ArticleGalleyDAO::deleteGalleyById', array(&$this, 'deleteGalleyMedia'));
-
-			HookRegistry::register('TemplateManager::display', array(&$this, 'displayGalleyHook'));
-
-			HookRegistry::register('ArticleHandler::downloadFile', array(&$this, 'downloadArticleHook'));
-
+			foreach ($this->_callbackMap as $callback => $hook) {
+				HookRegistry::register($hook, array(&$this, $callback));
+			}
 		}
 
 		return $success;
 	}
 
+	//
+	// Callbacks
+	//
 	/**
 	 * Register as a gateway plugin too.
-	 * This allows the fetch() function to respond to requests for article
-	 * files.
-	 *
+     *
 	 * @param $hookName string
-	 * @param $args array [category string, plugins array]
+	 * @param $params array [category string, plugins array]
 	 */
-	function callbackLoadCategory($hookName, $args) {
-		$category =& $args[0];
-		$plugins =& $args[1];
+	function _loadCategoryCallback($hookName, $params) {
+		$category =& $params[0];
+		$plugins =& $params[1];
 
-		switch ($category) {
-			// Piggyback gateway accesss to this plugin.
-			case 'gateways':
-				$this->import('MarkupGatewayPlugin');
-				$gatewayPlugin = new MarkupGatewayPlugin($this->getName());
-				$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
-				break;
+		if ($category == 'gateways') {
+			$this->import('MarkupGatewayPlugin');
+			$gatewayPlugin = new MarkupGatewayPlugin($this->getName());
+			$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
 		}
 
 		return false;
@@ -229,7 +216,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $hookName string
 	 * @param $params array [&$step, &$article, &$submitForm]
 	 */
-	function _authorNewSubmissionConfirmation($hookName, $params) {
+	function _authorNewSubmissionConfirmationCallback($hookName, $params) {
 		$step =& $params[0];
 
 		// Only Interested in final confirmation step
@@ -271,7 +258,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $hookName string
 	 * @param $params array [article object , ...]
 	 */
-	function _fileToMarkup($hookName, $params) {
+	function _fileToMarkupCallback($hookName, $params) {
 		$article =& $params[0];
 		$articleId = $article->getId();
 		$journal =& Request::getJournal();
@@ -295,7 +282,6 @@ class MarkupPlugin extends GenericPlugin {
 		if ($articleFileManager->uploadedFileExists($fieldName)) {
 
 			// Uploaded temp file must have an extension to continue
-			$this->import('MarkupPluginUtilities');
 			$newPath = MarkupPluginUtilities::copyTempFilePlusExt($articleId, $fieldName);
 			if ($newPath !== false) {
 				$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
@@ -312,6 +298,73 @@ class MarkupPlugin extends GenericPlugin {
 		return false;
 	}
 
+	/**
+	 * Hook sees if there are any HTML or XML galleys left when galley item is
+	 * deleted. If not, delete all markup related file(s).
+	 *
+	 * @param $hookName string
+	 * @param $params array [$galleyId]
+	 *
+	 * @see register()
+	 **/
+	function _deleteGalleyMediaCallback($hookName, $params) {
+		$galleyId = $params[0];
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley =& $galleyDao->getGalley($galleyId);
+		$articleId = $galley->getSubmissionId();
+		$type = $galley->getLabel();
+		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
+
+		return false;
+	}
+
+	/**
+	 * This hook handles display of any HTML & XML ProofGalley links that were
+	 * generated by this plugin. PDFs are not handled here.
+	 * Note: permissions for 5 user types (author, copyeditor, layouteditor,
+	 * proofreader, sectioneditor) have already been decided in caller's
+	 * proofGalley() methods.
+	 * NOTE: Do NOT pass hook $params by reference, or this hook will
+	 * mysteriously never fire!
+	 *
+	 * @param $hookName string
+	 * @param $params array [$galleyId]
+	 */
+	function _displayGalleyCallback($hookName, $params) {
+		if ($params[1] != 'submission/layout/proofGalley.tpl') return false;
+
+		$templateMgr = $params[0];
+		$galleyId = $templateMgr->get_template_vars('galleyId');
+		$articleId = $templateMgr->get_template_vars('articleId');
+		if (!$articleId) return false;
+
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley =& $galleyDao->getGalley($galleyId, $articleId);
+		if (!$galley) return false;
+
+		return $this->_rewriteArticleHTML($articleId, $galley, true);
+	}
+
+	/**
+	 * This hook intercepts user request on public site to download/view an
+	 * article galley HTML / XML / PDF link.
+	 *
+	 * @param $hookName string
+	 * @param $params array [$article, $galley]
+	 */
+	function _downloadArticleCallback($hookName, $params) {
+		$article = $params[0];
+		$galley = $params[1];
+		$articleId = $article->getId();
+		$this->_rewriteArticleHTML($articleId, $galley, false);
+
+		// TODO: seems hacky
+		exit; // Otherwise journal page tacked on end
+	}
+
+	//
+	// Private helper functions
+	//
 	/**
 	 * Make a new supplementary file record or copy over an existing one.
 	 * Depends on mime_content_type() to get suffix of uploaded file.
@@ -357,7 +410,6 @@ class MarkupPlugin extends GenericPlugin {
 			'articleId' => $articleId,
 			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
 		);
-		$this->import('MarkupPluginUtilities');
 		$url = MarkupPluginUtilities::getMarkupURL($args);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -406,78 +458,10 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFile = $suppFiles[0];
 		}
 
-		$this->import('MarkupPluginUtilities');
 		MarkupPluginUtilities::notificationService(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 
 		return $suppFile;
-	}
-
-
-
-	/**
-	 * Hook sees if there are any HTML or XML galleys left when galley item is
-	 * deleted. If not, delete all markup related file(s).
-	 *
-	 * @param $hookName string
-	 * @param $params array [$galleyId]
-	 *
-	 * @see register()
-	 **/
-	function deleteGalleyMedia($hookName, $params) {
-		$galleyId = $params[0];
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galley =& $galleyDao->getGalley($galleyId);
-		$articleId = $galley->getSubmissionId();
-		$type = $galley->getLabel();
-		$this->import('MarkupPluginUtilities');
-		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
-
-		return false;
-	}
-
-	/**
-	 * This hook intercepts user request on public site to download/view an
-	 * article galley HTML / XML / PDF link.
-	 *
-	 * @param $hookName string
-	 * @param $params array [$article, $galley]
-	 */
-	function downloadArticleHook($hookName, $params) {
-		$article = $params[0];
-		$galley = $params[1];
-		$articleId = $article->getId();
-		$this->rewriteArticleHTML($articleId, $galley, false);
-
-		// TODO: seems hacky
-		exit; // Otherwise journal page tacked on end
-	}
-
-	/**
-	 * This hook handles display of any HTML & XML ProofGalley links that were
-	 * generated by this plugin. PDFs are not handled here.
-	 * Note: permissions for 5 user types (author, copyeditor, layouteditor,
-	 * proofreader, sectioneditor) have already been decided in caller's
-	 * proofGalley() methods.
-	 * NOTE: Do NOT pass hook $params by reference, or this hook will
-	 * mysteriously never fire!
-	 *
-	 * @param $hookName string
-	 * @param $params array [$galleyId]
-	 */
-	function displayGalleyHook($hookName, $params) {
-		if ($params[1] != 'submission/layout/proofGalley.tpl') return false;
-
-		$templateMgr = $params[0];
-		$galleyId = $templateMgr->get_template_vars('galleyId');
-		$articleId = $templateMgr->get_template_vars('articleId');
-		if (!$articleId) return false;
-
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galley =& $galleyDao->getGalley($galleyId, $articleId);
-		if (!$galley) return false;
-
-		return $this->rewriteArticleHTML($articleId, $galley, true);
 	}
 
 	/**
@@ -490,7 +474,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * referring page.
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
-	function rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
+	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
 		if (strtoupper($galley->getLabel()) != 'HTML') return false;
 
 		// Now we know we have a markup galley
@@ -510,7 +494,6 @@ class MarkupPlugin extends GenericPlugin {
 			'articleId' => $articleId,
 			'fileName' => ''
 		);
-		$this->import('MarkupPluginUtilities');
 		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
