@@ -122,21 +122,23 @@ class MarkupPluginUtilities {
 	 * Uploaded file hasn't been processed by OJS yet.
 	 *
 	 * @param: $articleFileManager object primed with article
-	 * @param: $fieldName string upload form field name
+	 * @param: $fileName string upload form field name
 	 *
 	 * @return false if no suffix; otherwise path to copied file
 	 */
-	function copyTempFilePlusExt($articleId, $fieldName) {
+	function copyTempFile($articleId, $fileName) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-		$articleFilePath = $articleFileManager->getUploadedFilePath($fieldName);
-		$fileName = $articleFileManager->getUploadedFileName($fieldName);
+		$articleFilePath = $articleFileManager->getUploadedFilePath($fileName);
+		$fileName = $articleFileManager->getUploadedFileName($fileName);
+
  		// Exit if no suffix.
 		if (!strpos($fileName, '.')) return false;
 
 		$suffix = $articleFileManager->getExtension($fileName);
 		$newFilePath = $articleFilePath . '.' . $suffix;
 		$articleFileManager->copyFile($articleFilePath, $newFilePath);
+
 		return $newFilePath;
 	}
 

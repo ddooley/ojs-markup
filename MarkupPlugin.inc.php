@@ -258,35 +258,34 @@ class MarkupPlugin extends GenericPlugin {
 		$journalId = $journal->getId();
 
 		// Ensure a supplementary file record is in place.
-		$suppFile = $this->_supplementaryFile($articleId);
+		$supplementaryFile = $this->_supplementaryFile($articleId);
 
-		// The form $fieldname of the uploaded file differs in one case of the
+		// The file name of the uploaded file differs in one case of the
 		// calling hooks. For the "Submissions > X > Editing: Layout:" call
 		// (SectionEditorAction::uploadLayoutVersionFForm) the file is called
 		// 'layoutFile', while in all other cases it is called 'upload'.
-		$fieldName = 'upload';
+		$fileName = 'upload';
 		if ($hookName == 'SectionEditorAction::uploadLayoutVersion') {
-			$fieldName = 'layoutFile';
+			$fileName = 'layoutFile';
 		}
 
 		// Trigger only if file uploaded.
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-		if ($articleFileManager->uploadedFileExists($fieldName)) {
+		if ($articleFileManager->uploadedFileExists($fileName)) { return false; }
 
-			// Uploaded temp file must have an extension to continue
-			$newPath = MarkupPluginUtilities::copyTempFilePlusExt($articleId, $fieldName);
-			if ($newPath !== false) {
-				$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
-				@unlink($newPath);
+		// Copy the temporary file
+		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
+		if (!$newPath) { return false; }
 
-				// If we have a layout upload then trigger galley link creation.
-				$galleyFlag = (strpos($hookName, 'uploadLayoutVersion') > 0);
+		$this->_setSuppFileId($supplementaryFile, $newPath, $articleFileManager);
+		@unlink($newPath);
 
-				// Submit the article to the pdfx server
-				$this->_submitURL($articleId, $galleyFlag);
-			}
-		}
+		// If we have a layout upload then trigger galley link creation.
+		$galleyFlag = (strpos($hookName, 'uploadLayoutVersion') !== false);
+
+		// Submit the article to the pdfx server
+		$this->_submitURL($articleId, $galleyFlag);
 
 		return false;
 	}
