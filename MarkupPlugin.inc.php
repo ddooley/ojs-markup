@@ -70,7 +70,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string name of plugin
 	 */
 	function getName() {
-		return MARKUP_PLUGIN_NAME;
+		return 'markup';
 	}
 
 	function getDisplayName() {

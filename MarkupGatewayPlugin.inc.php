@@ -27,7 +27,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return String name of plugin
 	 */
 	function getName() {
-		return MARKUP_PLUGIN_NAME;
+		$plugin =& $this->getMarkupPlugin();
+		return $plugin->getName();
 	}
 
 	/**
