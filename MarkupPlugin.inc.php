@@ -357,24 +357,24 @@ class MarkupPlugin extends GenericPlugin {
 	//
 	/**
 	 * Make a new supplementary file record or copy over an existing one.
-	 * Depends on mime_content_type() to get suffix of uploaded file.
 	 *
-	 * @param $suppFile object
-	 * @param $suppFilePath string file path
+	 * @param $supplementaryFile object
+	 * @param $supplementaryFilePath string file path
 	 * @param $articleFileManager object, already initialized with an article id.
 	 */
-	function _setSuppFileId(&$suppFile, $suppFilePath, &$articleFileManager) {
-		$mimeType = String::mime_content_type($suppFilePath);
-		$suppFileId = $suppFile->getFileId();
+	function _setSuppFileId(&$supplementaryFile, $supplementaryFilePath, &$articleFileManager) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mimeType = finfo_file($finfo, $supplementaryFilePath);
+		$supplementaryFileId = $supplementaryFile->getFileId();
 
-		if ($suppFileId == 0) { // There is no current supplementary file.
-			$suppFileId = $articleFileManager->copySuppFile($suppFilePath, $mimeType);
-			$suppFile->setFileId($suppFileId);
+		if ($supplementaryFileId == 0) {
+			$supplementaryFileId = $articleFileManager->copySuppFile($supplementaryFilePath, $mimeType);
+			$supplementaryFile->setFileId($supplementaryFileId);
 
-			$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
-			$suppFileDao->updateSuppFile($suppFile);
+			$supplementaryFileDao =& DAORegistry::getDAO('SuppFileDAO');
+			$supplementaryFileDao->updateSuppFile($supplementaryFile);
 		} else {
-			$articleFileManager->copySuppFile($suppFilePath, $mimeType, $suppFileId, true);
+			$articleFileManager->copySuppFile($supplementaryFilePath, $mimeType, $supplementaryFileId, true);
 		}
 	}
 
