@@ -233,15 +233,16 @@ class MarkupPluginUtilities {
 	 * @see fetch()
 	 */
 	function getUserPermViewPublished($user, $articleId, &$journal, $fileName) {
+		$journalId = (int) $journal->getId();
+		$articleId = (int) $articleId;
 
-		$journalId = $journal->getId();
 		$userId = $user ? $user->getId() : 0;
 
 		$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
 		if ($journal->getSetting('enablePublicArticleId')) {
-			$publishedArticle =& $publishedArticleDao->getPublishedArticleByBestArticleId((int) $journalId, $articleId, true);
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByBestArticleId($journalId, $articleId, true);
 		} else {
-			$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId((int) $articleId, (int) $journalId, true);
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($articleId, $journalId, true);
 		}
 
 		$issue = null;
@@ -251,7 +252,7 @@ class MarkupPluginUtilities {
 			$issue =& $issueDao->getIssueById($publishedArticle->getIssueId(), $publishedArticle->getJournalId(), true);
 		} else {
 			$articleDao =& DAORegistry::getDAO('ArticleDAO');
-			$article =& $articleDao->getArticle((int) $articleId, $journalId, true);
+			$article =& $articleDao->getArticle($articleId, $journalId, true);
 		}
 
 		// If this is an editorial user who can view unpublished/unscheduled
