@@ -82,6 +82,7 @@ class MarkupPluginUtilities {
 	 *
 	 * @see MarkupPlugin _submitURL()
 	 * @see MarkupGatewayPlugin fetch()
+	 * TODO: maybe break this up for individual use cases
 	 */
 	function getMarkupURL($args) {
 		$path = array(MARKUP_GATEWAY_FOLDER);
