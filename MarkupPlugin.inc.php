@@ -398,7 +398,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * should be created (i.e. article is being published)
 	 * TODO: check if this is the best solution
 	 */
-	function _submitURL($articleId, $galleyFlag) {
+	function _submitURL($articleId, $galleyFlag = false) {
 		$args = array(
 			'articleId' => $articleId,
 			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
