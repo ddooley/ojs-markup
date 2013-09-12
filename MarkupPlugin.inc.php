@@ -430,9 +430,6 @@ class MarkupPlugin extends GenericPlugin {
 			import('classes.article.SuppFile');
 			$suppFile = new SuppFile();
 			$suppFile->setArticleId($articleId);
-
-			// Do not change this name - it is matched later to overwrite
-			// initial pdf/docx wih adjusted zip contents.
 			$suppFile->setTitle(MARKUP_SUPPLEMENTARY_FILE_TITLE, $locale);
 			$suppFile->setType('');
 			$suppFile->setTypeOther('zip', $locale);
