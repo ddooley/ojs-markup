@@ -316,6 +316,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * proofGalley() methods.
 	 * NOTE: Do NOT pass hook $params by reference, or this hook will
 	 * mysteriously never fire!
+	 * TODO: verify that
 	 *
 	 * @param $hookName string
 	 * @param $params array [$galleyId]
@@ -343,12 +344,11 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $params array [$article, $galley]
 	 */
 	function _downloadArticleCallback($hookName, $params) {
-		$article = $params[0];
-		$galley = $params[1];
+		$article =& $params[0];
+		$galley =& $params[1];
 		$articleId = $article->getId();
 		$this->_rewriteArticleHTML($articleId, $galley, false);
 
-		// TODO: seems hacky
 		exit; // Otherwise journal page tacked on end
 	}
 
