@@ -13,7 +13,10 @@
  *
  */
 
+// Plugin gateway path folder.
 define('MARKUP_GATEWAY_FOLDER', 'markup');
+// Title of suplementary files on markup server
+define('MARKUP_SUPPLEMENTARY_FILE_TITLE', 'Document Markup Files');
 
 class MarkupPluginUtilities {
 
@@ -151,6 +154,7 @@ class MarkupPluginUtilities {
 		$fileManager = new FileManager();
 
 		if (!$fileManager->fileExists($filePath, 'file')) {
+			// TODO: this doesn't work
 			return $this->_exitFetch(
 				__('plugins.generic.markup.archive.no_file') . ' : ' . $fileName
 			);

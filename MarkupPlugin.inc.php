@@ -34,9 +34,6 @@
  * and the Document Markup Server.
  */
 
-// Plugin gateway path folder.
-define('MARKUP_GATEWAY_FOLDER', 'markup');
-
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class MarkupPlugin extends GenericPlugin {
@@ -132,7 +129,6 @@ class MarkupPlugin extends GenericPlugin {
 					$form->readInputData();
 					if ($form->validate()) {
 						$form->execute();
-						$this->import('MarkupPluginUtilities');
 						MarkupPluginUtilities::notificationService(__('plugins.generic.markup.settings.saved'));
 						return false;
 					} else {
@@ -153,22 +149,18 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * Install triggers for various file upload points.
-	 * We avoid reviewer upload hooks since user may be uploading commentary.
-	 * Also, because EDITOR doesn't have a hook like
-	 * LayoutEditorAction::deleteSuppFile we don't use it for tidying up.
-	 * Also, ignoring AuthorAction::uploadRevisedVersion
+	 * Register the plugin
 	 *
-	 * @param $category String Name of category plugin was registered to
+	 * @param $category string Name of category plugin was registered to
 	 *
-	 * @return boolean True if plugin initialized successfully; if false,
-	 * the plugin will not be registered.
+	 * @return boolean Whether or not the plugin initialized sucessfully
 	 */
 	function register($category, $path) {
 		$success = parent::register($category, $path);
 		$this->addLocaleData();
 
 		if ($success && $this->getEnabled()) {
+			$this->import('MarkupPluginUtilities');
 			$this->registerCallbacks();
 		}
 		return $success;
@@ -190,13 +182,13 @@ class MarkupPlugin extends GenericPlugin {
 	// Callbacks
 	//
 	/**
-	 * Register as a gateway plugin too.
+	 * Register the gateway plugin
      *
 	 * @param $hookName string
 	 * @param $params array [category string, plugins array]
 	 */
 	function _loadCategoryCallback($hookName, $params) {
-		$category =& $params[0];
+		$category = $params[0];
 		$plugins =& $params[1];
 
 		if ($category == 'gateways') {
@@ -234,8 +226,8 @@ class MarkupPlugin extends GenericPlugin {
 		$articleFile =& $articleFileDao->getArticleFile($fileId);
 		if (!isset($articleFile)) return false;
 
-		// Ensure a supplementary file record titled "Document Markup Files" is
-		// in place.
+		// Ensure a supplementary file record titled
+		// MARKUP_SUPPLEMENTARY_FILE_TITLE is in place.
 		$suppFile = $this->_supplementaryFile($articleId);
 
 		// Set supplementary file record's file id and folder location of
@@ -283,7 +275,6 @@ class MarkupPlugin extends GenericPlugin {
 		if ($articleFileManager->uploadedFileExists($fieldName)) {
 
 			// Uploaded temp file must have an extension to continue
-			$this->import('MarkupPluginUtilities');
 			$newPath = MarkupPluginUtilities::copyTempFilePlusExt($articleId, $fieldName);
 			if ($newPath !== false) {
 				$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
@@ -315,7 +306,6 @@ class MarkupPlugin extends GenericPlugin {
 		$galley =& $galleyDao->getGalley($galleyId);
 		$articleId = $galley->getSubmissionId();
 		$type = $galley->getLabel();
-		$this->import('MarkupPluginUtilities');
 		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
 
 		return false;
@@ -413,7 +403,6 @@ class MarkupPlugin extends GenericPlugin {
 			'articleId' => $articleId,
 			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
 		);
-		$this->import('MarkupPluginUtilities');
 		$url = MarkupPluginUtilities::getMarkupURL($args);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -427,28 +416,27 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * Ensures that a single "Document Markup Files" supplementary file record
-	 * exists for given article.
+	 * Ensures that a single supplementary file record exists for given article.
 	 * The title name of this file must be unique so it can be found again by
-	 * this plugin.
-	 * Skipping search indexing since this content is a repetition of article.
+	 * this plugin (MARKUP_SUPPLEMENTARY_FILE_TITLE).
+	 * Skipping search indexing since this content is a repetition of the article.
 	 *
 	 * @param: $articleId int
 	 * @var $locale string controlled by current locale, eg. en_US
 	 */
 	function _supplementaryFile($articleId) {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
-		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', 'Document Markup Files', $articleId);
+		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$locale = AppLocale::getLocale();
 
-		if (count($suppFiles) == 0) {
+		if (!$suppFiles) {
 			import('classes.article.SuppFile');
 			$suppFile = new SuppFile();
 			$suppFile->setArticleId($articleId);
 
 			// Do not change this name - it is matched later to overwrite
 			// initial pdf/docx wih adjusted zip contents.
-			$suppFile->setTitle('Document Markup Files', $locale);
+			$suppFile->setTitle(MARKUP_SUPPLEMENTARY_FILE_TITLE, $locale);
 			$suppFile->setType('');
 			$suppFile->setTypeOther('zip', $locale);
 			$suppFile->setDescription(__('plugins.generic.markup.archive.description'), $locale);
@@ -462,7 +450,6 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFile = $suppFiles[0];
 		}
 
-		$this->import('MarkupPluginUtilities');
 		MarkupPluginUtilities::notificationService(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 
@@ -500,7 +487,6 @@ class MarkupPlugin extends GenericPlugin {
 			'fileName' => ''
 		);
 
-		$this->import('MarkupPluginUtilities');
 		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
