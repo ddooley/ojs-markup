@@ -97,9 +97,8 @@ class MarkupPluginUtilities {
 		} else {
 			array_push($path, 0, $articleId, $args['fileName']);
 		}
-		$params = null;
 
-		return Request::url(null, 'gateway', 'plugin', $path, $params);
+		return Request::url(null, 'gateway', 'plugin', $path);
 	}
 
 	/**
