@@ -13,9 +13,6 @@
  * sends request to markup an article to Document Markup Server.
  */
 
-// Plugin gateway path folder.
-define('MARKUP_GATEWAY_FOLDER', 'markup');
-
 import('classes.plugins.GatewayPlugin');
 
 class MarkupGatewayPlugin extends GatewayPlugin {
@@ -27,6 +24,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 */
 	function MarkupGatewayPlugin($parentPluginName) {
 		$this->parentPluginName = $parentPluginName;
+		$this->import('MarkupPluginUtilities');
 	}
 
 	/**
@@ -136,6 +134,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @see MarkupPluginUtilities::getMarkupURL() - the url generator.
 	 */
 	function fetch($args) {
+		foreach ($args as &$arg) { $arg = strtolower($arg); }
+
 		if (!$this->getEnabled()) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.enable'));
 		}
@@ -146,26 +146,18 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.no_journal'));
 		}
 
-		$journalId = $journal->getId();
-
-		// TODO: use semantic names
-		$paramA = strtolower(array_shift($args));
-		$paramB = strtolower(array_shift($args));
-		$paramC = strtolower(array_shift($args));
-
 		// Handles relative urls like "../../css/styles.css"
-		if ($paramA == "css") {
-			return $this->_downloadMarkupCSS($journal, $paramB);
+		if ($args[0] == 'css') {
+			return $this->_downloadMarkupCSS($journal, $args[1]);
 		}
 
-		/* Should be dealing with a particular article now. */
-		$articleId = (int) $paramB;
+		// Load the article
+		$articleId = (int) $args[1];
 		if (!$articleId) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.no_articleID'));
 		}
-
 		$articleDao = &DAORegistry::getDAO('ArticleDAO');
-		$article = &$articleDao->getArticle((int) $articleId);
+		$article = &$articleDao->getArticle($articleId);
 		if (!$article) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.no_article'));
 		}
@@ -173,51 +165,43 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Replace supplementary document file with Document Markup Server
 		// conversion archive file. With 'refreshgalley' option. User
 		// permissions don't matter here.
-		if (substr($paramA, 0, 7) == 'refresh') {
-			$this->setUserId((int) $paramC);
+		if (substr($args[0], 0, 7) == 'refresh') {
+			$this->setUserId((int) $args[2]);
 			$this->_refreshArticleArchive($article, ($paramA == 'refreshgalley'));
 			return true;
 		};
 
 		// Here we deliver any markup file request if its article's publish
-		// state allow it, or if user's credentials allow it. $paramA is /0/, a
+		// state allows it, or if user's credentials allow it. $args[0] is /0/, a
 		// constant for now. $fileName should be a file name.
-		$placeholder = (int) $paramA;
-		if ($placeholder != 0) {
+		if ((int) $args[0] != 0) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.no_article'));
 		}
 
-		$this->import('MarkupPluginUtilities');
-		$fileName = MarkupPluginUtilities::cleanFileName($paramC);
-
-		if ($fileName == '') {
+		if (!$fileName = MarkupPluginUtilities::cleanFileName($args[2])) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.bad_filename'));
 		}
 
-		$markupFolder = MarkupPluginUtilities::getSuppPath($articleId) . '/markup/';
-
+		$markupFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
 		if (!file_exists($markupFolder . $fileName)) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.no_file'));
 		}
 
-		$status = $article->getStatus();
-
-		$user =& Request::getUser();
-		$this->setUserId((int) $user->getId());
 
 		// Most requests come in when an article is in its published state, so
 		// check that first.
-		if ($status == STATUS_PUBLISHED) {
+		if ($article->getStatus() == STATUS_PUBLISHED) {
 			if (MarkupPluginUtilities::getUserPermViewPublished($user, $articleId, $journal, $fileName)) {
 				MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
 				return true;
 			}
 		}
 
-		// Article not published, so access can only be granted if user is
+		// Article is not published, so access can only be granted if user is
 		// logged in and of the right type / connection to article
-		if (!$user)
+		if (!$user = Request::getUser()) {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.login'));
+		}
 
 		if (MarkupPluginUtilities::getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
 			MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
@@ -238,7 +222,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $fileName;
 	 */
 	function _downloadMarkupCSS(&$journal, $fileName) {
-		$this->import('MarkupPluginUtilities');
 		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
 		import('classes.file.JournalFileManager');
 		$journalFileManager = new JournalFileManager($journal);
@@ -252,10 +235,10 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 	/**
 	 * Request is for a "refresh" of an article's markup archive.
-	 * If article's "Document Markup Files" supplementary file is not a .zip
-	 * (in other words it is an uploaded .doc or .pdf), then send the
-	 * supplementary file to the PKP Document Markup Server for conversion.
-	 * Then retrieve archive file and place it in supp file.
+	 * If article's supplementary file is not a .zip (in other words it is an
+	 * uploaded .doc or .pdf), then send the supplementary file to the
+	 * PKP Document Markup Server for conversion.
+	 * Then retrieve archive file and place it in supplementary file.
 	 * Optionally create galley xml, html and pdf links.
 	 *
 	 * @param $article object
@@ -272,13 +255,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		// Conditions
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
-		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', 'Document Markup Files', $articleId);
-		if (count($suppFiles) == 0) return $this->_exitFetch(__('plugins.generic.markup.archive.supp_missing'), true);
+		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
+		if (count($suppFiles) == 0) {
+			return $this->_exitFetch(__('plugins.generic.markup.archive.supp_missing'), true);
+		}
 
 		$suppFile = $suppFiles[0]; // There should only be one.
 
 		$fileId = $suppFile->getFileId();
-		if ($fileId == 0) return $this->_exitFetch(__('plugins.generic.markup.archive.supp_file_missing'), true);
+		if ($fileId == 0) {
+			return $this->_exitFetch(__('plugins.generic.markup.archive.supp_file_missing'), true);
+		}
 
 		$suppFileName = $suppFile->getFileName();
 
@@ -288,11 +275,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return $this->_exitFetch(__('plugins.generic.markup.archive.is_zip'));
 		}
 
-		$this->import('MarkupPluginUtilities');
-
 		$args =& $this->_jobMetaData($article, $journal);
 		$argsArray = array($args);
-		$uploadFile = MarkupPluginUtilities::getSuppPath($articleId) . '/' . $suppFileName;
+		$uploadFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
 
 		import('lib.pkp.classes.core.JSONManager');
 		$postFields = array(
@@ -314,7 +299,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$errorMsg = curl_error($ch);
 		curl_close($ch);
 
-		if ($content === false) return $this->_exitFetch($errorMsg, true);
+		if ($content === false) {
+			return $this->_exitFetch($errorMsg, true);
+		}
 
 		$events = JSONManager::decode($content);
 		$responses = $events->jit_events;
@@ -497,8 +484,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());
 		$suppFileName = $suppFile->getFileName();
 
-		$this->import('MarkupPluginUtilities');
-		$suppFolder = MarkupPluginUtilities::getSuppPath($articleId);
+		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId);
 
 		$zip = new ZipArchive;
 		if (!$zip->open($suppFolder . '/' . $suppFileName, ZIPARCHIVE::CHECKCONS)) {
@@ -559,15 +545,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 */
 	function _setupGalleyForMarkup($articleId, $fileName) {
 		$journal =& Request::getJournal();
-		$journalId = $journal->getId();
 
 		$mimeType = String::mime_content_type($fileName);
 
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$fileExt = strtoupper(ArticleFileManager::parseFileExtension($fileName));
-		$this->import('MarkupPluginUtilities');
-		$archiveFile = MarkupPluginUtilities::getSuppPath($articleId) . '/markup/' . $fileName;
+		$archiveFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/' . $fileName;
 		$suppFileId = $articleFileManager->copySuppFile($archiveFile, $mimeType);
 
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');

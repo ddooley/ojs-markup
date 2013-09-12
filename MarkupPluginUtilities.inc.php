@@ -63,7 +63,7 @@ class MarkupPluginUtilities {
 	 *
 	 * @return string supplementary file folder path.
 	 */
-	function getSupplementaryDirectory($articleId) {
+	function getSuppFolder($articleId) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager((int) $articleId);
 		return $articleFileManager->filesDir . $articleFileManager->fileStageToPath(ARTICLE_FILE_SUPP);
@@ -195,23 +195,23 @@ class MarkupPluginUtilities {
 			if ($label == 'PDF' && $type != 'PDF') $keep['pdf'] = true;
 		};
 
-		$supplementaryDirectory = MarkupPluginUtilities::getSupplementaryDirectory($articleId) . '/markup/';
+		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
 
 		$delete = array();
 		if ($keep) {
 			if (!isset($keep['xml'])) {
-				$delete[] = $supplementaryDirectory . 'document.xml';
+				$delete[] = $suppFolder . 'document.xml';
 			}
 			if (!isset($keep['html'])) {
-				$delete[] = $supplementaryDirectory . 'document.html';
+				$delete[] = $suppFolder . 'document.html';
 			}
 			if (!isset($keep['pdf'])) {
-				$delete[] = $supplementaryDirectory . 'document-new.pdf';
-				$delete[] = $supplementaryDirectory . 'document-review.pdf';
+				$delete[] = $suppFolder . 'document-new.pdf';
+				$delete[] = $suppFolder . 'document-review.pdf';
 			}
 		} else {
 			// No markup galley files found so delete all markup media.
-			$delete = glob($supplementaryDirectory . '*');
+			$delete = glob($suppFolder . '*');
 		}
 
 		foreach ($delete as $file) { unlink($file); }
