@@ -228,7 +228,7 @@ class MarkupPlugin extends GenericPlugin {
 
 		// Ensure a supplementary file record titled
 		// MARKUP_SUPPLEMENTARY_FILE_TITLE is in place.
-		$suppFile = $this->_supplementaryFile($articleId);
+		$suppFile = $this->_suppFile($articleId);
 
 		// Set supplementary file record's file id and folder location of
 		// uploaded article file
@@ -258,7 +258,7 @@ class MarkupPlugin extends GenericPlugin {
 		$journalId = $journal->getId();
 
 		// Ensure a supplementary file record is in place.
-		$supplementaryFile = $this->_supplementaryFile($articleId);
+		$suppFile = $this->_suppFile($articleId);
 
 		// The file name of the uploaded file differs in one case of the
 		// calling hooks. For the "Submissions > X > Editing: Layout:" call
@@ -278,7 +278,7 @@ class MarkupPlugin extends GenericPlugin {
 		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
 		if (!$newPath) { return false; }
 
-		$this->_setSuppFileId($supplementaryFile, $newPath, $articleFileManager);
+		$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
 		@unlink($newPath);
 
 		// If we have a layout upload then trigger galley link creation.
@@ -358,23 +358,23 @@ class MarkupPlugin extends GenericPlugin {
 	/**
 	 * Make a new supplementary file record or copy over an existing one.
 	 *
-	 * @param $supplementaryFile object
-	 * @param $supplementaryFilePath string file path
+	 * @param $suppFile object
+	 * @param $suppFilePath string file path
 	 * @param $articleFileManager object, already initialized with an article id.
 	 */
-	function _setSuppFileId(&$supplementaryFile, $supplementaryFilePath, &$articleFileManager) {
+	function _setSuppFileId(&$suppFile, $suppFilePath, &$articleFileManager) {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mimeType = finfo_file($finfo, $supplementaryFilePath);
-		$supplementaryFileId = $supplementaryFile->getFileId();
+		$mimeType = finfo_file($finfo, $suppFilePath);
+		$suppFileId = $suppFile->getFileId();
 
-		if ($supplementaryFileId == 0) {
-			$supplementaryFileId = $articleFileManager->copySuppFile($supplementaryFilePath, $mimeType);
-			$supplementaryFile->setFileId($supplementaryFileId);
+		if ($suppFileId == 0) {
+			$suppFileId = $articleFileManager->copySuppFile($suppFilePath, $mimeType);
+			$suppFile->setFileId($suppFileId);
 
-			$supplementaryFileDao =& DAORegistry::getDAO('SuppFileDAO');
-			$supplementaryFileDao->updateSuppFile($supplementaryFile);
+			$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
+			$suppFileDao->updateSuppFile($suppFile);
 		} else {
-			$articleFileManager->copySuppFile($supplementaryFilePath, $mimeType, $supplementaryFileId, true);
+			$articleFileManager->copySuppFile($suppFilePath, $mimeType, $suppFileId, true);
 		}
 	}
 
@@ -421,7 +421,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param: $articleId int
 	 * @var $locale string controlled by current locale, eg. en_US
 	 */
-	function _supplementaryFile($articleId) {
+	function _suppFile($articleId) {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$locale = AppLocale::getLocale();
