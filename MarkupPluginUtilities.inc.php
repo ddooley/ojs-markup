@@ -13,6 +13,8 @@
  *
  */
 
+// Plugin name
+define('MARKUP_NAME', 'markup');
 // Plugin gateway path folder.
 define('MARKUP_GATEWAY_FOLDER', 'markup');
 // Title of suplementary files on markup server

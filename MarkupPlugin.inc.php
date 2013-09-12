@@ -70,7 +70,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string name of plugin
 	 */
 	function getName() {
-		return MARKUP_GATEWAY_FOLDER;
+		return MARKUP_NAME;
 	}
 
 	function getDisplayName() {

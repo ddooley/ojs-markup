@@ -33,7 +33,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return String name of plugin
 	 */
 	function getName() {
-		return MARKUP_GATEWAY_FOLDER;
+		return MARKUP_NAME;
 	}
 
 	/**
