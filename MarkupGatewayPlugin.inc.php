@@ -19,13 +19,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	var $userId;
 
 	/**
-	 * Constructor
-	 */
-	function MarkupGatewayPlugin() {
-		$this->import('MarkupPluginUtilities');
-	}
-
-	/**
 	 * Get the name of this plugin. The name must be unique within
 	 * its category.
 	 * @return String name of plugin
@@ -132,6 +125,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @see MarkupPluginUtilities::getMarkupURL() - the url generator.
 	 */
 	function fetch($args) {
+		$this->import('MarkupPluginUtilities');
 		foreach ($args as &$arg) { $arg = strtolower($arg); }
 
 		if (!$this->getEnabled()) {
