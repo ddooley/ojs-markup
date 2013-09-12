@@ -16,14 +16,12 @@
 import('classes.plugins.GatewayPlugin');
 
 class MarkupGatewayPlugin extends GatewayPlugin {
-	var $parentPluginName;
 	var $userId;
 
 	/**
 	 * Constructor
 	 */
-	function MarkupGatewayPlugin($parentPluginName) {
-		$this->parentPluginName = $parentPluginName;
+	function MarkupGatewayPlugin() {
 		$this->import('MarkupPluginUtilities');
 	}
 
@@ -33,7 +31,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return String name of plugin
 	 */
 	function getName() {
-		return MARKUP_NAME;
+		return MARKUP_PLUGIN_NAME;
 	}
 
 	/**
@@ -56,7 +54,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return object
 	 */
 	function &getMarkupPlugin() {
-		$plugin =& PluginRegistry::getPlugin('generic', $this->parentPluginName);
+		$plugin =& PluginRegistry::getPlugin('generic', MARKUP_PLUGIN_NAME);
 		return $plugin;
 	}
 

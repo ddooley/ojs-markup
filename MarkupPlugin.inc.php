@@ -70,7 +70,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string name of plugin
 	 */
 	function getName() {
-		return MARKUP_NAME;
+		return MARKUP_PLUGIN_NAME;
 	}
 
 	function getDisplayName() {
@@ -193,7 +193,7 @@ class MarkupPlugin extends GenericPlugin {
 
 		if ($category == 'gateways') {
 			$this->import('MarkupGatewayPlugin');
-			$gatewayPlugin = new MarkupGatewayPlugin($this->getName());
+			$gatewayPlugin = new MarkupGatewayPlugin();
 			$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
 		}
 
