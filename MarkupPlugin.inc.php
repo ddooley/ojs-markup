@@ -491,6 +491,7 @@ class MarkupPlugin extends GenericPlugin {
 
 		// Converts remaining file name to path[] param.
 		// Will need 1 more call if media subfolders exist.
+		// TODO: Use Request::url() function to generate urls
 		if (Request::isPathInfoEnabled() == false) {
 			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
 		}
