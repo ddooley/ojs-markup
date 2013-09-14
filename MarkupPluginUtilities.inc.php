@@ -371,7 +371,7 @@ class MarkupPluginUtilities {
 	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
 		$journalId = $journal->getId();
 
-		$roleDao = &DAORegistry::getDAO('RoleDAO');
+		$roleDao =& DAORegistry::getDAO('RoleDAO');
 		$roles =& $roleDao->getRolesByUserId($userId);
 		foreach ($roles as $role) {
 			$roleType = $role->getRoleId();

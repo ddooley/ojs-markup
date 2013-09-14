@@ -137,8 +137,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if (!$articleId) {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_articleID'));
 		}
-		$articleDao = &DAORegistry::getDAO('ArticleDAO');
-		$article = &$articleDao->getArticle($articleId);
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$article =& $articleDao->getArticle($articleId);
 		if (!$article) {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
 		}
