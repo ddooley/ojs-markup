@@ -592,7 +592,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	function _printXMLMessage($msg, $notification) {
 		if ($notification == true) {
 			$this->import('MarkupPluginUtilities');
-			// FIXME: for now all notifications are success types
+			// TODO: for now all notifications are success types
 			MarkupPluginUtilities::notificationService(
 				__('plugins.generic.markup.archive.status') . ' ' . $msg, true, $this->_getUserId()
 			);
