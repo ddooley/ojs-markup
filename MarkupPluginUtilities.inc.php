@@ -160,7 +160,7 @@ class MarkupPluginUtilities {
 			);
 		}
 
-		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
+		$mimeType = self::getMimeType($fileName);
 		$fileManager->downloadFile($folder . $fileName, $mimeType, true);
 
 		return true;
@@ -188,7 +188,7 @@ class MarkupPluginUtilities {
 			if ($label == 'PDF' && $type != 'PDF') $keep['pdf'] = true;
 		};
 
-		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
+		$suppFolder = self::getSuppFolder($articleId) . '/markup/';
 
 		$delete = array();
 		if ($keep) {
