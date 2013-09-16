@@ -363,7 +363,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $articleFileManager object, already initialized with an article id.
 	 */
 	function _setSuppFileId(&$suppFile, $suppFilePath, &$articleFileManager) {
-		$mimeType = $this->_getMimeType($suppFilePath);
+		$mimeType = MarkupPluginUtilities::getMimeType($suppFilePath);
 		$suppFileId = $suppFile->getFileId();
 
 		if ($suppFileId == 0) {
@@ -463,7 +463,7 @@ class MarkupPlugin extends GenericPlugin {
 		if (strtoupper($galley->getLabel()) != 'HTML') return false;
 
 		$filePath = $galley->getFilePath();
-		$mimeType = $this->_getMimeType($filePath);
+		$mimeType = MarkupPluginUtilities::getMimeType($filePath);
 
 		header('Content-Type: ' . $mimeType . '; charset=UTF-8');
 		header('Cache-Control: ' . $templateMgr->cacheability);
@@ -511,10 +511,5 @@ class MarkupPlugin extends GenericPlugin {
 		echo $html;
 
 		return true;
-	}
-
-	function _getMimeType($file) {
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		return finfo_file($finfo, $filePath);
 	}
 }

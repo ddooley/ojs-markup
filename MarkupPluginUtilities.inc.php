@@ -154,20 +154,13 @@ class MarkupPluginUtilities {
 		$filePath = $folder . $fileName;
 		$fileManager = new FileManager();
 
-		if (!$fileManager->fileExists($filePath, 'file')) {
-			// TODO: this doesn't work
+		if (!$fileManager->fileExists($filePath)) {
 			return $this->_exitFetch(
 				__('plugins.generic.markup.archive.no_file') . ' : ' . $fileName
 			);
 		}
 
-		$mimeType = String::mime_content_type($fileName);
-
-		// Some servers don't recognize 'text/css' for .css suffixes:
-		if ($fileManager->getExtension($fileName) == 'css') {
-			$mimeType = 'text/css';
-		}
-
+		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
 		$fileManager->downloadFile($folder . $fileName, $mimeType, true);
 
 		return true;
@@ -465,5 +458,10 @@ class MarkupPluginUtilities {
 		}
 
 		return false;
+	}
+
+	function getMimeType($file) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		return finfo_file($finfo, $filePath);
 	}
 }

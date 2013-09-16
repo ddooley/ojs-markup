@@ -68,8 +68,15 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return string
 	 */
 	function getTemplatePath() {
-		$plugin =& $this->getMarkupPlugin();
-		return $plugin->getTemplatePath() . 'templates/';
+		return $this->getPluginPath() . 'templates/';
+	}
+
+	/**
+	 * Override the builtin to get the correct template path.
+	 * @return string
+	 */
+	function getCssPath() {
+		return $this->getPluginPath() . 'css/';
 	}
 
 	/**
@@ -230,13 +237,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	function _downloadMarkupCSS(&$journal, $fileName) {
 		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
 		import('classes.file.JournalFileManager');
+
+		// Load the journals CSS path
 		$journalFileManager = new JournalFileManager($journal);
-		$folderCss = $journalFileManager->filesDir . 'css/';
-		if (!file_exists($folderCss . $fileName)) {
-			// Default to this plugin dir
-			$folderCss = dirname(__FILE__) . '/css/';
+		$cssFolder = $journalFileManager->filesDir . 'css/';
+
+		// If journal CSS path doesn't exist fall back to plugin's CSS path
+		if (!file_exists($cssFolder . $fileName)) {
+			$cssFolder = $this->getCssPath();
 		}
-		return MarkupPluginUtilities::downloadFile($folderCss, $fileName);
+
+		return MarkupPluginUtilities::downloadFile($cssFolder, $fileName);
 	}
 
 	/**
@@ -552,7 +563,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	function _setupGalleyForMarkup($articleId, $fileName) {
 		$journal =& Request::getJournal();
 
-		$mimeType = String::mime_content_type($fileName);
+		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
 
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
