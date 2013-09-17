@@ -361,9 +361,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $response object
 	 */
 	function _getResponseJobId($response) {
-		if (!isset($response->data->jobId)) { return false; }
-		$jobId = $response->data->jobId;
-		if (strlen($jobId) != 32) { return false; }
+		if (isset($response->data)) {
+			$responseData =& $response->data;
+		} else {
+			$responseData = null;
+		}
+		$jobId = isset($responseData->jobId) ? $responseData->jobId : null;
+		if (!$jobId or strlen($jobId) != 32) { return false; }
 
 		// TODO: Why is that? Does the job server return inconsistent jobId's?
 		return preg_replace('/[^a-zA-Z0-9]/', '', $jobId);
