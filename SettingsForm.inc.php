@@ -83,8 +83,8 @@ class SettingsForm extends Form {
 			$journalFileManager = new JournalFileManager($journal);
 			if ($journalFileManager->uploadedFileExists($imageName)) {
 				$type = $journalFileManager->getUploadedFileType($imageName);
-				$ext = $journalFileManager->getImageExtension($type);
-				if (!$ext || ($ext != '.png' && $ext != '.jpg')) {
+				$extension = $journalFileManager->getImageExtension($type);
+				if (!$extension || ($extension != '.png' && $extension != '.jpg')) {
 					$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
 					return false;
 				}
@@ -204,8 +204,11 @@ class SettingsForm extends Form {
 			import('classes.file.JournalFileManager');
 			$journal =& Request::getJournal();
 			$journalFileManager = new JournalFileManager($journal);
-			if ($journalFileManager->uploadedFileExists('cssHeaderImage')) {
-				$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header.png');
+			$imageName = 'cssHeaderImage';
+			if ($journalFileManager->uploadedFileExists($imageName)) {
+				$type = $journalFileManager->getUploadedFileType($imageName);
+				$extension = $journalFileManager->getImageExtension($type);
+				$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header.' . $extension);
 			}
 		}
 	}
