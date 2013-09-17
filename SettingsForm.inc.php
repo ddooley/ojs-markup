@@ -97,10 +97,7 @@ class SettingsForm extends Form {
 		}
 
 		$this->setData('markupHostUser', $plugin->getSetting($journalId, 'markupHostUser'));
-
 		$this->setData('reviewVersion', $plugin->getSetting($journalId, 'reviewVersion'));
-
-		// User assigned but should never change (view only).
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
 	}
 
@@ -145,13 +142,12 @@ class SettingsForm extends Form {
 		$plugin->updateSetting($journalId, 'cslStyle', $this->getData('cslStyle'));
 		$plugin->updateSetting($journalId, 'cslStyleName', $this->getData('cslStyleName'));
 
-		// Ensure document server url has http:// ... / in it.
 		$markupHostURL = $this->getData('markupHostURL');
-		if (strlen($markupHostURL) > 0) {
-			if (substr($markupHostURL, 0, 4) != 'http') {
+		if ($markupHostURL) {
+			if (!parse_url($markupHostURL, PHP_URL_SCHEME)) {
 				$markupHostURL = 'http://' . $markupHostURL;
 			}
-			if (substr($markupHostURL, -1) != '/') {
+			if (substr(parse_url($markupHostURL, PHP_URL_PATH), -1) != '/') {
 				$markupHostURL .= '/';
 			}
 		}
