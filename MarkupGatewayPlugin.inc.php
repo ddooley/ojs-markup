@@ -68,7 +68,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return string
 	 */
 	function getTemplatePath() {
-		return $this->getPluginPath() . 'templates/';
+		$plugin =& $this->getMarkupPlugin();
+		return $plugin->getTemplatePath();
 	}
 
 	/**

@@ -38,7 +38,6 @@ class SettingsForm extends Form {
 		$this->journalId = $journalId;
 		$this->plugin =& $plugin;
 		$journal =& Request::getJournal();
-
 		parent::Form($plugin->getTemplatePath() . 'settingsForm.tpl');
 
 		// Validation checks for this form

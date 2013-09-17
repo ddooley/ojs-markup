@@ -82,6 +82,14 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
+	 * Override the builtin to get the correct template path.
+	 * @return string
+	 */
+	function getTemplatePath() {
+		return parent::getTemplatePath() . 'templates/';
+	}
+
+	/**
 	 * Display verbs for the management interface.
 	 */
 	function getManagementVerbs() {
