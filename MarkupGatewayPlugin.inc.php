@@ -233,7 +233,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @param $fileName;
 	 */
-	function _downloadMarkupCSS(&$journal, $fileName) {
+	function _downloadMarkupCSS($journal, $fileName) {
 		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
 		import('classes.file.JournalFileManager');
 
@@ -264,7 +264,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @see technicalNotes.md file for details on the interface between this
 	 * plugin and the Document Markup Server.
 	 */
-	function _refreshArticleArchive(&$article, $galleyFlag) {
+	function _refreshArticleArchive($article, $galleyFlag) {
 		$journal =& Request::getJournal();
 		$journalId = $journal->getId();
 		$articleId = $article->getId();
@@ -355,7 +355,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @param $response object
 	 */
-	function _getResponseJobId(&$response) {
+	function _getResponseJobId($response) {
 		if (!isset($response->data->jobId)) { return false; }
 		$jobId = $response->data->jobId;
 		if (strlen($jobId) != 32) { return false; }
@@ -375,7 +375,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return $args array
 	 */
-	function _jobMetaData(&$article, &$journal) {
+	function _jobMetaData($article, $journal) {
 		$articleId = $article->getId();
 		$journalId = $journal->getId();
 
@@ -453,7 +453,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $jobId string jobId from Document Markup Server
 	 * @param $suppfile object
 	 */
-	function _retrieveJobArchive($articleId, $journalId, $jobId, &$suppFile) {
+	function _retrieveJobArchive($articleId, $journalId, $jobId, $suppFile) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 
@@ -488,7 +488,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @see _retrieveJobArchive()
 	 */
-	function _unzipSuppFile($articleId, &$suppFile, $galleyFlag) {
+	function _unzipSuppFile($articleId, $suppFile, $galleyFlag) {
 		// We need updated name. It was x.pdf or docx, now its y.zip:
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());

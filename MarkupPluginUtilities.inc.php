@@ -227,7 +227,7 @@ class MarkupPluginUtilities {
  	 * @return boolean true iff user allowed to see given file
 	 * @see fetch()
 	 */
-	function getUserPermViewPublished($user, $articleId, &$journal, $fileName) {
+	function getUserPermViewPublished($user, $articleId, $journal, $fileName) {
 		$journalId = $journal->getId();
 		$articleId = $articleId;
 		$userId = $user ? $user->getId() : 0;
@@ -361,7 +361,7 @@ class MarkupPluginUtilities {
 	 *
 	 * @return first userType that matches user to article for viewing.
 	 **/
-	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
+	function getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
 		$journalId = $journal->getId();
 
 		$roleDao =& DAORegistry::getDAO('RoleDAO');
