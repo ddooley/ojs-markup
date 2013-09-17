@@ -157,7 +157,10 @@ class MarkupPluginUtilities {
 
 		if (!$fileManager->fileExists($filePath)) {
 			return $this->_exitFetch(
-				__('plugins.generic.markup.archive.no_file') . ' : ' . $fileName
+				__(
+					'plugins.generic.markup.archive.no_file',
+					array('file' => $fileName)
+				)
 			);
 		}
 

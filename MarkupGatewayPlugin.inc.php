@@ -324,7 +324,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		}
 
 		if (!($jobId = $this->_getResponseJobId($response))) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_job') . $jobId, true);
+			return $this->_printXMLMessage(
+				__('plugins.generic.markup.archive.no_job', array('jobId' => $jobId)), true
+			);
 		}
 
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
@@ -344,7 +346,10 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			MarkupPluginUtilities::checkGalleyMedia($articleId);
 		}
 
-		$this->_printXMLMessage(__('plugins.generic.markup.completed') . " $articleId (Job $jobId)", true);
+		$this->_printXMLMessage(
+			__('plugins.generic.markup.completed', array('articleId' => $articleId, 'jobId' => $jobId)),
+			true
+		);
 
 		return true;
 	}
@@ -493,14 +498,20 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());
 		$suppFileName = $suppFile->getFileName();
-
 		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId);
+		$zipFile = $suppFolder . '/' . $suppFileName;
 
 		$zip = new ZipArchive;
-		if (!$zip->open($suppFolder . '/' . $suppFileName, ZIPARCHIVE::CHECKCONS)) {
-			$errorMsg = $zip->getStatusString();
+		if (!$zip->open($zipFile, ZIPARCHIVE::CHECKCONS)) {
 			$this->_printXMLMessage(
-				__('plugins.generic.markup.archive.bad_zip') . ':' . $suppFileName . ':' . $errorMsg, true
+				__(
+					'plugins.generic.markup.archive.bad_zip',
+					array(
+						'file' => $zipFile,
+						'error' => $zip->getStatusString()
+					)
+				),
+				true
 			);
 			return false;
 		}
@@ -538,7 +549,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		) {
 			$zip->close();
 			$this->_printXMLMessage(
-				__('plugins.generic.markup.archive.bad_zip') . $zip->getStatusString(), true
+				__(
+					'plugins.generic.markup.archive.bad_zip',
+					array(
+						'file' => $zipFile,
+						'error' => $zip->getStatusString()
+					)
+				),
+				true
 			);
 			return false;
 		}
@@ -599,22 +617,24 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * Never seen by OJS end users unless accessing a document directly by URL
 	 * and there is a problem. Useful for programmers to debug fetch issue.
 	 *
-	 * @param $msg string status indicating job success or error
+	 * @param $message string status indicating job success or error
 	 * @param $notification boolean indicating if user should be notified.
 	 */
-	function _printXMLMessage($msg, $notification) {
+	function _printXMLMessage($message, $notification) {
 		if ($notification == true) {
 			$this->import('MarkupPluginUtilities');
 			// TODO: for now all notifications are success types
 			MarkupPluginUtilities::notificationService(
-				__('plugins.generic.markup.archive.status') . ' ' . $msg, true, $this->_getUserId()
+				__('plugins.generic.markup.archive.status', array('message' => $message)),
+				true,
+				$this->_getUserId()
 			);
 		}
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->assign_by_ref('journal', $journal);
 		$templateMgr->assign('selfUrl', Request::getCompleteUrl());
 		$templateMgr->assign('dateUpdated', Core::getCurrentDate());
-		$templateMgr->assign('description', $msg);
+		$templateMgr->assign('description', $message);
 
 		$templateMgr->display($this->getTemplatePath() . '/fetch.tpl', 'application/atom+xml');
 

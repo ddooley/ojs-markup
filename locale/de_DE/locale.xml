@@ -37,11 +37,11 @@
 <message key="plugins.generic.markup.archive.description">Dieses Dateiarchiv enthält konvertierte XML-, HTML- und standardisierte PDF-Versionen. Sie enthält außerdem extrahierte Grafiken und Zitationsinformationen.</message>
 <!-- Processing status messages -->
 <message key="plugins.generic.markup.archive.no_url">Der Dokumenten-Markup-Server des Plug-Ins ist nicht gesetzt!</message>
-<message key="plugins.generic.markup.archive.status">Dokumenten-Marku-Server. STATUS: </message>
+<message key="plugins.generic.markup.archive.status">Dokumenten-Markup-Server Nachricht: {$message}</message>
 <message key="plugins.generic.markup.archive.processing">Dokumenten-Markup-Server. Status: IN BEARBEITUNG</message>
 <message key="plugins.generic.markup.archive.downloaded">Dokumenten-Markup-Server: HERUNTERGELADEN, IN BEARBEITUNG ...</message>
-<message key="plugins.generic.markup.archive.no_job">Software-Fehler: Es wurde keine Job-Id generiert: </message>
-<message key="plugins.generic.markup.archive.bad_zip">Zip-Ereignis:</message>
+<message key="plugins.generic.markup.archive.no_job">Ungültige Job-Id ({$jobId}) </message>
+<message key="plugins.generic.markup.archive.bad_zip">Fehlerhafte zip Datei ({$file}): {$error}</message>
 <message key="plugins.generic.markup.archive.portalTitle">PKP Open Journal Systems Dokumenten-Markup-Plug-In</message>
 <message key="plugins.generic.markup.archive.portalSubTitle">Dokument-Status</message>
 <message key="plugins.generic.markup.archive.enable">Dokumenten-Markup-Plug-In muss aktiviert werden!</message>
@@ -49,7 +49,7 @@
 <message key="plugins.generic.markup.archive.no_articleID">"Der Paramter der Artikel-ID ist ungültig oder fehlt."</message>
 <message key="plugins.generic.markup.archive.no_article">Kein solcher Artikel!</message>
 <message key="plugins.generic.markup.archive.bad_filename">Dateiname fehlt oder ist falsch formatiert. Er sollte sein: .../markup/[Artikel-ID]/0/[Dateiname]</message>
-<message key="plugins.generic.markup.archive.no_file">Diese Datei existiert nicht.</message>
+<message key="plugins.generic.markup.archive.no_file">Diese Datei existiert nicht ({$file}).</message>
 <message key="plugins.generic.markup.archive.login">Sie müssen sich einloggen, um Zugriff auf diese Datei zu erhalten!</message>
 <message key="plugins.generic.markup.archive.no_access">Ihr derzeitiger Benutzer/innenstatus erlaubt keinen Zugriff auf diese Datei!</message>
 <message key="plugins.generic.markup.archive.supp_missing">Der Artikel oder der Eintrag seiner "Document Markup Files"-Zusatzdatei  fehlen. Versuchen Sie, den Artikel erneut hochzuladen, um die Markup-Dateien zu erzeugen.</message>

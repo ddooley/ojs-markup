@@ -26,7 +26,7 @@
 	<message key="plugins.generic.markup.optional.cssHeaderImage">The header image is optional, but it must be uploaded as a .png or .jpg file</message>
 
 	<message key="plugins.generic.markup.error">Error!</message>
-	<message key="plugins.generic.markup.completed">Completed document conversion for article </message>
+	<message key="plugins.generic.markup.completed">Completed document conversion for article {$articleId} (job: {$jobId}) </message>
 
 	<message key="plugins.generic.markup.description">When an author, copyeditor or editor uploads a new version (odt, doc, docx, or pdf format) of an article, this module submits it to the document markup server specified in the configuration file, and receives a zipped file containing pdf, xml, and html versions of the article, as well as bibliography information automatically styled per the journal's guidelines.  This zipped file is kept in the supplementary files folder for inspection during the review process.  When ready to publish the article, the pdf, xml, and html galley files are extracted and made available from the journal table of contents.</message>
 
@@ -81,14 +81,14 @@
 	<!-- Processing status messages -->
 	<message key="plugins.generic.markup.archive.no_url">Plugin's Document Markup Server parameter is not set!</message>
 
-	<message key="plugins.generic.markup.archive.status">Document Markup Server. STATUS: </message>
+	<message key="plugins.generic.markup.archive.status">Document Markup Server returned: {$message} </message>
 
 	<message key="plugins.generic.markup.archive.processing">Document Markup Server.  Status: IN PROCESS</message>
 	<message key="plugins.generic.markup.archive.downloaded">Document Markup Server.  Status: DOWNLOADED, PROCESSING ...</message>
 
-	<message key="plugins.generic.markup.archive.no_job">Software Error: No Job Id was generated: </message>
+	<message key="plugins.generic.markup.archive.no_job">Invalid job id ({$jobId})</message>
 
-	<message key="plugins.generic.markup.archive.bad_zip">Supplementary file zip issue:</message>
+	<message key="plugins.generic.markup.archive.bad_zip">Error handling zip file ({$file}): {$error} </message>
 
 	<message key="plugins.generic.markup.archive.portalTitle">PKP Open Journal Systems Document Markup Plugin</message>
 	<message key="plugins.generic.markup.archive.portalSubTitle">Document Status</message>
@@ -98,7 +98,7 @@
 	<message key="plugins.generic.markup.archive.no_articleID">"Article Id parameter is invalid or missing."</message>
 	<message key="plugins.generic.markup.archive.no_article">No such article!</message>
 	<message key="plugins.generic.markup.archive.bad_filename">File name is missing or misformatted.  Should be: .../markup/[article Id]/0/[file name]</message>
-	<message key="plugins.generic.markup.archive.no_file">That file does not exist.</message>
+	<message key="plugins.generic.markup.archive.no_file">File does not exist ({$file}).</message>
 	<message key="plugins.generic.markup.archive.login">You need to login to get access to this file!</message>
 	<message key="plugins.generic.markup.archive.no_access">Your current login does not permit access to this file!</message>
 
