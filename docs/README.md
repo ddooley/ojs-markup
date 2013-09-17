@@ -7,7 +7,7 @@ This README file contains a general description of this module's functionality (
 
 Requirements: OJS 2.4 or greater, PHP 5.x, PHP CURL, PHP Zlib, PHP JSON
 
-See technicalNotes.md for description of interface between this module and the Document Markup Server.
+See docs/technicalNotes.md for description of interface between this module and the Document Markup Server.
 
 
 This project implements an OJS plugin for automatically parsing NLM 3 XML from uploaded articles and generating published PDF and HTML versions from that XML.

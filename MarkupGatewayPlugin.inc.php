@@ -262,7 +262,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $galleyFlag boolean
 	 *
 	 * @see fetch()
-	 * @see technicalNotes.md file for details on the interface between this
+	 * @see docs/technicalNotes.md file for details on the interface between this
 	 * plugin and the Document Markup Server.
 	 */
 	function _refreshArticleArchive($article, $galleyFlag) {

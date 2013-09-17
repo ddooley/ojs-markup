@@ -30,7 +30,7 @@
  * or other media files go into a special supplementary file subfolder called
  * "markup".
  *
- * @see technicalNotes.md file for details on the interface between this plugin
+ * @see docs/technicalNotes.md file for details on the interface between this plugin
  * and the Document Markup Server.
  */
 
