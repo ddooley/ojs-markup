@@ -460,6 +460,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
 	function _rewriteArticleHTML($articleId, $galley, $backLinkFlag) {
+		// TODO: https://github.com/pkp/ojs/pull/98#discussion_r5986311
 		if (strtoupper($galley->getLabel()) != 'HTML') return false;
 
 		$filePath = $galley->getFilePath();
