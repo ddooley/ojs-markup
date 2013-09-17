@@ -153,26 +153,16 @@ class SettingsForm extends Form {
 		}
 		$plugin->updateSetting($journalId, 'markupHostURL', $markupHostURL);
 
-		$markupHostUser = $this->getData('markupHostUser');
-		$plugin->updateSetting($journalId, 'markupHostUser', $markupHostUser);
-
-		if (strlen($markupHostUser) > 0) {
-			$markupHostPass = $this->getData('markupHostPass');
-			// Only update password if account exists and password exists.
-			if (strlen($markupHostPass) > 0) {
-				$plugin->updateSetting($journalId, 'markupHostPass', $markupHostPass);
-			}
-		} else {
-			$plugin->updateSetting($journalId, 'markupHostPass', '');
-		}
-
+		$plugin->updateSetting($journalId, 'markupHostUser', $this->getData('markupHostUser'));
+		$plugin->updateSetting($journalId, 'markupHostPass', $this->getData('markupHostPass'));
 		$plugin->updateSetting($journalId, 'reviewVersion', $this->getData('reviewVersion'));
 
 		// Upload article header image if given. Image suffix already validated above.
-		if (isset($_FILES['cssHeaderImage'])) {
-			$journalFileManager = $this->_getJournalFileManager();
-			$extension = $this->_getUploadedImageFileExtension('cssHeaderImage', $journalFileManager);
-			$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header.' . $extension);
+		$journalFileManager = $this->_getJournalFileManager();
+		$imageName = 'cssHeaderImage';
+		if ($journalFileManager->uploadedFileExists($imageName)) {
+			$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
+			$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header' . $extension);
 		}
 	}
 
@@ -182,15 +172,12 @@ class SettingsForm extends Form {
 	 * @param $imageName string form upload fieldname
 	 */
 	function _validateImage($imageName) {
-		// TODO remove $_FILES reference
-		if (isset($_FILES[$imageName])) {
-			$journalFileManager = $this->_getJournalFileManager();
-			if ($journalFileManager->uploadedFileExists($imageName)) {
-				$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
-				if (!$extension || ($extension != '.png' && $extension != '.jpg')) {
-					$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
-					return false;
-				}
+		$journalFileManager = $this->_getJournalFileManager();
+		if ($journalFileManager->uploadedFileExists($imageName)) {
+			$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
+			if ($extension != '.png' && $extension != '.jpg') {
+				$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
+				return false;
 			}
 		}
 
