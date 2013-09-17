@@ -108,6 +108,7 @@ class MarkupPluginUtilities {
 	 * @param $fileName string
 	 */
 	 // TODO: clean description
+	 // TODO: check why this is required
 	function cleanFileName($fileName) {
 		return preg_replace('/[^[:alnum:]\._-]/', '', $fileName);
 	}
