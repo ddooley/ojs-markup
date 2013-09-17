@@ -76,6 +76,7 @@ class SettingsForm extends Form {
 	 * @param $imageName string form upload fieldname
 	 */
 	function _validateImage($imageName) {
+		// TODO remove $_FILES reference
 		if (isset($_FILES[$imageName])) {
 			$journal =& Request::getJournal();
 			import('classes.file.JournalFileManager');
