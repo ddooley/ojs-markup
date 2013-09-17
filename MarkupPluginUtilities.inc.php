@@ -228,9 +228,8 @@ class MarkupPluginUtilities {
 	 * @see fetch()
 	 */
 	function getUserPermViewPublished($user, $articleId, &$journal, $fileName) {
-		$journalId = (int) $journal->getId();
-		$articleId = (int) $articleId;
-
+		$journalId = $journal->getId();
+		$articleId = $articleId;
 		$userId = $user ? $user->getId() : 0;
 
 		$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
@@ -370,8 +369,8 @@ class MarkupPluginUtilities {
 		foreach ($roles as $role) {
 			$roleType = $role->getRoleId();
 			if ($roleType == ROLE_ID_SITE_ADMIN) return ROLE_ID_SITE_ADMIN;
-			if ($role->getJournalId() == $journalId) {
 
+			if ($role->getJournalId() == $journalId) {
 				switch ($roleType) {
 					// These users get global access
 					case ROLE_ID_JOURNAL_MANAGER :
@@ -461,6 +460,11 @@ class MarkupPluginUtilities {
 		return false;
 	}
 
+	/**
+	 * Return mime type of a file
+	 * @param string $file
+	 * @return string mime type of the file
+	 */
 	function getMimeType($file) {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
 		return finfo_file($finfo, $filePath);

@@ -175,7 +175,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_file'));
 		}
 
-
 		// Most requests come in when an article is in its published state, so
 		// check that first.
 		if ($article->getStatus() == STATUS_PUBLISHED) {
