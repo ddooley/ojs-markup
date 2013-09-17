@@ -71,31 +71,6 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Ensure attached header image is a .jpg or .png
-	 *
-	 * @param $imageName string form upload fieldname
-	 */
-	function _validateImage($imageName) {
-		// TODO remove $_FILES reference
-		if (isset($_FILES[$imageName])) {
-			$journal =& Request::getJournal();
-			import('classes.file.JournalFileManager');
-			$journalFileManager = new JournalFileManager($journal);
-			if ($journalFileManager->uploadedFileExists($imageName)) {
-				$type = $journalFileManager->getUploadedFileType($imageName);
-				$extension = $journalFileManager->getImageExtension($type);
-				if (!$extension || ($extension != '.png' && $extension != '.jpg')) {
-					$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-
-	/**
 	 * Initialize plugin settings form data.
 	 */
 	function initData() {
@@ -116,8 +91,7 @@ class SettingsForm extends Form {
 		$this->setData('cslStyleName', $plugin->getSetting($journalId, 'cslStyleName'));
 
 		// This field has content only if header image actually exists in the right folder.
-		import('classes.file.JournalFileManager');
-		$journalFileManager = new JournalFileManager($journal);
+		$journalFileManager = $this->_getJournalFileManager($journal);
 		$folderCssImage = glob($journalFileManager->filesDir . 'css/article_header.{jpg,png}', GLOB_BRACE);
 		if (count($folderCssImage)) {
 			$this->setData('cssHeaderImageName', basename($folderCssImage[0]));
@@ -201,15 +175,54 @@ class SettingsForm extends Form {
 
 		// Upload article header image if given. Image suffix already validated above.
 		if (isset($_FILES['cssHeaderImage'])) {
-			import('classes.file.JournalFileManager');
-			$journal =& Request::getJournal();
-			$journalFileManager = new JournalFileManager($journal);
-			$imageName = 'cssHeaderImage';
+			$journalFileManager = $this->_getJournalFileManager();
+			$extension = $this->_getUploadedImageFileExtension('cssHeaderImage', $journalFileManager);
+			$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header.' . $extension);
+		}
+	}
+
+	/**
+	 * Ensure attached header image is a .jpg or .png
+	 *
+	 * @param $imageName string form upload fieldname
+	 */
+	function _validateImage($imageName) {
+		// TODO remove $_FILES reference
+		if (isset($_FILES[$imageName])) {
+			$journalFileManager = $this->_getJournalFileManager();
 			if ($journalFileManager->uploadedFileExists($imageName)) {
-				$type = $journalFileManager->getUploadedFileType($imageName);
-				$extension = $journalFileManager->getImageExtension($type);
-				$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header.' . $extension);
+				$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
+				if (!$extension || ($extension != '.png' && $extension != '.jpg')) {
+					$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
+					return false;
+				}
 			}
 		}
+
+		return true;
+	}
+
+	/**
+	 * Returns the file extension of the uploaded image file
+	 *
+	 * @param mixed $fileName Name of the uploaded file
+	 * @param mixed $journalFileManager FileManager
+	 * @return string File extension
+	 */
+	function _getUploadedImageFileExtension($fileName, $journalFileManager) {
+		$type = $journalFileManager->getUploadedFileType($fileName);
+		return $journalFileManager->getImageExtension($type);
+	}
+
+	/**
+	 * Returns JournalFileManager instance
+	 *
+	 * @param mixed $journal Current journal
+	 * @return JournalFileManager JournalFileManager instance
+	 */
+	function _getJournalFileManager($journal = null) {
+		if (!$journal) { $journal =& Request::getJournal(); }
+		import('classes.file.JournalFileManager');
+		return new JournalFileManager($journal);
 	}
 }
