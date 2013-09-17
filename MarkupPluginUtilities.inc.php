@@ -31,7 +31,7 @@ class MarkupPluginUtilities {
 	 * @param $userId int optional explicit user id
 	 */
 	 // TODO: fix missing default value
-	function notificationService($message, $typeFlag = true, $userId) {
+	function notificationService($message, $typeFlag = true, $userId = null) {
 
 		import('classes.notification.NotificationManager');
 		$notificationManager = new NotificationManager();
