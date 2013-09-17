@@ -270,14 +270,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$journalId = $journal->getId();
 		$articleId = $article->getId();
 
-		// Conditions
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
-		if (count($suppFiles) == 0) {
+		$suppFile = $suppFiles[0];
+		if (!$suppFile) {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.supp_missing'), true);
 		}
-
-		$suppFile = $suppFiles[0]; // There should only be one.
 
 		$fileId = $suppFile->getFileId();
 		if ($fileId == 0) {
@@ -286,20 +284,19 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$suppFileName = $suppFile->getFileName();
 
-		// If supplementary file is already a zip, there's nothing to do. Its
+		// If supplementary file is already a zip, there's nothing to do. It's
 		// been converted.
-		if (preg_match('/.*\.zip/', strtolower($suppFileName))) {
+		if (preg_match('/\.zip$/', strtolower($suppFileName))) {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.is_zip'));
 		}
 
-		$args =& $this->_jobMetaData($article, $journal);
-		$argsArray = array($args);
-		$uploadFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
+		$jobMetaData =& $this->_jobMetaData($article, $journal);
+		$userFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
 
 		import('lib.pkp.classes.core.JSONManager');
 		$postFields = array(
-			'jit_events' => JSONManager::encode($argsArray),
-			'userfile' => '@' . $uploadFile
+			'jit_events' => JSONManager::encode(array($jobMetaData)),
+			'userfile' => '@' . $userFile
 		);
 
 		// CURL sends article file to pdfx server for processing, and (since no
@@ -321,17 +318,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		}
 
 		$events = JSONManager::decode($content);
-		$responses = $events->jit_events;
-		$response = $responses[0];
+		$response = array_pop($events->jit_events);
 
 		if ($response->error > 0) {
 			return $this->_printXMLMessage($response->message . ':' . $content, true);
 		}
 
-		// With a $jobId, we can fetch URL of zip file and enter into
-		// supplimentary file record.
-		$jobId = $this->_getResponseJobId($response);
-		if (strlen($jobId) == 0 || strlen($jobId) > 32) {
+		if (!($jobId = $this->_getResponseJobId($response))) {
 			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_job') . $jobId, true);
 		}
 
@@ -364,8 +357,11 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $response object
 	 */
 	function _getResponseJobId(&$response) {
-		$responseData =& $response->data;
-		$jobId = $responseData->jobId;
+		if (!isset($response->data->jobId)) { return false; }
+		$jobId = $response->data->jobId;
+		if (strlen($jobId) != 32) { return false; }
+
+		// TODO: Why is that? Does the job server return inconsistent jobId's?
 		return preg_replace('/[^a-zA-Z0-9]/', '', $jobId);
 	}
 
@@ -395,30 +391,28 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 				'title' => $article->getLocalizedTitle(),
 				'authors' => $this->_getAuthorMetaData($article->getAuthors()),
 				'journalId' => $journalId,
-				'articleId' => $article->getId(),
-
+				'articleId' => $articleId,
 				'publicationName' => $journal->getLocalizedTitle(),
 				'copyright' => strip_tags($journal->getLocalizedSetting('copyrightNotice')),
 				'publisher' => strip_tags($journal->getLocalizedSetting('publisherNote')),
 				'rights' => strip_tags($journal->getLocalizedSetting('openAccessPolicy')),
 				'eISSN' => $journal->getLocalizedSetting('onlineIssn'),
 				'ISSN' => $journal->getLocalizedSetting('printIssn'),
-
 				'DOI' => $article->getPubId('doi'),
 			)
 		);
 
-		// This field has content only if header image actually exists in the right folder.
+		// Add the header image if it exists
 		import('classes.file.JournalFileManager');
 		$journalFileManager = new JournalFileManager($journal);
 		$imageFileGlob = $journalFileManager->filesDir . 'css/article_header.{jpg,png}';
-		$g = glob($imageFileGlob, GLOB_BRACE);
-		$cssHeaderImageName = basename($g[0]);
-		if (strlen($cssHeaderImageName) > 0) {
+		$files = glob($imageFileGlob, GLOB_BRACE);
+		$cssHeaderImageName = basename($files[0]);
+		if ($cssHeaderImageName) {
 			$args['data']['cssHeaderImageURL'] = '../../css/' . $cssHeaderImageName;
 		}
 
-		// Provide some publication info
+		// Issue specific information
 		$issueDao =& DAORegistry::getDAO('IssueDAO');
 		$issue =& $issueDao->getIssueByArticleId($articleId, $journalId);
 		if ($issue && $issue->getPublished()) {
@@ -465,13 +459,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$articleFileManager = new ArticleFileManager($articleId);
 
 		$jobURL = $this->getSetting($journalId, 'markupHostURL') . 'job/' . $jobId . '/document.zip';
-
 		$suppFileId = $suppFile->getFileId();
+		$mimeType = 'application/zip';
 		if ($suppFileId == 0) {
-			$suppFileId = $articleFileManager->copySuppFile($jobURL, 'application/zip');
+			$suppFileId = $articleFileManager->copySuppFile($jobURL, $mimeType);
 			$suppFile->setFileId($suppFileId);
 		} else {
-			$articleFileManager->copySuppFile($jobURL, 'application/zip', $suppFileId, true);
+			$articleFileManager->copySuppFile($jobURL, $mimeType, $suppFileId);
 		}
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFileDao->updateSuppFile($suppFile);
@@ -512,35 +506,44 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return false;
 		}
 
-		// Ensure that we only extract "good" files.
-		$candidates = array('manifest.xml','document.xml', 'document-new.pdf', 'document.html','document-review.pdf');
-		// FIXME: try "media" folder.
+		$validFiles = array(
+			'document-new.pdf',
+			'document-review.pdf',
+			'document.html',
+			'document.xml',
+			'manifest.xml',
+		);
+		// TODO: 'try "media" folder.'; check what dev meant with that
 		$extractFiles = array();
-		for ($i = 0; $i < count($candidates); $i++) {
-			$candidate = $candidates[$i];
-			if ($zip->locateName($candidate) !== false)
-				$extractFiles[] = $candidate;
-		};
+		foreach ($validFiles as $validFile) {
+			if ($zip->locateName($validFile) !== false) {
+				$extractFiles[] = $validFile;
+			}
+		}
 
 		// Get all graphics
-		$extractSuffixes = array('png','jpg');
+		// TODO: do we only support jpg and png?
 		for ($i = 0; $i < $zip->numFiles; $i++) {
 			$fileName = $zip->getNameIndex($i);
-			if (in_array(strtolower(pathinfo($fileName, PATHINFO_EXTENSION)), $extractSuffixes)) {
+			if (preg_match('/\.(png|jpg)$/i', $fileName)) {
 				$extractFiles[] = $fileName;
 			}
 		}
 
-		// PHP docs say extractTo() returns false on failure, but its triggering
-		// this, and yet returning "No error" for $errorMsg below.
-		if ($zip->extractTo($suppFolder . '/markup', $extractFiles) === false) {
-			$errorMsg = $zip->getStatusString();
-			if ($errorMsg != 'No error') {
-				$zip->close();
-				$this->_printXMLMessage(__('plugins.generic.markup.archive.bad_zip') . $errorMsg, true);
-				return false;
-			}
+		// TODO: check what dev meant with this: "PHP docs say extractTo()
+		// returns false on failure, but its triggering this, and yet returning
+		// "No error" for $errorMsg below."
+		if (
+			$zip->extractTo($suppFolder . '/markup', $extractFiles) === false &&
+			$zip->getStatusString() != 'No error'
+		) {
+			$zip->close();
+			$this->_printXMLMessage(
+				__('plugins.generic.markup.archive.bad_zip') . $zip->getStatusString(), true
+			);
+			return false;
 		}
+
 		$zip->close();
 
 		return true;
@@ -562,20 +565,20 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 */
 	function _setupGalleyForMarkup($articleId, $fileName) {
 		$journal =& Request::getJournal();
-
 		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
 
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-		$fileExt = strtoupper(ArticleFileManager::parseFileExtension($fileName));
+		$fileExtension = strtoupper(ArticleFileManager::parseFileExtension($fileName));
 		$archiveFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/' . $fileName;
 		$suppFileId = $articleFileManager->copySuppFile($archiveFile, $mimeType);
 
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$gals =& $galleyDao->getGalleysByArticle($articleId);
-		foreach ($gals as $galley) {
+		$galleys =& $galleyDao->getGalleysByArticle($articleId);
+		foreach ($galleys as $galley) {
 			// Doing by suffix since usually no isXMLGalley() fn
-			if ($galley->getLabel() == $fileExt) {
+			// TODO: check if this is legit
+			if ($galley->getLabel() == $fileExtension) {
 				$galley->setFileId($suppFileId);
 				$galleyDao->updateGalley($galley);
 				return true;
@@ -585,7 +588,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$galley = new ArticleGalley();
 		$galley->setArticleId($articleId);
 		$galley->setFileId($suppFileId);
-		$galley->setLabel($fileExt);
+		$galley->setLabel($fileExtension);
 		$galley->setLocale(AppLocale::getLocale());
 		$galleyDao->insertGalley($galley);
 		return $galley->getId();
