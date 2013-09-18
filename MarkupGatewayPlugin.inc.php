@@ -65,7 +65,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return MarkupPlugin Markup plugin object
 	 */
 	function &getMarkupPlugin() {
-		$plugin =& PluginRegistry::getPlugin('generic', MARKUP_PLUGIN_NAME);
+		$plugin =& PluginRegistry::getPlugin('generic', 'markupplugin');
 		return $plugin;
 	}
 
