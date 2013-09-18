@@ -217,7 +217,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $hookName string Name of the hook
 	 * @param $params array [category string, plugins array]
 	 *
-	 * @return bool False
+	 * @return void
 	 */
 	function _loadCategoryCallback($hookName, $params) {
 		$category = $params[0];
@@ -228,8 +228,6 @@ class MarkupPlugin extends GenericPlugin {
 			$gatewayPlugin = new MarkupGatewayPlugin();
 			$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
 		}
-
-		return false;
 	}
 
 	/**
@@ -240,13 +238,13 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $hookName string Name of the hook
 	 * @param $params array [&$step, &$article, &$submitForm]
 	 *
-	 * @return bool False
+	 * @return void
 	 */
 	function _authorNewSubmissionConfirmationCallback($hookName, $params) {
 		$step = $params[0];
 
 		// Only interested in the final confirmation step
-		if ($step != 5) return false;
+		if ($step != 5) return;
 
 		$article =& $params[1];
 		$articleId = $article->getId();
@@ -257,7 +255,7 @@ class MarkupPlugin extends GenericPlugin {
 		$fileId = $article->getSubmissionFileId();
 		$articleFileDao =& DAORegistry::getDAO('ArticleFileDAO');
 		$articleFile =& $articleFileDao->getArticleFile($fileId);
-		if (!isset($articleFile)) return false;
+		if (!isset($articleFile)) return;
 
 		// Ensure a supplementary file record titled
 		// MARKUP_SUPPLEMENTARY_FILE_TITLE is in place.
@@ -284,7 +282,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param string $hookName Name of the hook
 	 * @param array $params [article object , ...]
 	 *
-	 * @return bool False
+	 * @return void
 	 */
 	function _fileToMarkupCallback($hookName, $params) {
 		$article =& $params[0];
@@ -307,11 +305,11 @@ class MarkupPlugin extends GenericPlugin {
 		// Trigger only if file uploaded.
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-		if ($articleFileManager->uploadedFileExists($fileName)) { return false; }
+		if ($articleFileManager->uploadedFileExists($fileName)) { return; }
 
 		// Copy the temporary file
 		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
-		if (!$newPath) { return false; }
+		if (!$newPath) { return; }
 
 		$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
 		@unlink($newPath);
@@ -321,8 +319,6 @@ class MarkupPlugin extends GenericPlugin {
 
 		// Submit the article to the pdfx server
 		$this->_submitURL($articleId, $galleyFlag);
-
-		return false;
 	}
 
 	/**
@@ -332,7 +328,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param string $hookName Name of the hook
 	 * @param array $params [$galleyId]
 	 *
-	 * @return bool False
+	 * @return void
 	 */
 	function _deleteGalleyMediaCallback($hookName, $params) {
 		$galleyId = $params[0];
@@ -341,8 +337,6 @@ class MarkupPlugin extends GenericPlugin {
 		$articleId = $galley->getSubmissionId();
 		$type = $galley->getLabel();
 		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
-
-		return false;
 	}
 
 	/**
@@ -352,21 +346,21 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param string $hookName Name of the hook
 	 * @param array $params [$galleyId]
 	 *
-	 * @return bool Whether or not the HTML generation was successful
+	 * @return void
 	 */
 	function _displayGalleyCallback($hookName, $params) {
-		if ($params[1] != 'submission/layout/proofGalley.tpl') return false;
+		if ($params[1] != 'submission/layout/proofGalley.tpl') return;
 
 		$templateMgr = $params[0];
 		$galleyId = $templateMgr->get_template_vars('galleyId');
 		$articleId = $templateMgr->get_template_vars('articleId');
-		if (!$articleId) return false;
+		if (!$articleId) return;
 
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley =& $galleyDao->getGalley($galleyId, $articleId);
-		if (!$galley) return false;
+		if (!$galley) return;
 
-		return $this->_rewriteArticleHTML($articleId, $galley, true);
+		$this->_rewriteArticleHTML($articleId, $galley, true);
 	}
 
 	/**
@@ -486,12 +480,12 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $backLinkFlag bool Whether or not to inject an iframe with a link
 	 * back to the refering page
 	 *
-	 * @return bool Success status
+	 * @return void
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
 	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
 		// TODO: https://github.com/pkp/ojs/pull/98#discussion_r5986311
-		if (strtoupper($galley->getLabel()) != 'HTML') return false;
+		if (strtoupper($galley->getLabel()) != 'HTML') return;
 
 		$filePath = $galley->getFilePath();
 		$mimeType = MarkupPluginUtilities::getMimeType($filePath);
@@ -540,7 +534,5 @@ class MarkupPlugin extends GenericPlugin {
 		}
 
 		echo $html;
-
-		return true;
 	}
 }

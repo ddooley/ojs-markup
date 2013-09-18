@@ -117,7 +117,7 @@ class MarkupPluginUtilities {
 	 * @param $articleId int ArticleId
 	 * @param $fileName int File name of uploaded file
 	 *
-	 * @return string Path to the copied file 
+	 * @return string Path to the copied file
 	 */
 	function copyTempFile($articleId, $fileName) {
 		import('classes.file.ArticleFileManager');
@@ -141,7 +141,7 @@ class MarkupPluginUtilities {
 	 * @param $folder string Server file path
 	 * @param $fileName string Name of file to download
 	 *
-	 * @return mixed True on success
+	 * @return void
 	 */
 	function downloadFile($folder, $fileName) {
 		$filePath = $folder . $fileName;
@@ -158,8 +158,6 @@ class MarkupPluginUtilities {
 
 		$mimeType = self::getMimeType($fileName);
 		$fileManager->downloadFile($folder . $fileName, $mimeType, true);
-
-		return true;
 	}
 
 	/**
@@ -169,7 +167,7 @@ class MarkupPluginUtilities {
 	 * @param $articleId int ArticleID
 	 * @param $type string What document type to discard
 	 *
-	 * @return bool True on success
+	 * @return void
 	 */
 	function checkGalleyMedia($articleId, $type) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
@@ -203,8 +201,6 @@ class MarkupPluginUtilities {
 		}
 
 		foreach ($delete as $file) { unlink($file); }
-
-		return true;
 	}
 
 	/**

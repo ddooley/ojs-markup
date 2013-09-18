@@ -146,29 +146,34 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		foreach ($args as &$arg) { $arg = strtolower($arg); }
 
 		if (!$this->getEnabled()) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.enable'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.enable'));
+			return;
 		}
 
 		// Make sure we're within a Journal context
 		$journal =& Request::getJournal();
 		if (!$journal) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_journal'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_journal'));
+			return;
 		}
 
 		// Handles relative urls like "../../css/styles.css"
 		if ($args[0] == 'css') {
-			return $this->_downloadMarkupCSS($journal, $args[1]);
+			$this->_downloadMarkupCSS($journal, $args[1]);
+			return;
 		}
 
 		// Load the article
 		$articleId = (int) $args[1];
 		if (!$articleId) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_articleID'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_articleID'));
+			return;
 		}
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		$article =& $articleDao->getArticle($articleId);
 		if (!$article) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			return;
 		}
 
 		// Replace supplementary document file with Document Markup Server
@@ -177,23 +182,26 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if (substr($args[0], 0, 7) == 'refresh') {
 			$this->_setUserId((int) $args[2]);
 			$this->_refreshArticleArchive($article, ($args[0] == 'refreshgalley'));
-			return true;
+			return;
 		};
 
 		// Here we deliver any markup file request if its article's publish
 		// state allows it, or if user's credentials allow it. $args[0] is /0/, a
 		// constant for now. $fileName should be a file name.
 		if ((int) $args[0] != 0) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			return;
 		}
 
 		if (!$fileName = MarkupPluginUtilities::cleanFileName($args[2])) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.bad_filename'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.bad_filename'));
+			return;
 		}
 
 		$markupFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
 		if (!file_exists($markupFolder . $fileName)) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_file'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_file'));
+			return;
 		}
 
 		// Most requests come in when an article is in its published state, so
@@ -201,22 +209,24 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if ($article->getStatus() == STATUS_PUBLISHED) {
 			if (MarkupPluginUtilities::getUserPermViewPublished($user, $articleId, $journal, $fileName)) {
 				MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
-				return true;
+				return;
 			}
 		}
 
 		// Article is not published, so access can only be granted if user is
 		// logged in and of the right type / connection to article
 		if (!$user = Request::getUser()) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.login'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.login'));
+			return;
 		}
 
 		if (MarkupPluginUtilities::getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
 			MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
-			return true;
+			return;
 		}
 
-		return $this->_printXMLMessage(__('plugins.generic.markup.archive.no_access'));
+		$this->_printXMLMessage(__('plugins.generic.markup.archive.no_access'));
+		return;
 	}
 
 	//
@@ -276,7 +286,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $article mixed Article to refresh
 	 * @param $galleyFlag bool Whether or not to update the galley
 	 *
-	 * @return bool Whether or not the refresh was successful
+	 * @return void
 	 */
 	function _refreshArticleArchive(&$article, $galleyFlag) {
 		$journal =& Request::getJournal();
@@ -287,12 +297,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$suppFile = $suppFiles[0];
 		if (!$suppFile) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.supp_missing'), true);
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.supp_missing'), true);
+			return;
 		}
 
 		$fileId = $suppFile->getFileId();
 		if ($fileId == 0) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.supp_file_missing'), true);
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.supp_file_missing'), true);
+			return;
 		}
 
 		$suppFileName = $suppFile->getFileName();
@@ -300,7 +312,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// If supplementary file is already a zip, there's nothing to do. It's
 		// been converted.
 		if (preg_match('/\.zip$/', strtolower($suppFileName))) {
-			return $this->_printXMLMessage(__('plugins.generic.markup.archive.is_zip'));
+			$this->_printXMLMessage(__('plugins.generic.markup.archive.is_zip'));
+			return;
 		}
 
 		$jobMetaData =& $this->_jobMetaData($article, $journal);
@@ -327,20 +340,23 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		curl_close($ch);
 
 		if ($content === false) {
-			return $this->_printXMLMessage($errorMsg, true);
+			$this->_printXMLMessage($errorMsg, true);
+			return;
 		}
 
 		$events = JSONManager::decode($content);
 		$response = array_pop($events->jit_events);
 
 		if ($response->error > 0) {
-			return $this->_printXMLMessage($response->message . ':' . $content, true);
+			$this->_printXMLMessage($response->message . ':' . $content, true);
+			return;
 		}
 
 		if (!($jobId = $this->_getResponseJobId($response))) {
-			return $this->_printXMLMessage(
+			$this->_printXMLMessage(
 				__('plugins.generic.markup.archive.no_job', array('jobId' => $jobId)), true
 			);
+			return;
 		}
 
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
@@ -348,7 +364,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Unzip file and launch galleys only during layout upload
 		if ($galleyFlag) {
 			if (!$this->_unzipSuppFile($articleId, $suppFile)) {
-				return true;
+				return;
 			}
 			$this->_setupGalleyForMarkup($articleId, 'document.html');
 			$this->_setupGalleyForMarkup($articleId, 'document-new.pdf');
@@ -364,8 +380,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			__('plugins.generic.markup.completed', array('articleId' => $articleId, 'jobId' => $jobId)),
 			true
 		);
-
-		return true;
 	}
 
 	/**
@@ -627,7 +641,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $notification boolean Whether or not a notification should be
 	 * shown to the user
 	 *
-	 * @return bool True
+	 * @return void
 	 */
 	function _printXMLMessage($message, $notification = false) {
 		if ($notification == true) {
@@ -646,7 +660,5 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$templateMgr->assign('description', $message);
 
 		$templateMgr->display($this->getTemplatePath() . '/fetch.tpl', 'application/atom+xml');
-
-		return true;
 	}
 }
