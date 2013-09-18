@@ -66,7 +66,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string Name of plugin
 	 */
 	function getName() {
-		return 'markuplugin';
+		return 'markupplugin';
 	}
 
 	/**
