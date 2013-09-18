@@ -90,6 +90,14 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
+	 * Get plugin CSS path
+	 * @return string Public plugin CSS path
+	 */
+	function getCssPath() {
+		return '/' . parent::getPluginPath() . '/css/';
+	}
+
+	/**
 	 * Display verbs for the management interface.
 	 */
 	function getManagementVerbs() {

@@ -105,13 +105,16 @@ class SettingsForm extends Form {
 	 * Populate and display settings form.
 	 */
 	function display() {
-		$templateMgr =& TemplateManager::getManager();
+		$templateManager =& TemplateManager::getManager();
 
 		// Signals indicating plugin compatibility
-		$templateMgr->assign('curlSupport', function_exists('curl_init') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
-		$templateMgr->assign('zipSupport', extension_loaded('zlib') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
-		$templateMgr->assign('php5Support', checkPhpVersion('5.0.0') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
-		$templateMgr->assign('pathInfo', Request::isPathInfoEnabled() ? __('plugins.generic.markup.settings.enabled') : __('plugins.generic.markup.settings.disabled'));
+		$templateManager->assign('curlSupport', function_exists('curl_init') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
+		$templateManager->assign('zipSupport', extension_loaded('zlib') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
+		$templateManager->assign('php5Support', checkPhpVersion('5.0.0') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
+		$templateManager->assign('pathInfo', Request::isPathInfoEnabled() ? __('plugins.generic.markup.settings.enabled') : __('plugins.generic.markup.settings.disabled'));
+
+		$templateManager->assign('additionalHeadData', '<link rel="stylesheet" type="text/css" href="' . $this->plugin->getCssPath() . 'settingsForm.css" />');
+
 		parent::display();
 	}
 

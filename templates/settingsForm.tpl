@@ -8,6 +8,7 @@
 *}
 {strip}
 {assign var="pageTitle" value="plugins.generic.markup.displayName"}
+{assign var=styleFile value="a.css"}
 {include file="common/header.tpl"}
 {/strip}
 
@@ -26,9 +27,9 @@
 					{fieldLabel name="cslStyle" key="plugins.generic.markup.settings.cslStyle"}
 				</td>
 				<td class="value">
-					<input type="text" name="cslStyleName" id="cslStyleName" value="{$cslStyleName|escape}" class="textField" />
-					{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}
+					<input type="text" name="cslStyleName" id="cslStyleName" value="{$cslStyleName|escape}" class="textField" size="40" />
 					<input name="cslStyle" type="hidden" id="cslStyle" value="{$cslStyle|escape}" />
+					<p>{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}</p>
 				</td>
 			</tr>
 
@@ -40,7 +41,7 @@
 					<div>
 						{translate key="plugins.generic.markup.settings.cssStylesHelp"  url=$urlFileManager}
 					</div>
-
+					<br />
 					<a href="{$urlFileManager}/article.css" target="_blank">article.css</a><br/>
 					<a href="{$urlFileManager}/article_font.css" target="_blank">article_font.css</a><br/>
 					<a href="{$urlFileManager}/article_print.css" target="_blank">article_print.css</a><br/>
@@ -56,7 +57,7 @@
 				<td class="value">
 					<a href="{$urlFileManager}/{$cssHeaderImageName}" target="_blank">{$cssHeaderImageName}</a>
 					<input type="file" name="cssHeaderImage" />
-					{translate key="plugins.generic.markup.settings.cssHeaderImageURLHelp"  url=$urlFileManager}
+					<p>{translate key="plugins.generic.markup.settings.cssHeaderImageURLHelp"  url=$urlFileManager}</p>
 				</td>
 			</tr>
 
@@ -70,8 +71,10 @@
 				</td>
 			</tr>
 
+			<tr><td colspan="2"><div class="separator">&nbsp;</div></td></tr>
+
 			<tr>
-				<td colspan="2"><h4>{fieldLabel key="plugins.generic.markup.settings.requirements"}</h4></td>
+				<td colspan="2"><h3>{fieldLabel key="plugins.generic.markup.settings.requirements"}</h3></td>
 			</tr>
 
 			<tr>
@@ -86,12 +89,12 @@
 					{fieldLabel key="plugins.generic.markup.settings.markupHostUser"}
 				</td>
 				<td class="value">
-					<input type="text" name="markupHostUser" id="markupHostUser" value="{$markupHostUser|escape}" class="textField" size="20" />
+					<input type="text" name="markupHostUser" id="markupHostUser" value="{$markupHostUser|escape}" class="textField" />
 				</td>
 			</tr>
 
 			<tr>
-				<td class="label" align="right" valign="top">
+				<td class="label">
 					{fieldLabel key="plugins.generic.markup.settings.markupHostPass"}
 				</td>
 				<td class="value">
@@ -104,9 +107,8 @@
 					{fieldLabel key="plugins.generic.markup.settings.markupHostURL"}
 				</td>
 				<td class="value">
-					<input type="text" name="markupHostURL" id="markupHostURL" value="{$markupHostURL|escape}" class="textField" />
-
-					{translate key="plugins.generic.markup.settings.markupHostURLHelp"}
+					<input type="text" name="markupHostURL" id="markupHostURL" value="{$markupHostURL|escape}" class="textField" size="40" />
+					<p>{translate key="plugins.generic.markup.settings.markupHostURLHelp"}</p>
 				</td>
 			</tr>
 
@@ -115,8 +117,8 @@
 					{fieldLabel key="plugins.generic.markup.settings.php5Support"}
 				</td>
 				<td class="value">
-					<em>{$php5Support|escape}</em>
-					{translate key="plugins.generic.markup.settings.php5SupportHelp"}
+					<strong>{$php5Support|escape}</strong>
+					<p>{translate key="plugins.generic.markup.settings.php5SupportHelp"}</p>
 				</td>
 			</tr>
 
@@ -125,8 +127,8 @@
 					{translate key="plugins.generic.markup.settings.curlSupport"}
 				</td>
 				<td class="value">
-					<em>{$curlSupport|escape}</em>
-					{fieldLabel key="plugins.generic.markup.settings.curlSupportHelp"}
+					<strong>{$curlSupport|escape}</strong>
+					<p>{fieldLabel key="plugins.generic.markup.settings.curlSupportHelp"}</p>
 				</td>
 			</tr>
 
@@ -135,8 +137,8 @@
 					{fieldLabel key="plugins.generic.markup.settings.zipSupport"}
 				</td>
 				<td class="value">
-					<em>{$zipSupport|escape}</em>
-					{translate key="plugins.generic.markup.settings.zipSupportHelp"}
+					<strong>{$zipSupport|escape}</strong>
+					<p>{translate key="plugins.generic.markup.settings.zipSupportHelp"}</p>
 				</td>
 			</tr>
 
@@ -145,8 +147,8 @@
 					{fieldLabel key="plugins.generic.markup.settings.pathInfo"}
 				</td>
 				<td class="value">
-					<em>{$pathInfo|escape}</em>
-					{translate key="plugins.generic.markup.settings.pathInfoHelp"}
+					<strong>{$pathInfo|escape}</strong>
+					<p>{translate key="plugins.generic.markup.settings.pathInfoHelp"}</p>
 				</td>
 			</tr>
 		</table>
