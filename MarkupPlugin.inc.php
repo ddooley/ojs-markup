@@ -185,7 +185,7 @@ class MarkupPlugin extends GenericPlugin {
 	/**
 	 * Register plugin callbacks
 	 */
-	function registerCallbacks(){
+	function registerCallbacks() {
 		foreach ($this->_callbackMap as $callback => $hooks) {
 			if (!is_array($hooks)) $hooks = array($hooks);
 			foreach ($hooks as $hook) {
@@ -378,7 +378,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $suppFilePath string file path
 	 * @param $articleFileManager object, already initialized with an article id.
 	 */
-	function _setSuppFileId($suppFile, $suppFilePath, $articleFileManager) {
+	function _setSuppFileId($suppFile, $suppFilePath, &$articleFileManager) {
 		$mimeType = MarkupPluginUtilities::getMimeType($suppFilePath);
 		$suppFileId = $suppFile->getFileId();
 
@@ -475,7 +475,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * referring page.
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
-	function _rewriteArticleHTML($articleId, $galley, $backLinkFlag) {
+	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
 		// TODO: https://github.com/pkp/ojs/pull/98#discussion_r5986311
 		if (strtoupper($galley->getLabel()) != 'HTML') return false;
 

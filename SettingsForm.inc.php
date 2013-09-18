@@ -194,7 +194,7 @@ class SettingsForm extends Form {
 	 * @param mixed $journalFileManager FileManager
 	 * @return string File extension
 	 */
-	function _getUploadedImageFileExtension($fileName, $journalFileManager) {
+	function _getUploadedImageFileExtension($fileName, &$journalFileManager) {
 		$type = $journalFileManager->getUploadedFileType($fileName);
 		return $journalFileManager->getImageExtension($type);
 	}

@@ -234,7 +234,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @param $fileName;
 	 */
-	function _downloadMarkupCSS($journal, $fileName) {
+	function _downloadMarkupCSS(&$journal, $fileName) {
 		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
 		import('classes.file.JournalFileManager');
 
@@ -265,7 +265,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @see docs/technicalNotes.md file for details on the interface between this
 	 * plugin and the Document Markup Server.
 	 */
-	function _refreshArticleArchive($article, $galleyFlag) {
+	function _refreshArticleArchive(&$article, $galleyFlag) {
 		$journal =& Request::getJournal();
 		$journalId = $journal->getId();
 		$articleId = $article->getId();
@@ -361,7 +361,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @param $response object
 	 */
-	function _getResponseJobId($response) {
+	function _getResponseJobId(&$response) {
 		if (isset($response->data)) {
 			$responseData =& $response->data;
 		} else {
@@ -385,7 +385,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return $args array
 	 */
-	function _jobMetaData($article, $journal) {
+	function _jobMetaData(&$article, &$journal) {
 		$articleId = $article->getId();
 		$journalId = $journal->getId();
 
@@ -463,7 +463,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $jobId string jobId from Document Markup Server
 	 * @param $suppfile object
 	 */
-	function _retrieveJobArchive($articleId, $journalId, $jobId, $suppFile) {
+	function _retrieveJobArchive($articleId, $journalId, $jobId, &$suppFile) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 
@@ -498,7 +498,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @see _retrieveJobArchive()
 	 */
-	function _unzipSuppFile($articleId, $suppFile, $galleyFlag) {
+	function _unzipSuppFile($articleId, &$suppFile, $galleyFlag) {
 		// We need updated name. It was x.pdf or docx, now its y.zip:
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());
@@ -625,7 +625,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @param $message string status indicating job success or error
 	 * @param $notification boolean indicating if user should be notified.
 	 */
-	function _printXMLMessage($message, $notification) {
+	function _printXMLMessage($message, $notification = false) {
 		if ($notification == true) {
 			$this->import('MarkupPluginUtilities');
 			// TODO: for now all notifications are success types

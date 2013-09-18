@@ -364,7 +364,7 @@ class MarkupPluginUtilities {
 	 *
 	 * @return first userType that matches user to article for viewing.
 	 **/
-	function getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
+	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
 		$journalId = $journal->getId();
 
 		$roleDao =& DAORegistry::getDAO('RoleDAO');
