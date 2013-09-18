@@ -1,2 +1,4 @@
-#markupSettings .data td.label label { vertical-align: top; }
-#markupSettings .data td.label { width: 15%; }
+#markupSettings .data td.label {
+	width: 15%;
+	vertical-align: top;
+}
