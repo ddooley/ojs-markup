@@ -21,17 +21,13 @@ define('MARKUP_SUPPLEMENTARY_FILE_TITLE', 'Document Markup Files');
 class MarkupPluginUtilities {
 
 	/**
-	 * Provide notification messages for Document Markup Server job status
-	 * $message is already translated, i.e. caller takes responsibility for
-	 * setting up the text correctly. $typeFlag for now signals just success or
-	 * failure style of message.
+	 * Show a notification to the user
 	 *
-	 * @param $message string translated text to display
-	 * @param $typeFlag bool optional
-	 * @param $userId int optional explicit user id
+	 * @param $message string Translated text to display
+	 * @param $typeFlag bool Success/Error message
+	 * @param $userId int UserId of user to notify
 	 */
-	 // TODO: fix missing default value
-	function notificationService($message, $typeFlag = true, $userId = null) {
+	function showNotification($message, $typeFlag = true, $userId = null) {
 
 		import('classes.notification.NotificationManager');
 		$notificationManager = new NotificationManager();
@@ -41,7 +37,7 @@ class MarkupPluginUtilities {
 			$notificationType = NOTIFICATION_TYPE_ERROR;
 		}
 
-		// If user not specified explicitly, then include current user if any.
+		// If user not specified explicitly, then include current user.
 		if (!isset($userId)) {
 			$user =& Request::getUser();
 			$userId = $user->getId();
@@ -59,9 +55,9 @@ class MarkupPluginUtilities {
 	/**
 	 * Return article's supplementary files directory.
 	 *
-	 * @param $articleId int
+	 * @param $articleId int ArticleId
 	 *
-	 * @return string supplementary file folder path.
+	 * @return string Supplementary file folder path
 	 */
 	function getSuppFolder($articleId) {
 		import('classes.file.ArticleFileManager');
@@ -70,19 +66,20 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Return URL that provides file access for a given article within context
-	 * of current journal. Uses gateway plugin access point.
+	 * Returns URL that provides file access for a given article and context
+	 *
 	 * e.g. ... /index.php/praxis/gateway/plugin/markup/1/refresh
 	 * or ... index.php?journal=praxis&page=gateway&op=plugin&path[]=markup&path[]=1&path[]=refresh
 	 *
-	 * @param $args Array [action, articleId, userId] or [folder, fileName] or
-	 * [0, articleId, fileName]
+	 * $arg reflects 3 use cases
+	 *   [action, articleId, userId] or
+	 *   [folder, fileName] or
+	 *   [0, articleId, fileName]
+	 *
+	 * @param $args mixed Specifying the URL components
 	 *
 	 * @return string URL
-	 *
-	 * @see MarkupPlugin _submitURL()
-	 * @see MarkupGatewayPlugin fetch()
-	 * TODO: maybe break this up for individual use cases
+	 * TODO: Break this up for individual use cases
 	 */
 	function getMarkupURL($args) {
 		$path = array(MARKUP_GATEWAY_FOLDER);
@@ -102,29 +99,25 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Ensures no funny business with filenames usually coming in from Markup
-	 * plugin-handled file requests
+	 * Cleans file names
 	 *
-	 * @param $fileName string
+	 * @param $fileName string File name to clean
+	 *
+	 * @return Cleaned file name
 	 */
-	 // TODO: clean description
 	 // TODO: check why this is required
 	function cleanFileName($fileName) {
 		return preg_replace('/[^[:alnum:]\._-]/', '', $fileName);
 	}
 
-
 	/**
-	 * Provide suffix for copy of uploaded file (sits in same folder as original
-	 * upload).
-	 * The uploaded temp file doesn't have a file suffix. We copy this file and
-	 * add a suffix, in preperation for uploading it to document markup server.
-	 * Uploaded file hasn't been processed by OJS yet.
+	 * Copy tempory uploaded file into new location before uploading it to the
+	 * Document Markup server
 	 *
-	 * @param: $articleFileManager object primed with article
-	 * @param: $fileName string upload form field name
+	 * @param $articleId int ArticleId
+	 * @param $fileName int File name of uploaded file
 	 *
-	 * @return false if no suffix; otherwise path to copied file
+	 * @return string Path to the copied file 
 	 */
 	function copyTempFile($articleId, $fileName) {
 		import('classes.file.ArticleFileManager');
@@ -144,12 +137,11 @@ class MarkupPluginUtilities {
 
 	/**
 	 * Return requested markup file to user's browser.
-	 * Eg. /var/www_uploads/journals/1/articles/2/supp/markup/document.html
 	 *
 	 * @param $folder string Server file path
-	 * @param $fileName string (must already be validated)
+	 * @param $fileName string Name of file to download
 	 *
-	 * @see DocumentMarkupFetch
+	 * @return mixed True on success
 	 */
 	function downloadFile($folder, $fileName) {
 		$filePath = $folder . $fileName;
@@ -173,12 +165,11 @@ class MarkupPluginUtilities {
 	/**
 	 * Delete markup plugin media files related to an article if no XML or HTML
 	 * galley links are left.
-	 * The idea is that if a user has disallowed viewing of a particular kind of
-	 * content, then the plugin should not offer that through its gateway. Some
-	 * extra complexity because this has to anticipate $type will be deleted,
-	 * though it isn't yet since hook fires before the action is completed.
 	 *
-	 * @param $articleId int
+	 * @param $articleId int ArticleID
+	 * @param $type string What document type to discard
+	 *
+	 * @return bool True on success
 	 */
 	function checkGalleyMedia($articleId, $type) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
@@ -217,18 +208,14 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Do all necessary checks to see if user is allowed to download this file
-	 * if it has been published. A variation on
-	 * /ojs/pages/article/ArticleManager.inc.php validate()
+	 * Checks if user is allowed to download this file
 	 *
-	 * @param $user object
-	 * @param $articleId int
- 	 * @param $journal object
- 	 * @param $fileName string , in case requested file type (pdf or other)
-	 * affects viewing rights
+	 * @param $user mixed User object
+	 * @param $articleId int ArticleId
+ 	 * @param $journal mixed Journal object
+ 	 * @param $fileName string File to download
  	 *
- 	 * @return boolean true iff user allowed to see given file
-	 * @see fetch()
+ 	 * @return boolean Whether or not the user is permitted to download the file
 	 */
 	function getUserPermViewPublished($user, $articleId, $journal, $fileName) {
 		$journalId = $journal->getId();
@@ -337,32 +324,14 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Calculate current user's read permission with respect to given article.
-	 * Handles case where article isn't published yet.
+	 * Get a users role for a journal and article
 	 *
-	 * Give access if:
-	 * - user is SITE_ADMIN or JOURNAL_MANAGER
-	 * - user is Editor / Section Editor of given journal
-	 * - user is author / reader / reviewer of given article
+	 * @param $userId int UserId
+	 * @param $articleId int ArticleId to check roles for
+	 * @param $journal mixed Journal to check roles for
+	 * @param $fileName string File name for reviewer access
 	 *
-	 * USERS TO CONSIDER: See ojs/classes/security/Validation.inc.php
-	 *
-	 *  ROLE_ID_SITE_ADMIN      isSiteAdmin()
-	 *
-	 *  All isXYZ() functions below can take a journalId.
-	 *  ROLE_ID_JOURNAL_MANAGER isJournalManager()
-	 *  ROLE_ID_EDITOR          isEditor()
-	 *  ROLE_ID_SECTION_EDITOR  isSectionEditor()
-	 *
-	 *  ROLE_ID_COPYEDITOR      isCopyeditor()
-	 *  ROLE_ID_LAYOUT_EDITOR   isLayoutEditor()
-	 *  ROLE_ID_PROOFREADER     isProofreader()
-	 *
-	 *  ROLE_ID_AUTHOR          isAuthor()
-	 *  ROLE_ID_READER          isReader()
-	 *  ROLE_ID_REVIEWER        isReviewer()
-	 *
-	 * @return first userType that matches user to article for viewing.
+	 * @return int RoleId of user in journal and article
 	 **/
 	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
 		$journalId = $journal->getId();
@@ -465,8 +434,10 @@ class MarkupPluginUtilities {
 
 	/**
 	 * Return mime type of a file
-	 * @param string $file
-	 * @return string mime type of the file
+	 *
+	 * @param $file string File to get mimetype for
+	 *
+	 * @return string Mime type of the file
 	 */
 	function getMimeType($file) {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);

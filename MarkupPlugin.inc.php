@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/markup/MarkupPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
- * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ * Copyright (c) 2003-2013 John Willinsky Distributed under the GNU GPL v2. For
+ * full terms see the file docs/COPYING.
  *
  * @class MarkupPlugin
  * @ingroup plugins_generic_markup
@@ -14,29 +14,27 @@
  * Specification:
  *
  * When an author, copyeditor or editor uploads a new version (odt, docx, doc,
- * or pdf format) of an article, this module submits it to the pdfx server
- * specified in the configuration file. The following files are returned in
- * gzip'ed archive file (X-Y-Z-AG.tar.gz) file. An article supplementary
+ * or pdf format) of an article, this module submits it to the Document Markup
+ * Server specified in the configuration file. The following files are returned
+ * in gzip'ed archive file (X-Y-Z-AG.tar.gz) file. An article supplementary
  * file is created/updated to hold the archive.
  *
- * manifest.xml
- * document-new.pdf (layout version of PDF)
- * document-review.pdf (review version of PDF, header author info stripped)
- * document.xml (NLM-XML3/JATS-compliant)
- * document.html (web-viewable article version)
+ * manifest.xml document-new.pdf (layout version of PDF) document-review.pdf
+ * (review version of PDF, header author info stripped) document.xml
+ * (NLM-XML3/JATS-compliant) document.html (web-viewable article version)
  *
  * If the article is being uploaded as a galley publish, this plugin extracts
- * the html, xml and pdf versions and places them in the galley; and image
- * or other media files go into a special supplementary file subfolder called
- * "markup".
+ * the html, xml and pdf versions and places them in the galley. Image or other
+ * media files go into a special supplementary file subfolder called "markup".
  *
- * @see docs/technicalNotes.md file for details on the interface between this plugin
- * and the Document Markup Server.
+ * @see docs/technicalNotes.md file for details on the interface between this
+ * plugin and the Document Markup Server.
  */
 
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class MarkupPlugin extends GenericPlugin {
+
 	/** Callback to hook mappings for this plugin */
 	var $_callbackMap = array(
 		'_loadCategoryCallback' => 'PluginRegistry::loadCategory',
@@ -62,28 +60,36 @@ class MarkupPlugin extends GenericPlugin {
 	//
 	/**
 	 * Get the system name of this plugin.
-	 * The name must be unique within its category. It enables a simple URL to
-	 * an articles markup files, e.g.:
+	 * The name must be unique within its category.
 	 *
-	 * index.php/chaos/gateway/plugin/markup/1/0/document.html
-	 *
-	 * @return string name of plugin
+	 * @return string Name of plugin
 	 */
 	function getName() {
 		return 'markup';
 	}
 
+	/**
+	 * Get plugin display name
+	 *
+	 * @return string Plugin display name
+	 */
 	function getDisplayName() {
 		return __('plugins.generic.markup.displayName');
 	}
 
+	/**
+	 * Get plugin description
+	 *
+	 * @return string Plugin description
+	 */
 	function getDescription() {
 		return __('plugins.generic.markup.description');
 	}
 
 	/**
 	 * Override the builtin to get the correct template path.
-	 * @return string
+	 *
+	 * @return string Plugin template path
 	 */
 	function getTemplatePath() {
 		return parent::getTemplatePath() . 'templates/';
@@ -91,6 +97,7 @@ class MarkupPlugin extends GenericPlugin {
 
 	/**
 	 * Get plugin CSS path
+	 *
 	 * @return string Public plugin CSS path
 	 */
 	function getCssPath() {
@@ -99,20 +106,24 @@ class MarkupPlugin extends GenericPlugin {
 
 	/**
 	 * Display verbs for the management interface.
+	 *
+	 * @return mixed Plugin management verbs
 	 */
 	function getManagementVerbs() {
 		$verbs = array();
 		if ($this->getEnabled()) {
 			$verbs[] = array('settings', __('plugins.generic.markup.settings'));
 		}
+
 		return parent::getManagementVerbs($verbs);
 	}
 
 	/**
 	 * Provides enable / disable / settings form options
 	 *
-	 * @param $verb string.
-	 * @param $args ? (unused)
+	 * @see GenericPlugin::manage()
+	 *
+	 * @return bool
 	 */
 	function manage($verb, $args, &$message, &$messageParams) {
 		if (!parent::manage($verb, $args, $message, $messageParams)) {
@@ -145,7 +156,7 @@ class MarkupPlugin extends GenericPlugin {
 					$form->readInputData();
 					if ($form->validate()) {
 						$form->execute();
-						MarkupPluginUtilities::notificationService(__('plugins.generic.markup.settings.saved'));
+						MarkupPluginUtilities::showNotification(__('plugins.generic.markup.settings.saved'));
 						return false;
 					} else {
 						$form->display();
@@ -167,9 +178,10 @@ class MarkupPlugin extends GenericPlugin {
 	/**
 	 * Register the plugin
 	 *
-	 * @param $category string Name of category plugin was registered to
+	 * @param $category string Plugin category
+	 * @param $path string Plugin path
 	 *
-	 * @return boolean Whether or not the plugin initialized sucessfully
+	 * @return bool True on successful registration false otherwise
 	 */
 	function register($category, $path) {
 		$success = parent::register($category, $path);
@@ -184,6 +196,8 @@ class MarkupPlugin extends GenericPlugin {
 
 	/**
 	 * Register plugin callbacks
+	 *
+	 * @return void
 	 */
 	function registerCallbacks() {
 		foreach ($this->_callbackMap as $callback => $hooks) {
@@ -199,9 +213,11 @@ class MarkupPlugin extends GenericPlugin {
 	//
 	/**
 	 * Register the gateway plugin
-     *
-	 * @param $hookName string
+	 *
+	 * @param $hookName string Name of the hook
 	 * @param $params array [category string, plugins array]
+	 *
+	 * @return bool False
 	 */
 	function _loadCategoryCallback($hookName, $params) {
 		$category = $params[0];
@@ -216,14 +232,15 @@ class MarkupPlugin extends GenericPlugin {
 		return false;
 	}
 
-
 	/**
-	 * Trigger document conversion when an author confirms a new
-	 * submission (step 5).
+	 * Trigger document conversion when an author confirms a new submission
+	 * (step 5).
 	 * Triggered at User > Author > a > New Submission, any step in form.
 	 *
-	 * @param $hookName string
+	 * @param $hookName string Name of the hook
 	 * @param $params array [&$step, &$article, &$submitForm]
+	 *
+	 * @return bool False
 	 */
 	function _authorNewSubmissionConfirmationCallback($hookName, $params) {
 		$step = $params[0];
@@ -261,11 +278,13 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * Trigger document conversion from various hooks for editor,
-	 * section editor, layout editor etc. uploading of documents.
+	 * Trigger document conversion from various hooks for editor, section
+	 * editor, layout editor etc. uploading of documents.
 	 *
-	 * @param $hookName string
-	 * @param $params array [article object , ...]
+	 * @param string $hookName Name of the hook
+	 * @param array $params [article object , ...]
+	 *
+	 * @return bool False
 	 */
 	function _fileToMarkupCallback($hookName, $params) {
 		$article =& $params[0];
@@ -310,8 +329,10 @@ class MarkupPlugin extends GenericPlugin {
 	 * Checks if there are any HTML or XML galleys left when galley item is
 	 * deleted. If not, delete all markup related file(s).
 	 *
-	 * @param $hookName string
-	 * @param $params array [$galleyId]
+	 * @param string $hookName Name of the hook
+	 * @param array $params [$galleyId]
+	 *
+	 * @return bool False
 	 */
 	function _deleteGalleyMediaCallback($hookName, $params) {
 		$galleyId = $params[0];
@@ -327,15 +348,11 @@ class MarkupPlugin extends GenericPlugin {
 	/**
 	 * This hook handles display of any HTML & XML ProofGalley links that were
 	 * generated by this plugin. PDFs are not handled here.
-	 * Note: permissions for 5 user types (author, copyeditor, layouteditor,
-	 * proofreader, sectioneditor) have already been decided in caller's
-	 * proofGalley() methods.
-	 * NOTE: Do NOT pass hook $params by reference, or this hook will
-	 * mysteriously never fire!
-	 * TODO: verify that
 	 *
-	 * @param $hookName string
-	 * @param $params array [$galleyId]
+	 * @param string $hookName Name of the hook
+	 * @param array $params [$galleyId]
+	 *
+	 * @return bool Whether or not the HTML generation was successful
 	 */
 	function _displayGalleyCallback($hookName, $params) {
 		if ($params[1] != 'submission/layout/proofGalley.tpl') return false;
@@ -356,8 +373,10 @@ class MarkupPlugin extends GenericPlugin {
 	 * This hook intercepts user request on public site to download/view an
 	 * article galley HTML / XML / PDF link.
 	 *
-	 * @param $hookName string
+	 * @param $hookName string Name of the hook
 	 * @param $params array [$article, $galley]
+	 *
+	 * @return void
 	 */
 	function _downloadArticleCallback($hookName, $params) {
 		$article =& $params[0];
@@ -374,9 +393,9 @@ class MarkupPlugin extends GenericPlugin {
 	/**
 	 * Make a new supplementary file record or copy over an existing one.
 	 *
-	 * @param $suppFile object
-	 * @param $suppFilePath string file path
-	 * @param $articleFileManager object, already initialized with an article id.
+	 * @param $suppFile object Supplementary file
+	 * @param $suppFilePath string Supplementary file path
+	 * @param $articleFileManager object Article file manager
 	 */
 	function _setSuppFileId($suppFile, $suppFilePath, &$articleFileManager) {
 		$mimeType = MarkupPluginUtilities::getMimeType($suppFilePath);
@@ -394,28 +413,22 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * Web URL call triggers separate thread to do document conversion on
-	 * uploaded document. URL request goes out to the same plugin. The URL path
-	 * is enabled by the gateway fetch() part of this plugin. Then php continues
-	 * on in 1 second ...
+	 * A curl request triggers a separate thread which starts the document
+	 * conversion for the uploaded document (MarkupGatewayPlugin::fetch()).
 	 *
-	 * Note: A bad $curlError response is: 'Timeout was reached', which occurs
-	 * when not enough time alloted to get request going. Seems like 1000 ms is
-	 * the minimum. Otherwise URL fetch not even triggered. The right $curlError
-	 * response which allows thread to continue is: 'Operation timed out after
-	 * XYZ milliseconds with 0 bytes received'
+	 * @param $articleId int Article id
+	 * @param $galleyFlag bool Whether or not the article has a galley
 	 *
-	 * @param $articleId int
-	 * @param $galleyFlag boolean communicates whether or not galley links
-	 * should be created (i.e. article is being published)
-	 * TODO: check if this is the best solution
+	 * @return void
 	 */
 	function _submitURL($articleId, $galleyFlag = false) {
 		$args = array(
 			'articleId' => $articleId,
 			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
 		);
+
 		$url = MarkupPluginUtilities::getMarkupURL($args);
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -423,18 +436,17 @@ class MarkupPlugin extends GenericPlugin {
 		curl_setopt($ch, CURLOPT_VERBOSE, 1);
 		curl_exec($ch);
 		curl_close($ch);
-
-		return false;
 	}
 
 	/**
-	 * Ensures that a single supplementary file record exists for given article.
-	 * The title name of this file must be unique so it can be found again by
-	 * this plugin (MARKUP_SUPPLEMENTARY_FILE_TITLE).
-	 * Skipping search indexing since this content is a repetition of the article.
+	 * Ensures that a single supplementary file record exists for a given
+	 * article. The title name of this file must be unique so it can be found
+	 * again by this plugin (MARKUP_SUPPLEMENTARY_FILE_TITLE).
+	 * Skipping search indexing since this content is a copy of the article.
 	 *
-	 * @param: $articleId int
-	 * @var $locale string controlled by current locale, eg. en_US
+	 * @param $articleId int Article id
+	 *
+	 * @return SuppFile Supplementarty file
 	 */
 	function _suppFile($articleId) {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
@@ -459,20 +471,22 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFile = $suppFiles[0];
 		}
 
-		MarkupPluginUtilities::notificationService(__('plugins.generic.markup.archive.processing'));
+		MarkupPluginUtilities::showNotification(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 
 		return $suppFile;
 	}
 
 	/**
-	 * This method skips handling xml and pdf docs. It displays HTML file with
-	 * relative urls modified to reference plugin location for article's media.
+	 * Display HTML file with relative URLs modified to reference plugin
+	 * location for article's media.
+ 	 *
+	 * @param $articleId int Article id
+	 * @param $galley Galley Galley object
+	 * @param $backLinkFlag bool Whether or not to inject an iframe with a link
+	 * back to the refering page
 	 *
-	 * @param $hookName string
-	 * @param $params array [$galleyId]
-	 * @param $backLinkFlag boolean If true, iframe injected with link back to
-	 * referring page.
+	 * @return bool Success status
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
 	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {

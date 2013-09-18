@@ -24,7 +24,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	/**
 	 * Get the name of this plugin. The name must be unique within
 	 * its category.
-	 * @return String name of plugin
+	 *
+	 * @return string Name of plugin
 	 */
 	function getName() {
 		$plugin =& $this->getMarkupPlugin();
@@ -32,23 +33,36 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Hide this plugin from the management interface (it's subsidiary)
+	 * Hide this plugin from the management interface
+	 *
+	 * @return bool true
 	 */
 	function getHideManagement() {
 		return true;
 	}
 
+	/**
+	 * Get plugin display name
+	 *
+	 * @return string Plugin display name
+	 */
 	function getDisplayName() {
 		return __('plugins.generic.markup.displayName');
 	}
 
+	/**
+	 * Get plugin description
+	 *
+	 * @return string Plugin description
+	 */
 	function getDescription() {
 		return __('plugins.generic.markup.description');
 	}
 
 	/**
-	 * Get the web feed plugin
-	 * @return object
+	 * Get the parent plugin
+	 *
+	 * @return MarkupPlugin Markup plugin object
 	 */
 	function &getMarkupPlugin() {
 		$plugin =& PluginRegistry::getPlugin('generic', MARKUP_PLUGIN_NAME);
@@ -56,7 +70,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Override the built-in to get the correct plugin path.
+	 * Overwrite plugin path with parent's plugin path
+	 *
+	 * @return string Plugin path
 	 */
 	function getPluginPath() {
 		$plugin =& $this->getMarkupPlugin();
@@ -64,8 +80,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Override the builtin to get the correct template path.
-	 * @return string
+	 * Overwrite the template path with the parent's template path
+	 *
+	 * @return string Template path
 	 */
 	function getTemplatePath() {
 		$plugin =& $this->getMarkupPlugin();
@@ -73,17 +90,19 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Override the builtin to get the correct template path.
-	 * @return string
+	 * Overwrite the css path with the parent's css path
+	 *
+	 * @return string CSS path
 	 */
 	function getCssPath() {
-		return $this->getPluginPath() . 'css/';
+		$plugin =& $this->getMarkupPlugin();
+		return $plugin->getCssPath();
 	}
 
 	/**
-	 * Get whether or not this plugin is enabled. (Should always return true, as
-	 * the parent plugin will take care of loading this one when needed)
-	 * @return boolean
+	 * Enable/Disable status
+	 *
+	 * @return bool Whether or not the plugin is enabled
 	 */
 	function getEnabled() {
 		$plugin =& $this->getMarkupPlugin();
@@ -93,6 +112,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	/**
 	 * Get the management verbs for this plugin (override to none so that the
 	 * parent plugin can handle this)
+	 *
 	 * @return array
 	 */
 	function getManagementVerbs() {
@@ -103,23 +123,23 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	// Public plugin methods
 	//
 	/**
-	 * Gateway single point of entry.
-	 * All other methods below spun off of fetch().
 	 * Handles URL request to trigger document markup processing for given
 	 * article; also handles URL requests for xml/pdf/html versions of an
 	 * article as well as the xml/html's image and css files.
+	 *
 	 * URL is usually of form:
 	 * http://.../index.php/chaos/gateway/plugin/markup/...
 	 *     .../0/[articleId]/[fileName]  // eg. document.html/xml/pdf
 	 *     .../css/[fileName]            // get stylesheets
 	 *     .../refresh/[articleid]       // generate zip file
 	 *     .../refreshgalley/[articleid] // updates zip file
+	 *
 	 * When disable_path_info is true URL conveys the above in path[] parameter
 	 * array.
 	 *
 	 * @param $args Array of relative url folders down from plugin
 	 *
-	 * @see MarkupPluginUtilities::getMarkupURL() - the url generator.
+	 * @return bool Success status
 	 */
 	function fetch($args) {
 		$this->import('MarkupPluginUtilities');
@@ -204,35 +224,30 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	//
 	/**
 	 * Get userId of user interacting with this plugin
-	 * (used by notification system only).
-	 * @return String user Id (Request::getUser()->getID is string)
+	 *
+	 * @return int UserId
 	 */
 	function _getUserId() {
-		if (empty($this->_userId)) {
-			$user =& Request::getUser();
-			$this->_setUserId($user->getId());
-		}
 		return $this->_userId;
 	}
 
 	/**
 	 * Set userId of plugin user.
-	 * Passed with curl requests for actions on behalf of an editor etc.
-	 * @param String user Id
+	 *
+	 * @param $userId int UserId
 	 */
-	function _setUserId($id) {
-		$this->_userId = strval($id);
+	function _setUserId($userId) {
+		$this->_userId = strval($userId);
 	}
 
 	/**
-	 * Provide Journal specific css stylesheets
-	 * CSS is public so no permission check. Returns css files for relative
-	 * URLs like "../../css/styles.css" content. Journal's [filesDir]/css is
-	 * checked first for content to return. If nothing there, then check the
-	 * markup plugin's own css folder. This is the only folder below /markup's
-	 * folder.
+	 * Returns a journal's CSS file to the browser. If the journal doesn't have
+	 * one fall back to the one provided by the plugin
 	 *
-	 * @param $fileName;
+	 * @param $journal mixed Journal to fetch CSS for
+	 * @param $fileName string File name of the CSS file to fetch
+	 *
+	 * @return bool Whether or not the CSS file exists
 	 */
 	function _downloadMarkupCSS(&$journal, $fileName) {
 		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
@@ -251,19 +266,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Request is for a "refresh" of an article's markup archive.
-	 * If article's supplementary file is not a .zip (in other words it is an
-	 * uploaded .doc or .pdf), then send the supplementary file to the
-	 * PKP Document Markup Server for conversion.
-	 * Then retrieve archive file and place it in supplementary file.
+	 * Refresh article's markup archive.
+	 * If article's supplementary file is not a .zip then send the file to the
+	 * Doucument Markup server for conversion. Once the document has been
+	 * converted add the .zip as supplementary file.
+	 *
 	 * Optionally create galley xml, html and pdf links.
 	 *
-	 * @param $article object
-	 * @param $galleyFlag boolean
+	 * @param $article mixed Article to refresh
+	 * @param $galleyFlag bool Whether or not to update the galley
 	 *
-	 * @see fetch()
-	 * @see docs/technicalNotes.md file for details on the interface between this
-	 * plugin and the Document Markup Server.
+	 * @return bool Whether or not the refresh was successful
 	 */
 	function _refreshArticleArchive(&$article, $galleyFlag) {
 		$journal =& Request::getJournal();
@@ -334,7 +347,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		// Unzip file and launch galleys only during layout upload
 		if ($galleyFlag) {
-			if (!$this->_unzipSuppFile($articleId, $suppFile, $galleyFlag)) {
+			if (!$this->_unzipSuppFile($articleId, $suppFile)) {
 				return true;
 			}
 			$this->_setupGalleyForMarkup($articleId, 'document.html');
@@ -357,9 +370,10 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 	/**
 	 * Get jobId from document markup server response
-	 * This should be a 32 character long alphanumeric string.
 	 *
-	 * @param $response object
+	 * @param $response mixed Response object
+	 *
+	 * @return string JobId
 	 */
 	function _getResponseJobId(&$response) {
 		if (isset($response->data)) {
@@ -375,15 +389,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Produce an array of settings to be processed by the Document Markup Server.
-	 * Note: we include these getAuthors() fields: submissionId, firstName,
-	 * middleName, lastName, country, email, url, primaryContact (boolean),
-	 * affiliation: {"en_US":"..."}
+	 * Produce an array of article metadata for the Document Markup Server
+	 * article conversion
 	 *
-	 * @param $article object
-	 * @param $journal object
+	 * @param $article mixed Article
+	 * @param $journal mixed Journal
 	 *
-	 * @return $args array
+	 * @return array Article metadata
 	 */
 	function _jobMetaData(&$article, &$journal) {
 		$articleId = $article->getId();
@@ -440,28 +452,34 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Get article author info without sequence or biography info
+	 * Returns an array with author metadata. Strips sequence and biography
+	 * information.
 	 *
-	 * @param $authors array
+	 * @param $authors mixed Array with author meta information
+	 *
+	 * @return mixed Processed author metadata
 	 */
 	function _getAuthorMetaData($authors) {
-		$authorsArray = array();
+		$processed = array();
 		foreach ($authors as $author) {
 			$author = ($author->_data);
 			unset($author['sequence'], $author['biography']);
-			$authorsArray[] = $author;
+			$processed[] = $author;
 		}
 
-		return $authorsArray;
+		return $processed;
 	}
 
 	/**
-	 * Fetch document.zip file waiting in job folder at Document Markup Server
-	 * Document.zip replaces existing supplementary file.
+	 * Fetches processed job archive from Document Markup server and replaces
+	 * existing supplementary file.
 	 *
-	 * @param $articleId int
-	 * @param $jobId string jobId from Document Markup Server
-	 * @param $suppfile object
+	 * @param $articleId int ArticleId
+	 * @param $journalId int JournalId
+	 * @param $jobId string Conversion jobId
+	 * @param $suppFile Supplementary file to update with the converted file
+	 *
+	 * @return void
 	 */
 	function _retrieveJobArchive($articleId, $journalId, $jobId, &$suppFile) {
 		import('classes.file.ArticleFileManager');
@@ -481,24 +499,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Unzip document.zip into an article's supplementary file markup folder.
-	 * Unzip is triggered by URL call to /refreshGalley ; in OJS this is
-	 * triggered by editor's file upload to layout files area. Article has a
-	 * freshly generated supplementary documents.zip file. Now into the /markup
-	 * folder, extract all graphics, and the converted documents, and then make
-	 * galley links for the xml, pdf, and html files.
-	 * Notifications are triggered because this is in response to work done on
-	 * an article.
-	 * WARNING: zip extractTo() function will fail completely if we include an
-	 * entry in $extractFiles[] that doesn't exist in zip manifest.
+	 * Extract valid document files from supplementary file.
 	 *
-	 * @param $articleId int
-	 * @param $suppFile object
-	 * @param $galleyFlag boolean signals creation of galley links
+	 * @param $articleId int ArticleId
+	 * @param $suppFile mixed Supplementary file to extract documents from
 	 *
-	 * @see _retrieveJobArchive()
+	 * @return bool Wheter or not the extraction was successful
 	 */
-	function _unzipSuppFile($articleId, &$suppFile, $galleyFlag) {
+	function _unzipSuppFile($articleId, &$suppFile) {
 		// We need updated name. It was x.pdf or docx, now its y.zip:
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());
@@ -574,16 +582,11 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	/**
 	 * Populates an article with galley files for document.html, document.xml
 	 * and document.pdf
-	 * Note: Currently we avoid creating XML and HTML galleys using
-	 * classes.article.ArticleHTMLGalley since we are privately handling all
-	 * image and css files through other avenues. When HTML galleys are
-	 * displayed to users (MarkupPlugin::displayGalley), they are dynamically
-	 * rewritten to display css and media correctly.
 	 *
-	 * @param $articleId int
-	 * @param $fileName string document.[xml | pdf | html] to link
+	 * @param $articleId int Article Id
+	 * @param $fileName string File to process
 	 *
-	 * @return $galleyId int Id of new galley link created.
+	 * @return int Id of new galley link
 	 */
 	function _setupGalleyForMarkup($articleId, $fileName) {
 		$journal =& Request::getJournal();
@@ -619,17 +622,18 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	/**
 	 * Atom XML template displayed in response to a plugin gateway fetch() where
 	 * a message or error condition is reported (instead of returning a file).
-	 * Never seen by OJS end users unless accessing a document directly by URL
-	 * and there is a problem. Useful for programmers to debug fetch issue.
 	 *
-	 * @param $message string status indicating job success or error
-	 * @param $notification boolean indicating if user should be notified.
+	 * @param $message string Status message
+	 * @param $notification boolean Whether or not a notification should be
+	 * shown to the user
+	 *
+	 * @return bool True
 	 */
 	function _printXMLMessage($message, $notification = false) {
 		if ($notification == true) {
 			$this->import('MarkupPluginUtilities');
 			// TODO: for now all notifications are success types
-			MarkupPluginUtilities::notificationService(
+			MarkupPluginUtilities::showNotification(
 				__('plugins.generic.markup.archive.status', array('message' => $message)),
 				true,
 				$this->_getUserId()

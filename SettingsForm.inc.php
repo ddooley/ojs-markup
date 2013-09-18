@@ -31,8 +31,8 @@ class SettingsForm extends Form {
 
 	/**
 	 * Constructor
-	 * @param $plugin object
-	 * @param $journalId int
+	 * @param $plugin mixed Plugin object
+	 * @param $journalId int JournalId
 	 */
 	function SettingsForm(&$plugin, $journalId) {
 		$this->journalId = $journalId;
@@ -54,6 +54,8 @@ class SettingsForm extends Form {
 
 	/**
 	 * Validate the form
+	 *
+	 * @return bool Whether or not the form validated
 	 */
 	function validate() {
 		$this->addCheck(new FormValidatorPost($this));
@@ -70,7 +72,9 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Initialize plugin settings form data.
+	 * Initialize plugin settings form
+	 *
+	 * @return void
 	 */
 	function initData() {
 		$journal =& Request::getJournal();
@@ -102,7 +106,9 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Populate and display settings form.
+	 * Populate and display settings form
+	 *
+	 * @return void
 	 */
 	function display() {
 		$templateManager =& TemplateManager::getManager();
@@ -119,7 +125,9 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Assign form data to user-submitted data.
+	 * Assign form data to user-submitted data
+	 *
+	 * @return void
 	 */
 	function readInputData() {
 		$this->readUserVars(
@@ -136,7 +144,9 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Save settings.
+	 * Save settings
+	 *
+	 * @return void
 	 */
 	function execute() {
 		$plugin =& $this->plugin;
@@ -170,9 +180,11 @@ class SettingsForm extends Form {
 	}
 
 	/**
-	 * Ensure attached header image is a .jpg or .png
+	 * Ensure attached header image is a jpg or png
 	 *
-	 * @param $imageName string form upload fieldname
+	 * @param $imageName string File name of the uploaded image file
+	 *
+	 * @return bool Whether or not the image file is a jpg or png
 	 */
 	function _validateImage($imageName) {
 		$journalFileManager = $this->_getJournalFileManager();
@@ -190,8 +202,9 @@ class SettingsForm extends Form {
 	/**
 	 * Returns the file extension of the uploaded image file
 	 *
-	 * @param mixed $fileName Name of the uploaded file
-	 * @param mixed $journalFileManager FileManager
+	 * @param $fileName mixed Name of the uploaded image file
+	 * @param $journalFileManager mixed Journal file manager object
+	 *
 	 * @return string File extension
 	 */
 	function _getUploadedImageFileExtension($fileName, &$journalFileManager) {
@@ -202,8 +215,9 @@ class SettingsForm extends Form {
 	/**
 	 * Returns JournalFileManager instance
 	 *
-	 * @param mixed $journal Current journal
-	 * @return JournalFileManager JournalFileManager instance
+	 * @param $journal mixed Journal to get a fiel manager instance for
+	 *
+	 * @return mixed JournalFileManager instance
 	 */
 	function _getJournalFileManager($journal = null) {
 		if (!$journal) { $journal =& Request::getJournal(); }
