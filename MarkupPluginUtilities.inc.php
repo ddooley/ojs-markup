@@ -437,6 +437,6 @@ class MarkupPluginUtilities {
 	 */
 	function getMimeType($file) {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		return finfo_file($finfo, $filePath);
+		return finfo_file($finfo, $file);
 	}
 }
