@@ -35,11 +35,12 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 
 class MarkupPlugin extends GenericPlugin {
 
+
 	/** Callback to hook mappings for this plugin */
 	var $_callbackMap = array(
-		'_loadCategoryCallback' => 'PluginRegistry::loadCategory',
-		'_authorNewSubmissionConfirmationCallBack' => 'Author::SubmitHandler::saveSubmit',
-		'_fileToMarkupCallback' => array(
+		'loadCategoryCallback' => 'PluginRegistry::loadCategory',
+		'authorNewSubmissionConfirmationCallback' => 'Author::SubmitHandler::saveSubmit',
+		'fileToMarkupCallback' => array(
 			'AuthorAction::uploadRevisedVersion',
 			'AuthorAction::uploadCopyeditVersion',
 			'CopyeditorAction::uploadCopyeditVersion',
@@ -50,9 +51,9 @@ class MarkupPlugin extends GenericPlugin {
 			'SectionEditorAction::uploadLayoutVersion',
 			'LayoutEditorAction::uploadLayoutVersion',
 		),
-		'_deleteGalleyMediaCallback' => 'ArticleGalleyDAO::deleteGalleyById',
-		'_displayGalleyCallback' => 'TemplateManager::display',
-		'_downloadArticleCallback' => 'ArticleHandler::downloadFile',
+		'deleteGalleyMediaCallback' => 'ArticleGalleyDAO::deleteGalleyById',
+		'displayGalleyCallback' => 'TemplateManager::display',
+		'downloadArticleCallback' => 'ArticleHandler::downloadFile',
 	);
 
 	//
@@ -65,7 +66,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string Name of plugin
 	 */
 	function getName() {
-		return 'markup';
+		return 'markuplugin';
 	}
 
 	/**
@@ -191,6 +192,7 @@ class MarkupPlugin extends GenericPlugin {
 			$this->import('MarkupPluginUtilities');
 			$this->registerCallbacks();
 		}
+
 		return $success;
 	}
 
@@ -219,7 +221,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _loadCategoryCallback($hookName, $params) {
+	function loadCategoryCallback($hookName, $params) {
 		$category = $params[0];
 		$plugins =& $params[1];
 
@@ -240,7 +242,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _authorNewSubmissionConfirmationCallback($hookName, $params) {
+	function authorNewSubmissionConfirmationCallback($hookName, $params) {
 		$step = $params[0];
 
 		// Only interested in the final confirmation step
@@ -284,7 +286,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _fileToMarkupCallback($hookName, $params) {
+	function fileToMarkupCallback($hookName, $params) {
 		$article =& $params[0];
 		$articleId = $article->getId();
 		$journal =& Request::getJournal();
@@ -330,7 +332,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _deleteGalleyMediaCallback($hookName, $params) {
+	function deleteGalleyMediaCallback($hookName, $params) {
 		$galleyId = $params[0];
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley =& $galleyDao->getGalley($galleyId);
@@ -348,7 +350,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _displayGalleyCallback($hookName, $params) {
+	function displayGalleyCallback($hookName, $params) {
 		if ($params[1] != 'submission/layout/proofGalley.tpl') return;
 
 		$templateMgr = $params[0];
@@ -372,7 +374,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return void
 	 */
-	function _downloadArticleCallback($hookName, $params) {
+	function downloadArticleCallback($hookName, $params) {
 		$article =& $params[0];
 		$galley =& $params[1];
 		$articleId = $article->getId();
