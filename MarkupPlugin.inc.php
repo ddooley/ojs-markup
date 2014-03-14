@@ -224,11 +224,10 @@ class MarkupPlugin extends GenericPlugin {
 	function loadCategoryCallback($hookName, $params) {
 		$category = $params[0];
 		$plugins =& $params[1];
-
 		if ($category == 'gateways') {
 			$this->import('MarkupGatewayPlugin');
 			$gatewayPlugin = new MarkupGatewayPlugin();
-			$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
+			$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] = $gatewayPlugin;
 		}
 	}
 

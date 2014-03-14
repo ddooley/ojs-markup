@@ -347,7 +347,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$events = JSONManager::decode($content);
 		$response = array_pop($events->jit_events);
 
-		if ($response->error > 0) {
+		if ($response && $response->error > 0) {
 			$this->_printXMLMessage($response->message . ':' . $content, true);
 			return;
 		}
