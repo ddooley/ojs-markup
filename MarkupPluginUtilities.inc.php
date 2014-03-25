@@ -329,4 +329,30 @@ class MarkupPluginUtilities {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
 		return finfo_file($finfo, $file);
 	}
+
+
+	/**
+	 *
+	 * Build the URL to query the markup server
+	 *
+	 * @param $journal mixed Journal to retrieve the settings for
+	 * @param $action string API action
+	 * @param $params array Query parameters
+	 *
+	 * @return string Markup server query URL
+	 */
+	function apiUrl($journal, $action, $params = array()) {
+		$journalId = $journal->getId();
+		$apiUrl = $journal->getSetting($journalId, 'markupHostURL');
+		$apiUrl = rtrim($apiUrl, '/');
+
+		$apiUrl = $apiUrl . '/api/' .  $action;
+
+		$params['email'] = $journal->getSetting($journalId, 'markupHostUser');
+		$params['password'] = $journal->getSetting($journalId, 'markupHostPassword');
+
+		$apiUrl .= '?' . http_build_query($params);
+
+		return $apiUrl;
+	}
 }
