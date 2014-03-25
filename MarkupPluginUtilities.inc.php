@@ -147,7 +147,7 @@ class MarkupPluginUtilities {
 		$fileManager = new FileManager();
 
 		if (!$fileManager->fileExists($filePath)) {
-			return $this->_exitFetch(
+			return self::showNotification(
 				__(
 					'plugins.generic.markup.archive.no_file',
 					array('file' => $fileName)
