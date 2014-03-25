@@ -335,22 +335,23 @@ class MarkupPluginUtilities {
 	 *
 	 * Build the URL to query the markup server
 	 *
+	 * @param $plugin mixed Plugin to process the Request for
 	 * @param $action string API action
 	 * @param $params array Query parameters
 	 *
 	 * @return string Markup server query URL
 	 */
-	function apiUrl($action, $params = array()) {
+	function apiUrl($plugin, $action, $params = array()) {
 		$journal = Request::getJournal();
 		$journalId = $journal->getId();
 
-		$apiUrl = $journal->getSetting($journalId, 'markupHostURL');
+		$apiUrl = $plugin->getSetting($journalId, 'markupHostURL');
 		$apiUrl = rtrim($apiUrl, '/');
 
-		$apiUrl = $apiUrl . '/api/' .  $action;
+		$apiUrl = $apiUrl . '/api/job/' .  $action;
 
-		$params['email'] = $journal->getSetting($journalId, 'markupHostUser');
-		$params['password'] = $journal->getSetting($journalId, 'markupHostPassword');
+		$params['email'] = $plugin->getSetting($journalId, 'markupHostUser');
+		$params['password'] = $plugin->getSetting($journalId, 'markupHostPass');
 
 		$apiUrl .= '?' . http_build_query($params);
 
@@ -360,13 +361,14 @@ class MarkupPluginUtilities {
 	/**
 	 * Call the markup server API
  	 *
+	 * @param $plugin mixed Plugin to process the Request for
 	 * @param $action string API action
 	 * @param $params array Query/POST parameters
 	 * @param $method Whether to use a GET/POST request
 	 *
 	 * @return mixed API response
 	 */
-	function apiRequest($action, $params, $isPost = false) {
+	function apiRequest($plugin, $action, $params, $isPost = false) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
@@ -376,12 +378,26 @@ class MarkupPluginUtilities {
 			$params = array();
 		}
 
-		$apiUrl = self::apiUrl($action, $params);
+		$apiUrl = self::apiUrl($plugin, $action, $params);
 		curl_setopt($ch, CURLOPT_URL, $apiUrl);
 
 		$response = curl_exec($ch);
+
+		$response = json_decode($response);
+		if (!$response) {
+			$error = curl_error($ch);
+			if (empty($error)) {
+				$error = 'HTTP status: ' . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			}
+
+			$response = array(
+				'status' => 'error',
+				'error' => $error,
+			);
+		}
+
 		curl_close($ch);
 
-		return json_decode($response);
+		return $response;
 	}
 }
