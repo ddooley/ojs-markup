@@ -355,4 +355,33 @@ class MarkupPluginUtilities {
 
 		return $apiUrl;
 	}
+
+	/**
+	 * Call the markup server API
+ 	 *
+ 	 * @param $journal Journal to make API call for
+	 * @param $action string API action
+	 * @param $params array Query/POST parameters
+	 * @param $method Whether to use a GET/POST request
+	 *
+	 * @return mixed API response
+	 */
+	function apiRequest($journal, $action, $params, $isPost = false) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+		if ($isPost) {
+			curl_setopt($ch, CURLOPT_POST, 1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+			$params = array();
+		}
+
+		$apiUrl = self::apiUrl($journal, $action, $params);
+		curl_setopt($ch, CURLOPT_URL, $apiUrl);
+
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		return json_decode($response);
+	}
 }
