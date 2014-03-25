@@ -376,7 +376,7 @@ class MarkupPluginUtilities {
 			$params = array();
 		}
 
-		$apiUrl = self::apiUrl($journal, $action, $params);
+		$apiUrl = self::apiUrl($action, $params);
 		curl_setopt($ch, CURLOPT_URL, $apiUrl);
 
 		$response = curl_exec($ch);
