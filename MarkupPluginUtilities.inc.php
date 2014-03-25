@@ -43,7 +43,6 @@ class MarkupPluginUtilities {
 			$userId = $user->getId();
 		}
 		if (isset($userId)) {
-			$params = array('itemTitle' => $this->getDisplayName());
 			$notificationManager->createTrivialNotification(
 				$userId,
 				$notificationType,
