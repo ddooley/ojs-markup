@@ -220,7 +220,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		if (MarkupPluginUtilities::getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
+		if ($this->getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
 			MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
 			return;
 		}
@@ -660,5 +660,114 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$templateMgr->assign('description', $message);
 
 		$templateMgr->display($this->getTemplatePath() . '/fetch.tpl', 'application/atom+xml');
+	}
+
+	/**
+	 * Get a users role for a journal and article
+	 *
+	 * @param $userId int UserId
+	 * @param $articleId int ArticleId to check roles for
+	 * @param $journal mixed Journal to check roles for
+	 * @param $fileName string File name for reviewer access
+	 *
+	 * @return int RoleId of user in journal and article
+	 **/
+	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
+		$journalId = $journal->getId();
+
+		$roleDao =& DAORegistry::getDAO('RoleDAO');
+		$roles =& $roleDao->getRolesByUserId($userId);
+		foreach ($roles as $role) {
+			$roleType = $role->getRoleId();
+			if ($roleType == ROLE_ID_SITE_ADMIN) return ROLE_ID_SITE_ADMIN;
+
+			if ($role->getJournalId() == $journalId) {
+				switch ($roleType) {
+					// These users get global access
+					case ROLE_ID_JOURNAL_MANAGER :
+					case ROLE_ID_EDITOR :
+						return $roleType;
+						break;
+
+					case ROLE_ID_SECTION_EDITOR :
+						$sectionEditorSubmissionDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
+						$sectionEditorSubmission =& $sectionEditorSubmissionDao->getSectionEditorSubmission($articleId);
+
+						if (
+							$sectionEditorSubmission != null &&
+							$sectionEditorSubmission->getJournalId() == $journalId &&
+							$sectionEditorSubmission->getDateSubmitted() != null
+						) {
+							// If this user isn't the submission's editor, they don't have access.
+							$editAssignments =& $sectionEditorSubmission->getEditAssignments();
+
+							foreach ($editAssignments as $editAssignment) {
+								if ($editAssignment->getEditorId() == $userId) {
+									return $roleType;
+								}
+							}
+						};
+						break;
+
+					case ROLE_ID_LAYOUT_EDITOR :
+						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
+						if ($signoffDao->signoffExists('SIGNOFF_LAYOUT', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
+							return $roleType;
+						}
+						break;
+
+					case ROLE_ID_PROOFREADER :
+						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
+						if ($signoffDao->signoffExists('SIGNOFF_PROOFING', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
+							return $roleType;
+						}
+						break;
+
+					case ROLE_ID_COPYEDITOR:
+						$sesDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
+						if ($sesDao->copyeditorExists($articleId, $userId))
+							return $roleType;
+						break;
+
+					case ROLE_ID_AUTHOR:
+						$articleDao =& DAORegistry::getDAO('ArticleDAO');
+						$article =& $articleDao->getArticle($articleId, $journalId);
+						if (
+							$article &&
+							$article->getUserId() == $userId &&
+							(
+								$article->getStatus() == STATUS_QUEUED ||
+								$article->getStatus() == STATUS_PUBLISHED
+							)
+						) {
+							return $roleType;
+						}
+						break;
+
+					case ROLE_ID_REVIEWER:
+						// Find out if article currently has this reviewer.
+						$reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
+						$reviewAssignments = $reviewAssignmentDao->getBySubmissionId($articleId);
+						foreach ($reviewAssignments as $assignment) {
+							if ($assignment->getReviewerId() == $userId) {
+								// REVIEWER ACCESS: If reviewers are not supposed
+								// to see list of authors, REVIEWER ONLY GETS TO
+								// SEE document-review.pdf version, which has
+								// all author information stripped.
+								if (
+									$this->getSetting($journalId, 'reviewVersion') != true ||
+									$fileName == 'document-review.pdf'
+								) {
+									return $roleType;
+								}
+								break;
+							}
+						}
+						break;
+				}
+			}
+		}
+
+		return false;
 	}
 }
