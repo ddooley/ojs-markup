@@ -335,14 +335,15 @@ class MarkupPluginUtilities {
 	 *
 	 * Build the URL to query the markup server
 	 *
-	 * @param $journal mixed Journal to retrieve the settings for
 	 * @param $action string API action
 	 * @param $params array Query parameters
 	 *
 	 * @return string Markup server query URL
 	 */
-	function apiUrl($journal, $action, $params = array()) {
+	function apiUrl($action, $params = array()) {
+		$journal = Request::getJournal();
 		$journalId = $journal->getId();
+
 		$apiUrl = $journal->getSetting($journalId, 'markupHostURL');
 		$apiUrl = rtrim($apiUrl, '/');
 
@@ -359,14 +360,13 @@ class MarkupPluginUtilities {
 	/**
 	 * Call the markup server API
  	 *
- 	 * @param $journal Journal to make API call for
 	 * @param $action string API action
 	 * @param $params array Query/POST parameters
 	 * @param $method Whether to use a GET/POST request
 	 *
 	 * @return mixed API response
 	 */
-	function apiRequest($journal, $action, $params, $isPost = false) {
+	function apiRequest($action, $params, $isPost = false) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
