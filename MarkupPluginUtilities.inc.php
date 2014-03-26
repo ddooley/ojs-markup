@@ -349,10 +349,9 @@ class MarkupPluginUtilities {
 
 		$apiUrl = $apiUrl . '/api/job/' .  $action;
 
-		$params['email'] = $plugin->getSetting($journalId, 'markupHostUser');
-		$params['password'] = $plugin->getSetting($journalId, 'markupHostPass');
-
-		$apiUrl .= '?' . http_build_query($params);
+		if ($params) {
+			$apiUrl .= '?' . http_build_query($params);
+		}
 
 		return $apiUrl;
 	}
@@ -367,9 +366,15 @@ class MarkupPluginUtilities {
 	 *
 	 * @return mixed API response
 	 */
-	function apiRequest($plugin, $action, $params, $isPost = false) {
+	function apiRequest($plugin, $action, $params = array(), $isPost = false) {
+		$journal = Request::getJournal();
+		$journalId = $journal->getId();
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+		$params['email'] = $plugin->getSetting($journalId, 'markupHostUser');
+		$params['password'] = $plugin->getSetting($journalId, 'markupHostPass');
 
 		if ($isPost) {
 			curl_setopt($ch, CURLOPT_POST, 1);
