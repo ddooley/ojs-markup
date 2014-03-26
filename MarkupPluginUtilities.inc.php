@@ -330,7 +330,6 @@ class MarkupPluginUtilities {
 		return finfo_file($finfo, $file);
 	}
 
-
 	/**
 	 *
 	 * Build the URL to query the markup server
