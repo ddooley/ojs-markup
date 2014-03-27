@@ -259,12 +259,11 @@ class MarkupPlugin extends GenericPlugin {
 		if (!isset($articleFile)) return;
 
 		// Submit the article file to the markup server
-		$params = array(
-			'fileName' => $articleFile->getData('fileName'),
-			'fileContent' => file_get_contents($articleFile->getFilePath()),
-			'citationStyleHash' => 'c6de5efe3294b26391ea343053c19a84',
+		$apiResponse = MarkupPluginUtilities::submitFile(
+			$this,
+			$articleFile->getData('fileName'),
+			$articleFile->getFilePath()
 		);
-		$apiResponse = MarkupPluginUtilities::apiRequest($this, 'submit', $params, true);
 
 		if ($apiResponse['status'] == 'error') {
 			MarkupPluginUtilities::showNotification($apiResponse['error']);
@@ -300,9 +299,6 @@ class MarkupPlugin extends GenericPlugin {
 		$journal =& Request::getJournal();
 		$journalId = $journal->getId();
 
-		// Ensure a supplementary file record is in place.
-		$suppFile = $this->_suppFile($articleId);
-
 		// The file name of the uploaded file differs in one case of the
 		// calling hooks. For the "Submissions > X > Editing: Layout:" call
 		// (SectionEditorAction::uploadLayoutVersionFForm) the file is called
@@ -321,14 +317,19 @@ class MarkupPlugin extends GenericPlugin {
 		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
 		if (!$newPath) { return; }
 
+		// Submit the file for conversion to the markup server
+		$apiResponse = MarkupPluginUtilities::submitFile($this, $fileName, $newPath, $filePath);
+
+		if ($apiResponse['status'] == 'error') {
+			MarkupPluginUtilities::showNotification($apiResponse['error']);
+			return;
+		}
+
+		// Create a new empty supplementary file
+		$suppFile = $this->_suppFile($articleId, $apiResponse['id']);
+
 		$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
 		@unlink($newPath);
-
-		// If we have a layout upload then trigger galley link creation.
-		$galleyFlag = (strpos($hookName, 'uploadLayoutVersion') !== false);
-
-		// Submit the article to the pdfx server
-		$this->_submitURL($articleId, $galleyFlag);
 	}
 
 	/**
@@ -414,32 +415,6 @@ class MarkupPlugin extends GenericPlugin {
 		} else {
 			$articleFileManager->copySuppFile($suppFilePath, $mimeType, $suppFileId, true);
 		}
-	}
-
-	/**
-	 * A curl request triggers a separate thread which starts the document
-	 * conversion for the uploaded document (MarkupGatewayPlugin::fetch()).
-	 *
-	 * @param $articleId int Article id
-	 * @param $galleyFlag bool Whether or not the article has a galley
-	 *
-	 * @return void
-	 */
-	function _submitURL($articleId, $galleyFlag = false) {
-		$args = array(
-			'articleId' => $articleId,
-			'action' => $galleyFlag ? 'refreshgalley' : 'refresh'
-		);
-
-		$url = MarkupPluginUtilities::getMarkupURL($args);
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT_MS, 1000);
-		curl_setopt($ch, CURLOPT_VERBOSE, 1);
-		curl_exec($ch);
-		curl_close($ch);
 	}
 
 	/**

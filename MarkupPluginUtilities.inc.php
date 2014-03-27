@@ -404,4 +404,25 @@ class MarkupPluginUtilities {
 
 		return $response;
 	}
+
+
+	/**
+	 * Submit a file to the markup server for conversion
+	 *
+	 * @param $plugin mixed Plugin to submit the file for
+	 * @param $fileName string File name
+	 * @param $filePath string File path
+	 *
+	 * @return mixed API respnse
+	 * TODO: Implement the correct citationStyleHash handling
+	 */
+	function submitFile($plugin, $fileName, $filePath) {
+		$params = array(
+			'fileName' => $fileName,
+			'fileContent' => file_get_contents($filePath),
+			'citationStyleHash' => 'c6de5efe3294b26391ea343053c19a84',
+		);
+
+		return MarkupPluginUtilities::apiRequest($plugin, 'submit', $params, true);
+	}
 }
