@@ -387,7 +387,7 @@ class MarkupPluginUtilities {
 
 		$response = curl_exec($ch);
 
-		$response = json_decode($response);
+		$response = json_decode($response, true);
 		if (!$response) {
 			$error = curl_error($ch);
 			if (empty($error)) {

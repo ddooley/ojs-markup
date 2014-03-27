@@ -258,12 +258,24 @@ class MarkupPlugin extends GenericPlugin {
 		$articleFile =& $articleFileDao->getArticleFile($fileId);
 		if (!isset($articleFile)) return;
 
-		// Ensure a supplementary file record titled
-		// MARKUP_SUPPLEMENTARY_FILE_TITLE is in place.
-		$suppFile = $this->_suppFile($articleId);
+		// Submit the article file to the markup server
+		$params = array(
+			'fileName' => $articleFile->getData('fileName'),
+			'fileContent' => file_get_contents($articleFile->getFilePath()),
+			'citationStyleHash' => 'c6de5efe3294b26391ea343053c19a84',
+		);
+		$apiResponse = MarkupPluginUtilities::apiRequest($this, 'submit', $params, true);
 
-		// Set supplementary file record's file id and folder location of
-		// uploaded article file
+		if ($apiResponse['status'] == 'error') {
+			MarkupPluginUtilities::showNotification($apiResponse['error']);
+			return;
+		}
+
+		// Create a new empty supplementary file
+		$suppFile = $this->_suppFile($articleId, $apiResponse['id']);
+
+		// Copy the article as temporary supplementary file till the article is
+		// converted
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFileDir = $articleFileManager->filesDir;
@@ -271,9 +283,6 @@ class MarkupPlugin extends GenericPlugin {
 			. $articleFileManager->fileStageToPath($articleFile->getFileStage())
 			. '/' . $articleFile->getFileName();
 		$this->_setSuppFileId($suppFile, $articleFilePath, $articleFileManager);
-
-		// Submit the article to the pdfx server
-		$this->_submitURL($articleId);
 	}
 
 	/**
@@ -443,7 +452,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return SuppFile Supplementarty file
 	 */
-	function _suppFile($articleId) {
+	function _suppFile($articleId, $jobId = null) {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$locale = AppLocale::getLocale();
@@ -452,6 +461,7 @@ class MarkupPlugin extends GenericPlugin {
 			import('classes.article.SuppFile');
 			$suppFile = new SuppFile();
 			$suppFile->setArticleId($articleId);
+			if ($jobId) $suppFile->setSource('jobId::' . $jobId, $locale);
 			$suppFile->setTitle(MARKUP_SUPPLEMENTARY_FILE_TITLE, $locale);
 			$suppFile->setType('');
 			$suppFile->setTypeOther('zip', $locale);
@@ -466,7 +476,6 @@ class MarkupPlugin extends GenericPlugin {
 			$suppFile = $suppFiles[0];
 		}
 
-		MarkupPluginUtilities::showNotification(__('plugins.generic.markup.archive.processing'));
 		$suppFileDao->updateSuppFile($suppFile);
 
 		return $suppFile;
