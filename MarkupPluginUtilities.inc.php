@@ -331,6 +331,48 @@ class MarkupPluginUtilities {
 	}
 
 	/**
+	 * Save the job id to the supplementary file source field
+	 *
+	 * @param $suppFile mixed Supplementary file to save the job id to
+	 * @param $jobId int Job id to save
+	 *
+	 * @return void
+	 */
+	function saveJobIdSuppFile($suppFile, $jobId) {
+		$locale = AppLocale::getLocale();
+		if ($jobId) $suppFile->setSource('jobId::' . $jobId, $locale);
+	}
+
+	/**
+	 * Retrieve the job id from the supplementary file source field
+	 *
+	 * @param $suppFile mixed Supplementary file to get the job id for
+	 *
+	 * @return int Job id
+	 */
+	function getJobIdSuppFile($suppFile) {
+		$locale = AppLocale::getLocale();
+		$source = $suppFile->getSource($locale);
+
+		$matches = array();
+		if (!preg_match('/^jobId\:\:([0-9]+)$/', $source, $matches)) return;
+
+		return $matches[1];
+	}
+
+	/**
+	 * Remove the job id from the supplementary file source field
+	 *
+	 * @param $suppFile mixed Supplementary file to remove the job id from
+	 *
+	 * @return void
+	 */
+	function removeJobIdSuppFile($suppFile) {
+		$locale = AppLocale::getLocale();
+		$suppFile->setSource('', $locale);
+	}
+
+	/**
 	 *
 	 * Build the URL to query the markup server
 	 *

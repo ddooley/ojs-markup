@@ -436,7 +436,7 @@ class MarkupPlugin extends GenericPlugin {
 			import('classes.article.SuppFile');
 			$suppFile = new SuppFile();
 			$suppFile->setArticleId($articleId);
-			if ($jobId) $suppFile->setSource('jobId::' . $jobId, $locale);
+			if ($jobId) { MarkupPluginUtilities::saveJobIdSuppFile($suppFile, $jobId); }
 			$suppFile->setTitle(MARKUP_SUPPLEMENTARY_FILE_TITLE, $locale);
 			$suppFile->setType('');
 			$suppFile->setTypeOther('zip', $locale);

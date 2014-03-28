@@ -333,7 +333,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		$this->_retrieveJobArchive($articleId, $apiResponse['id'], $suppFile);
+		MarkupPluginUtilities::saveJobIdSuppFile($suppFile, $apiResponse['id']);
+
+		$this->_retrieveJobArchive($articleId, $suppFile);
 
 		/*
 		 * TODO: Disabled for now. Check implementation
@@ -389,7 +391,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return void
 	 */
-	function _retrieveJobArchive($articleId, $jobId, &$suppFile) {
+	function _retrieveJobArchive($articleId, $suppFile) {
+		$jobId = MarkupPluginUtilities::getJobIdSuppFile($suppFile);
+
 		// Wait for max 2 minutes for the job to complete
 		$i = 0;
 		while($i++ < 40) {
@@ -413,7 +417,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$mimeType = 'application/zip';
 		$suppFileId = $suppFile->getFileId();
-
+		MarkupPluginUtilities::removeJobIdSuppFile($suppFile);
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		if ($suppFileId == 0) {
