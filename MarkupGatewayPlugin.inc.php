@@ -536,6 +536,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * shown to the user
 	 *
 	 * @return void
+	 * TODO: Check if we can remove this.
 	 */
 	function _printXMLMessage($message, $notification = false) {
 		if ($notification == true) {
