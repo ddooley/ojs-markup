@@ -425,4 +425,36 @@ class MarkupPluginUtilities {
 
 		return MarkupPluginUtilities::apiRequest($plugin, 'submit', $params, true);
 	}
+
+	/**
+	 * Retrieve a converted file from the markup server
+	 *
+	 * @param $plugin mixed Plugin to retrieve the file for
+	 * @param $jobId Job Id
+	 * @param $conversionStage What conversion stage to retrieve
+	 *
+	 * @return mixed API response
+	 */
+	function retrieveFile($plugin, $jobId, $conversionStage) {
+		$params = array(
+			'id' => $jobId,
+			'conversionStage' => $conversionStage,
+		);
+
+		return MarkupPluginUtilities::apiRequest($plugin, 'retrieve', $params);
+	}
+
+	/**
+	 * Retrieve a converted zip file from the markup server
+	 *
+	 * @param $plugin mixed Plugin to retrieve the file for
+	 * @param $jobId Job Id
+	 *
+	 * @return mixed API response
+	 */
+	function retrieveZipFile($plugin, $jobId) {
+
+		return self::retrieveFile($plugin, $jobId, 10);
+	}
+
 }
