@@ -315,58 +315,28 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		$fileId = $suppFile->getFileId();
-		if ($fileId == 0) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.supp_file_missing'), true);
-			return;
-		}
-
-		$suppFileName = $suppFile->getFileName();
 
 		// If supplementary file is already a zip, there's nothing to do. It's
 		// been converted.
+		$suppFileName = $suppFile->getFileName();
 		if (preg_match('/\.zip$/', strtolower($suppFileName))) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.is_zip'));
 			return;
 		}
 
-		$userFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
+		// Submit the file to the markup server for conversion
+		$suppFilePath = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
+		$apiResponse = MarkupPluginUtilities::submitFile($this, $suppFileName, $suppFilePath);
 
-		import('lib.pkp.classes.core.JSONManager');
-		$postFields = array(
-			'jit_events' => JSONManager::encode(array($jobMetaData)),
-			'userfile' => '@' . $userFile
-		);
-
-		// CURL sends article file to pdfx server for processing, and (since no
-		// timeout given) in 15-30+ seconds or so returns jobId which is folder
-		// where document.zip archive of converted documents sits.
-		$ch = curl_init();
-		$url = $this->getSetting($journalId, 'markupHostURL') . 'process.php';
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_VERBOSE, 1);
-		$content = curl_exec($ch);
-		$errorMsg = curl_error($ch);
-		curl_close($ch);
-
-		if ($content === false) {
-			$this->_printXMLMessage($errorMsg, true);
-			return;
-		}
-
-		$events = JSONManager::decode($content);
-		$response = array_pop($events->jit_events);
-
-		if ($response && $response->error > 0) {
-			$this->_printXMLMessage($response->message . ':' . $content, true);
+		if ($apiResponse['status'] == 'error') {
+			$this->_printXMLMessage($apiResponse['error'], true);
 			return;
 		}
 
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
 
+		/*
+		 * TODO: Disabled for now. Check implementation
 		// Unzip file and launch galleys only during layout upload
 		if ($galleyFlag) {
 			if (!$this->_unzipSuppFile($articleId, $suppFile)) {
@@ -386,6 +356,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			__('plugins.generic.markup.completed', array('articleId' => $articleId, 'jobId' => $jobId)),
 			true
 		);
+		*/
 	}
 
 	/**
