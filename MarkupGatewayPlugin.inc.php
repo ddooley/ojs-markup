@@ -142,8 +142,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return bool Success status
 	 */
 	function fetch($args) {
-		$this->import('MarkupPluginUtilities');
-		foreach ($args as &$arg) { $arg = strtolower($arg); }
+		// Parse keys and values from arguments
+		$keys = array();
+		$values = array();
+		foreach ($args as $index => $arg) {
+			if ($index % 2 == 0) {
+				$keys[] = $arg;
+			} else {
+				$values[] = $arg;
+			}
+		}
+		$args = array_combine($keys, $values);
 
 		if (!$this->getEnabled()) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.enable'));
@@ -158,17 +167,19 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		}
 
 		// Handles relative urls like "../../css/styles.css"
-		if ($args[0] == 'css') {
+		// TODO: Research that
+		if (isset($args['css'])) {
 			$this->_downloadMarkupCSS($journal, $args[1]);
 			return;
 		}
 
 		// Load the article
-		$articleId = (int) $args[1];
+		$articleId = isset($args['articleId']) ? (int) $args['articleId'] : false;
 		if (!$articleId) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_articleID'));
 			return;
 		}
+
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		$article =& $articleDao->getArticle($articleId);
 		if (!$article) {
@@ -179,21 +190,25 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Replace supplementary document file with Document Markup Server
 		// conversion archive file. With 'refreshgalley' option. User
 		// permissions don't matter here.
-		if ($args[0] == 'refresh' or $args[0] == 'refreshgalley') {
-			$this->_setUserId((int) $args[2]);
-			$this->_refreshArticleArchive($article, ($args[0] == 'refreshgalley'));
+		if (isset($args['refresh']) or isset($args['refreshgalley'])) {
+			$this->_setUserId((int) $args['userId']);
+			$this->_refreshArticleArchive($article, ($args['refreshgalley']));
+			var_dump('a'); die();
 			return;
 		};
 
 		// Here we deliver any markup file request if its article's publish
 		// state allows it, or if user's credentials allow it. $args[0] is /0/, a
 		// constant for now. $fileName should be a file name.
-		if ((int) $args[0] != 0) {
+		// TODO: check that
+		if (false and (int) $args[0] != 0) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
 			return;
 		}
 
-		if (!$fileName = MarkupPluginUtilities::cleanFileName($args[2])) {
+		$this->import('MarkupPluginUtilities');
+
+		if (!$fileName = MarkupPluginUtilities::cleanFileName($args['fileName'])) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.bad_filename'));
 			return;
 		}
