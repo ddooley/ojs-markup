@@ -363,10 +363,11 @@ class MarkupPluginUtilities {
 	 * @param $action string API action
 	 * @param $params array Query/POST parameters
 	 * @param $method Whether to use a GET/POST request
+	 * @param $method Whether to execute the curl request or to just return the cannel and url
 	 *
 	 * @return mixed API response
 	 */
-	function apiRequest($plugin, $action, $params = array(), $isPost = false) {
+	function apiRequest($plugin, $action, $params = array(), $isPost = false, $execute = true) {
 		$journal = Request::getJournal();
 		$journalId = $journal->getId();
 
@@ -383,6 +384,11 @@ class MarkupPluginUtilities {
 		}
 
 		$apiUrl = self::apiUrl($plugin, $action, $params);
+
+		if (!$execute) {
+			return array('channel' => $ch, 'apiUrl' => $apiUrl);
+		}
+
 		curl_setopt($ch, CURLOPT_URL, $apiUrl);
 
 		$response = curl_exec($ch);
@@ -427,7 +433,7 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Retrieve a converted file from the markup server
+	 * Get the converted file URL
 	 *
 	 * @param $plugin mixed Plugin to retrieve the file for
 	 * @param $jobId Job Id
@@ -435,25 +441,43 @@ class MarkupPluginUtilities {
 	 *
 	 * @return mixed API response
 	 */
-	function retrieveFile($plugin, $jobId, $conversionStage) {
+	function getFileUrl($plugin, $jobId, $conversionStage) {
 		$params = array(
 			'id' => $jobId,
 			'conversionStage' => $conversionStage,
 		);
 
-		return self::apiRequest($plugin, 'retrieve', $params);
+	 	$data = self::apiRequest($plugin, 'retrieve', $params, false, false);
+
+		return $data['apiUrl'];
 	}
 
 	/**
-	 * Retrieve a converted zip file from the markup server
+	 * Get the converted ZIP file URL
 	 *
 	 * @param $plugin mixed Plugin to retrieve the file for
 	 * @param $jobId Job Id
 	 *
 	 * @return mixed API response
 	 */
-	function retrieveZipFile($plugin, $jobId) {
+	function getZipFileUrl($plugin, $jobId) {
 
-		return self::retrieveFile($plugin, $jobId, 10);
+		return self::getFileUrl($plugin, $jobId, 10);
+	}
+
+	/**
+	 * Retrieve a job status from markup server
+	 *
+	 * @param $plugin mixed Plugin to retrieve the job status for
+	 * @param $jobId Job Id
+	 *
+	 * @return mixed API response
+	 */
+	function getJobStatus($plugin, $jobId) {
+		$params = array(
+			'id' => $jobId,
+		);
+
+		return self::apiRequest($plugin, 'status', $params);
 	}
 }
