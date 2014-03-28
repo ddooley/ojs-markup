@@ -65,18 +65,6 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Cleans file names
-	 *
-	 * @param $fileName string File name to clean
-	 *
-	 * @return Cleaned file name
-	 */
-	 // TODO: check why this is required
-	function cleanFileName($fileName) {
-		return preg_replace('/[^[:alnum:]\._-]/', '', $fileName);
-	}
-
-	/**
 	 * Copy tempory uploaded file into new location before uploading it to the
 	 * Document Markup server
 	 *

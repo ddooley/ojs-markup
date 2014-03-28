@@ -207,7 +207,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$this->import('MarkupPluginUtilities');
 
-		if (!$fileName = MarkupPluginUtilities::cleanFileName($args['fileName'])) {
+		if (!$fileName = $args['fileName']) {
 			$this->_printXMLMessage(__('plugins.generic.markup.archive.bad_filename'));
 			return;
 		}
@@ -274,7 +274,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return bool Whether or not the CSS file exists
 	 */
 	function _downloadMarkupCSS(&$journal, $fileName) {
-		$fileName = MarkupPluginUtilities::cleanFileName($fileName);
 		import('classes.file.JournalFileManager');
 
 		// Load the journals CSS path
