@@ -365,13 +365,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		if (!($jobId = $this->_getResponseJobId($response))) {
-			$this->_printXMLMessage(
-				__('plugins.generic.markup.archive.no_job', array('jobId' => $jobId)), true
-			);
-			return;
-		}
-
 		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
 
 		// Unzip file and launch galleys only during layout upload
@@ -393,26 +386,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			__('plugins.generic.markup.completed', array('articleId' => $articleId, 'jobId' => $jobId)),
 			true
 		);
-	}
-
-	/**
-	 * Get jobId from document markup server response
-	 *
-	 * @param $response mixed Response object
-	 *
-	 * @return string JobId
-	 */
-	function _getResponseJobId(&$response) {
-		if (isset($response->data)) {
-			$responseData =& $response->data;
-		} else {
-			$responseData = null;
-		}
-		$jobId = isset($responseData->jobId) ? $responseData->jobId : null;
-		if (!$jobId or strlen($jobId) != 32) { return false; }
-
-		// TODO: Why is that? Does the job server return inconsistent jobId's?
-		return preg_replace('/[^a-zA-Z0-9]/', '', $jobId);
 	}
 
 	/**
