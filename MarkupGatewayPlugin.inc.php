@@ -390,21 +390,39 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return void
 	 */
 	function _retrieveJobArchive($articleId, $jobId, &$suppFile) {
+		// Wait for max 2 minutes for the job to complete
+		$i = 0;
+		while($i++ < 40) {
+			$apiResponse = MarkupPluginUtilities::getJobStatus($this, $jobId);
+			if ($apiResponse['jobStatus'] != 0) break; // Jobstatus 0 - pending
+			sleep(5);
+		}
+
+		// Return if the job didn't complete
+		if ($apiResponse['jobStatus'] != 2) return;
+
+		// Download the Zip archive. This is a workaround because the file name
+		// detection fails for API URLs if we use copySuppFile() with the API
+		// URL
+		$url = MarkupPluginUtilities::getZipFileUrl($this, $jobId);
+		$tmpZipFile = sys_get_temp_dir() . '/documents.zip';
+		@unlink($tmpZipFile);
+		@copy($url, $tmpZipFile);
+
+		if (!file_exists($tmpZipFile)) return;
+
+		$mimeType = 'application/zip';
+		$suppFileId = $suppFile->getFileId();
+
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-
-		$apiResponse = MarkupPluginUtilities::retrieveZipFile($this, $jobId);
-		var_dump($apiResponse); die();
-
-		$suppFileId = $suppFile->getFileId();
-		$mimeType = 'application/zip';
-
 		if ($suppFileId == 0) {
-			$suppFileId = $articleFileManager->copySuppFile($jobURL, $mimeType);
+			$suppFileId = $articleFileManager->copySuppFile($tmpZipFile, $mimeType);
 			$suppFile->setFileId($suppFileId);
 		} else {
-			$articleFileManager->copySuppFile($jobURL, $mimeType, $suppFileId);
+			$articleFileManager->copySuppFile($tmpZipFile, $mimeType, $suppFileId);
 		}
+
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFileDao->updateSuppFile($suppFile);
 	}
