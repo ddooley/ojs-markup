@@ -487,7 +487,8 @@ class MarkupPlugin extends GenericPlugin {
 			'fileName' => ''
 		);
 
-		$articleURL = MarkupPluginUtilities::getMarkupURL($args);
+		// TODO: Replace that with new API call 
+		//$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
 		$html = file_get_contents($filePath);

@@ -65,39 +65,6 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Returns URL that provides file access for a given article and context
-	 *
-	 * e.g. ... /index.php/praxis/gateway/plugin/markup/1/refresh
-	 * or ... index.php?journal=praxis&page=gateway&op=plugin&path[]=markup&path[]=1&path[]=refresh
-	 *
-	 * $arg reflects 3 use cases
-	 *   [action, articleId, userId] or
-	 *   [folder, fileName] or
-	 *   [0, articleId, fileName]
-	 *
-	 * @param $args mixed Specifying the URL components
-	 *
-	 * @return string URL
-	 * TODO: Break this up for individual use cases
-	 */
-	function getMarkupURL($args) {
-		$path = array(MARKUP_GATEWAY_FOLDER);
-		$args['articleId'] = (int) $args['articleId'];
-
-		if ($args['action']) {
-			$user =& Request::getUser();
-			// Actions need a userId for notifications.
-			array_push($path, $args['action'], $args['articleId'], $user->getId());
-		} elseif ($args['folder']) {
-			array_push($path, $args['folder'], $args['fileName']);
-		} else {
-			array_push($path, 0, $args['articleId'], $args['fileName']);
-		}
-
-		return Request::url(null, 'gateway', 'plugin', $path);
-	}
-
-	/**
 	 * Cleans file names
 	 *
 	 * @param $fileName string File name to clean
