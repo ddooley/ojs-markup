@@ -330,7 +330,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		$jobMetaData =& $this->_jobMetaData($article, $journal);
 		$userFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
 
 		import('lib.pkp.classes.core.JSONManager');
@@ -414,69 +413,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		// TODO: Why is that? Does the job server return inconsistent jobId's?
 		return preg_replace('/[^a-zA-Z0-9]/', '', $jobId);
-	}
-
-	/**
-	 * Produce an array of article metadata for the Document Markup Server
-	 * article conversion
-	 *
-	 * @param $article mixed Article
-	 * @param $journal mixed Journal
-	 *
-	 * @return array Article metadata
-	 */
-	function _jobMetaData(&$article, &$journal) {
-		$articleId = $article->getId();
-		$journalId = $journal->getId();
-
-		// Prepare request for Document Markup Server
-		$args = array(
-			'type' => 'PDFX.fileUpload',
-			'data' => array(
-				'user' => $this->getSetting($journalId, 'markupHostUser'),
-				'pass' => $this->getSetting($journalId, 'markupHostPass'),
-				'cslStyle' => $this->getSetting($journalId, 'cslStyle'),
-				'cssURL' => '',
-				'title' => $article->getLocalizedTitle(),
-				'authors' => $this->_getAuthorMetaData($article->getAuthors()),
-				'journalId' => $journalId,
-				'articleId' => $articleId,
-				'publicationName' => $journal->getLocalizedTitle(),
-				'copyright' => strip_tags($journal->getLocalizedSetting('copyrightNotice')),
-				'publisher' => strip_tags($journal->getLocalizedSetting('publisherNote')),
-				'rights' => strip_tags($journal->getLocalizedSetting('openAccessPolicy')),
-				'eISSN' => $journal->getLocalizedSetting('onlineIssn'),
-				'ISSN' => $journal->getLocalizedSetting('printIssn'),
-				'DOI' => $article->getPubId('doi'),
-			)
-		);
-
-		// Add the header image if it exists
-		import('classes.file.JournalFileManager');
-		$journalFileManager = new JournalFileManager($journal);
-		$imageFileGlob = $journalFileManager->filesDir . 'css/article_header.{jpg,png}';
-		$files = glob($imageFileGlob, GLOB_BRACE);
-		$cssHeaderImageName = basename($files[0]);
-		if ($cssHeaderImageName) {
-			$args['data']['cssHeaderImageURL'] = '../../css/' . $cssHeaderImageName;
-		}
-
-		// Issue specific information
-		$issueDao =& DAORegistry::getDAO('IssueDAO');
-		$issue =& $issueDao->getIssueByArticleId($articleId, $journalId);
-		if ($issue && $issue->getPublished()) {
-			$args['data']['number'] = $issue->getNumber();
-			$args['data']['volume'] = $issue->getVolume();
-			$args['data']['year'] = $issue->getYear();
-			$args['data']['publicationDate'] = $issue->getDatePublished();
-		};
-
-		$reviewVersion = $this->getSetting($journalId, 'reviewVersion');
-		if ($reviewVersion == true) {
-			$args['data']['reviewVersion'] = true;
-		};
-
-		return $args;
 	}
 
 	/**
