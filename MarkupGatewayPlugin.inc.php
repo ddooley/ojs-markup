@@ -333,7 +333,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		$this->_retrieveJobArchive($articleId, $journalId, $jobId, $suppFile);
+		$this->_retrieveJobArchive($articleId, $apiResponse['id'], $suppFile);
 
 		/*
 		 * TODO: Disabled for now. Check implementation
@@ -389,13 +389,16 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return void
 	 */
-	function _retrieveJobArchive($articleId, $journalId, $jobId, &$suppFile) {
+	function _retrieveJobArchive($articleId, $jobId, &$suppFile) {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 
-		$jobURL = $this->getSetting($journalId, 'markupHostURL') . 'job/' . $jobId . '/document.zip';
+		$apiResponse = MarkupPluginUtilities::retrieveZipFile($this, $jobId);
+		var_dump($apiResponse); die();
+
 		$suppFileId = $suppFile->getFileId();
 		$mimeType = 'application/zip';
+
 		if ($suppFileId == 0) {
 			$suppFileId = $articleFileManager->copySuppFile($jobURL, $mimeType);
 			$suppFile->setFileId($suppFileId);

@@ -423,7 +423,7 @@ class MarkupPluginUtilities {
 			'citationStyleHash' => 'c6de5efe3294b26391ea343053c19a84',
 		);
 
-		return MarkupPluginUtilities::apiRequest($plugin, 'submit', $params, true);
+		return self::apiRequest($plugin, 'submit', $params, true);
 	}
 
 	/**
@@ -441,7 +441,7 @@ class MarkupPluginUtilities {
 			'conversionStage' => $conversionStage,
 		);
 
-		return MarkupPluginUtilities::apiRequest($plugin, 'retrieve', $params);
+		return self::apiRequest($plugin, 'retrieve', $params);
 	}
 
 	/**
@@ -456,5 +456,4 @@ class MarkupPluginUtilities {
 
 		return self::retrieveFile($plugin, $jobId, 10);
 	}
-
 }
