@@ -314,6 +314,7 @@ class MarkupPlugin extends GenericPlugin {
 		if ($articleFileManager->uploadedFileExists($fileName)) { return; }
 
 		// Copy the temporary file
+		// TODO: this can potentially be removed (this is the only call to copyTempFile)
 		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
 		if (!$newPath) { return; }
 
