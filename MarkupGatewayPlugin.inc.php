@@ -361,25 +361,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Returns an array with author metadata. Strips sequence and biography
-	 * information.
-	 *
-	 * @param $authors mixed Array with author meta information
-	 *
-	 * @return mixed Processed author metadata
-	 */
-	function _getAuthorMetaData($authors) {
-		$processed = array();
-		foreach ($authors as $author) {
-			$author = ($author->_data);
-			unset($author['sequence'], $author['biography']);
-			$processed[] = $author;
-		}
-
-		return $processed;
-	}
-
-	/**
 	 * Fetches processed job archive from Document Markup server and replaces
 	 * existing supplementary file.
 	 *
