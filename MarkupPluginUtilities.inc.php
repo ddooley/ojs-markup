@@ -477,4 +477,46 @@ class MarkupPluginUtilities {
 
 		return self::apiRequest($plugin, 'status', $params);
 	}
+
+	/**
+	 * Extract zip a archive
+	 *
+	 * @param $zipFile string File to extract
+	 * @param $validFiles mixed Array with file names to extract
+	 * @param $destination string Destination folder
+	 * @param $message string Reference to status message from ZipArchive
+	 *
+	 * @return bool Whether or not the extraction was successful
+	 */
+	function zipArchiveExtract($zipFile, $destination, &$message, $validFiles = array()) {
+		$zip = new ZipArchive;
+		if (!$zip->open($zipFile, ZIPARCHIVE::CHECKCONS)) {
+			$message = $zip->getStatusString();
+			return false;
+		}
+
+		if (!empty($validFiles)) {
+			// Restrict which files to extract
+			$extractFiles = array();
+			foreach ($validFiles as $validFile) {
+				if ($zip->locateName($validFile) !== false) {
+					$extractFiles[] = $validFile;
+				}
+			}
+			$status = $zip->extractTo($destination, $extractFiles);
+		} else {
+			// Extract the entire archive
+			$status = $zip->extractTo($destination);
+		}
+
+		if ($status === false && $zip->getStatusString() != 'No error') {
+			$zip->close();
+			$message = $zip->getStatusString();
+			return false;
+		}
+
+		$zip->close();
+
+		return true;
+	}
 }

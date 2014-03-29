@@ -314,7 +314,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-
 		// If supplementary file is already a zip, there's nothing to do. It's
 		// been converted.
 		$suppFileName = $suppFile->getFileName();
@@ -427,59 +426,22 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId);
 		$zipFile = $suppFolder . '/' . $suppFileName;
 
-		$zip = new ZipArchive;
-		if (!$zip->open($zipFile, ZIPARCHIVE::CHECKCONS)) {
-			$this->_printXMLMessage(
-				__(
-					'plugins.generic.markup.archive.bad_zip',
-					array(
-						'file' => $zipFile,
-						'error' => $zip->getStatusString()
-					)
-				),
-				true
-			);
-			return false;
-		}
-
 		$validFiles = array(
-			'document-new.pdf',
-			'document-review.pdf',
-			'document.html',
+			'document.pdf',
 			'document.xml',
-			'manifest.xml',
+			'html.zip',
 		);
-		// TODO: 'try "media" folder.'; check what dev meant with that
-		$extractFiles = array();
-		foreach ($validFiles as $validFile) {
-			if ($zip->locateName($validFile) !== false) {
-				$extractFiles[] = $validFile;
-			}
-		}
 
-		// Get all graphics
-		// TODO: do we only support jpg and png?
-		for ($i = 0; $i < $zip->numFiles; $i++) {
-			$fileName = $zip->getNameIndex($i);
-			if (preg_match('/\.(png|jpg)$/i', $fileName)) {
-				$extractFiles[] = $fileName;
-			}
-		}
-
-		// TODO: check what dev meant with this: "PHP docs say extractTo()
-		// returns false on failure, but its triggering this, and yet returning
-		// "No error" for $errorMsg below."
-		if (
-			$zip->extractTo($suppFolder . '/markup', $extractFiles) === false &&
-			$zip->getStatusString() != 'No error'
-		) {
-			$zip->close();
+		// Extract the zip archive to a markup subdirectory
+		$message = '';
+		$destination = $suppFolder . '/markup';
+		if (!MarkupPluginUtilities::zipArchiveExtract($zipFile, $destination, $message, $validFiles)) {
 			$this->_printXMLMessage(
 				__(
 					'plugins.generic.markup.archive.bad_zip',
 					array(
 						'file' => $zipFile,
-						'error' => $zip->getStatusString()
+						'error' => $message
 					)
 				),
 				true
@@ -487,7 +449,24 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return false;
 		}
 
-		$zip->close();
+		// If we got a html.zip extract this to html subdirectory
+		$htmlZipFile = $destination . '/html.zip';
+		if (file_exists($htmlZipFile)) {
+			if (!MarkupPluginUtilities::zipArchiveExtract($htmlZipFile, $destination . '/html', $message)) {
+				$this->_printXMLMessage(
+					__(
+						'plugins.generic.markup.archive.bad_zip',
+						array(
+							'file' => $zipFile,
+							'error' => $message
+						)
+					),
+					true
+				);
+				return false;
+			}
+			unlink($htmlZipFile);
+		}
 
 		return true;
 	}
