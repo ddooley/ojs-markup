@@ -314,8 +314,7 @@ class MarkupPlugin extends GenericPlugin {
 		if ($articleFileManager->uploadedFileExists($fileName)) { return; }
 
 		// Copy the temporary file
-		// TODO: this can potentially be removed (this is the only call to copyTempFile)
-		$newPath = MarkupPluginUtilities::copyTempFile($articleId, $fileName);
+		$newPath = $this->_copyTempFile($articleFileManager, $fileName);
 		if (!$newPath) { return; }
 
 		// Submit the file for conversion to the markup server
@@ -522,4 +521,28 @@ class MarkupPlugin extends GenericPlugin {
 
 		echo $html;
 	}
+
+	/**
+	 * Copy tempory uploaded file into new location before uploading it to the
+	 * Document Markup server
+	 *
+	 * @param $articleFileManager mixed ArticleFileManager instance
+	 * @param $fileName int File name of uploaded file
+	 *
+	 * @return string Path to the copied file
+	 */
+	function _copyTempFile($articleFileManager, $fileName) {
+		$articleFilePath = $articleFileManager->getUploadedFilePath($fileName);
+		$fileName = $articleFileManager->getUploadedFileName($fileName);
+
+ 		// Exit if no suffix.
+		if (!strpos($fileName, '.')) return false;
+
+		$suffix = $articleFileManager->getExtension($fileName);
+		$newFilePath = $articleFilePath . '.' . $suffix;
+		$articleFileManager->copyFile($articleFilePath, $newFilePath);
+
+		return $newFilePath;
+	}
+
 }

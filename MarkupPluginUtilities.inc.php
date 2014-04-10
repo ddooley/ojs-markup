@@ -65,31 +65,6 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Copy tempory uploaded file into new location before uploading it to the
-	 * Document Markup server
-	 *
-	 * @param $articleId int ArticleId
-	 * @param $fileName int File name of uploaded file
-	 *
-	 * @return string Path to the copied file
-	 */
-	function copyTempFile($articleId, $fileName) {
-		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($articleId);
-		$articleFilePath = $articleFileManager->getUploadedFilePath($fileName);
-		$fileName = $articleFileManager->getUploadedFileName($fileName);
-
- 		// Exit if no suffix.
-		if (!strpos($fileName, '.')) return false;
-
-		$suffix = $articleFileManager->getExtension($fileName);
-		$newFilePath = $articleFilePath . '.' . $suffix;
-		$articleFileManager->copyFile($articleFilePath, $newFilePath);
-
-		return $newFilePath;
-	}
-
-	/**
 	 * Return requested markup file to user's browser.
 	 *
 	 * @param $folder string Server file path
