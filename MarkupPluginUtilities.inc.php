@@ -115,46 +115,57 @@ class MarkupPluginUtilities {
 	}
 
 	/**
-	 * Delete markup plugin media files related to an article if no XML or HTML
+	 * Clean markup plugin media files related to an article if no XML or HTML
 	 * galley links are left.
 	 *
 	 * @param $articleId int ArticleID
-	 * @param $type string What document type to discard
+	 * @param $type string What document type to discard if not provided all galley media will be discarded
 	 *
 	 * @return void
 	 */
-	function checkGalleyMedia($articleId, $type) {
+	function cleanGalleyMedia($articleId, $type = '') {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galleys =& $galleyDao->getGalleysByArticle($articleId);
 
 		$keep = array();
-		foreach ($galleys as $galley) {
-			$label = $galley->getLabel();
-			if ($label == 'XML' && $type != 'XML') $keep['xml'] = true;
-			if ($label == 'HTML' && $type != 'HTML') $keep['html'] = true;
-			if ($label == 'PDF' && $type != 'PDF') $keep['pdf'] = true;
-		};
+		if (!empty($type)) {
+			foreach ($galleys as $galley) {
+				$label = $galley->getLabel();
+				if ($label == 'XML' && $type != 'XML') $keep['xml'] = true;
+				if ($label == 'HTML' && $type != 'HTML') $keep['html'] = true;
+				if ($label == 'PDF' && $type != 'PDF') $keep['pdf'] = true;
+			};
+		}
 
 		$suppFolder = self::getSuppFolder($articleId) . '/markup/';
 
-		$delete = array();
+		$deletes = array();
 		if ($keep) {
 			if (!isset($keep['xml'])) {
-				$delete[] = $suppFolder . 'document.xml';
+				$deletes[] = $suppFolder . 'document.xml';
 			}
 			if (!isset($keep['html'])) {
-				$delete[] = $suppFolder . 'document.html';
+				$deletes[] = $suppFolder . 'html';
 			}
 			if (!isset($keep['pdf'])) {
-				$delete[] = $suppFolder . 'document-new.pdf';
-				$delete[] = $suppFolder . 'document-review.pdf';
+				$deletes[] = $suppFolder . 'document.pdf';
 			}
 		} else {
-			// No markup galley files found so delete all markup media.
-			$delete = glob($suppFolder . '*');
+			$deletes[] = $suppFolder;
 		}
 
-		foreach ($delete as $file) { unlink($file); }
+		foreach ($deletes as $delete) {
+			if (is_file($delete)) {
+				unlink($delete);
+			} else {
+				$rdi = new RecursiveDirectoryIterator($delete, FilesystemIterator::SKIP_DOTS);
+				$rii = new RecursiveIteratorIterator($rdi, RecursiveIteratorIterator::CHILD_FIRST);
+				foreach($rii as $path) {
+					$path->isFile() ? unlink($path->getPathname()) : rmdir($path->getPathname());
+				}
+				rmdir($delete);
+			}
+		}
 	}
 
 	/**

@@ -349,8 +349,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			// If we're not launching a galley, then if there are no galley
 			// links left in place for XML or HTML content, then make sure
 			// markup/images & media are deleted for given article.
-			// TODO: Check this
-			MarkupPluginUtilities::checkGalleyMedia($articleId);
+			MarkupPluginUtilities::cleanGalleyMedia($articleId);
 		}
 	}
 

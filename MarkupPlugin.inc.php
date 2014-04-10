@@ -348,7 +348,7 @@ class MarkupPlugin extends GenericPlugin {
 		$galley =& $galleyDao->getGalley($galleyId);
 		$articleId = $galley->getSubmissionId();
 		$type = $galley->getLabel();
-		MarkupPluginUtilities::checkGalleyMedia($articleId, $type);
+		MarkupPluginUtilities::cleanGalleyMedia($articleId, $type);
 	}
 
 	/**
