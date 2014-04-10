@@ -29,7 +29,6 @@
 	<message key="plugins.generic.markup.archive.status">Document Markup Server returned: {$message} </message>
 	<message key="plugins.generic.markup.archive.supp_file_missing">Although a "Document Markup Files" supplementary record exists, its file is missing.</message>
 	<message key="plugins.generic.markup.archive.supp_missing">Article or its "Document Markup Files" supplementary file RECORD is missing. Try re-uploading the article to regenerate the markup files.</message>
-	<message key="plugins.generic.markup.completed">Completed document conversion for article {$articleId} (job: {$jobId}) </message>
 	<message key="plugins.generic.markup.description">When an author, copyeditor or editor uploads a new version (DOC/DOCX/ODT/PDF format) of an article, this module submits it to the document markup server specified in the settings. It then receives a zipfile containing formatted XML, HTML and PDF versions of the article, as well as bibliographic information automatically styled per the journal's guidelines. This zipfile is kept in the supplementary files folder for the editors during the review process. When ready to publish the article, the HTML, XML, and PDF galley files are automatically extracted and made available from the journal table of contents.</message>
 	<message key="plugins.generic.markup.displayName">Document Markup Plugin</message>
 	<message key="plugins.generic.markup.error">Error!</message>

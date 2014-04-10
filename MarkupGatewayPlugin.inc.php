@@ -323,7 +323,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		}
 
 		// Submit the file to the markup server for conversion
-		$suppFilePath = MarkupPluginUtilities::getSuppFolder($articleId) . '/' . $suppFileName;
+		$suppFolder = MarkupPluginUtilities::getSuppFolder($articleId);
+		$suppFilePath = $suppFolder . '/' . $suppFileName;
+
 		$apiResponse = MarkupPluginUtilities::submitFile($this, $suppFileName, $suppFilePath);
 
 		if ($apiResponse['status'] == 'error') {
@@ -335,28 +337,21 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$this->_retrieveJobArchive($articleId, $suppFile);
 
-		/*
-		 * TODO: Disabled for now. Check implementation
 		// Unzip file and launch galleys only during layout upload
 		if ($galleyFlag) {
 			if (!$this->_unzipSuppFile($articleId, $suppFile)) {
 				return;
 			}
-			$this->_setupGalleyForMarkup($articleId, 'document.html');
-			$this->_setupGalleyForMarkup($articleId, 'document-new.pdf');
-			$this->_setupGalleyForMarkup($articleId, 'document.xml');
+			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/html/document.html');
+			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.pdf');
+			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.xml');
 		} else {
 			// If we're not launching a galley, then if there are no galley
 			// links left in place for XML or HTML content, then make sure
 			// markup/images & media are deleted for given article.
+			// TODO: Check this
 			MarkupPluginUtilities::checkGalleyMedia($articleId);
 		}
-
-		$this->_printXMLMessage(
-			__('plugins.generic.markup.completed', array('articleId' => $articleId, 'jobId' => $jobId)),
-			true
-		);
-		*/
 	}
 
 	/**
@@ -394,7 +389,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		if (!file_exists($tmpZipFile)) return;
 
-		$mimeType = 'application/zip';
+		$mimeType = MarkupPluginUtilities::getMimeType($tmpZipFile);
 		$suppFileId = $suppFile->getFileId();
 		MarkupPluginUtilities::removeJobIdSuppFile($suppFile);
 		import('classes.file.ArticleFileManager');
@@ -405,6 +400,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		} else {
 			$articleFileManager->copySuppFile($tmpZipFile, $mimeType, $suppFileId);
 		}
+		@unlink($tmpZipFile);
 
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFileDao->updateSuppFile($suppFile);
@@ -481,14 +477,13 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * @return int Id of new galley link
 	 */
 	function _setupGalleyForMarkup($articleId, $fileName) {
-		$journal =& Request::getJournal();
-		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
-
 		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($articleId);
+
+		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
 		$fileExtension = strtoupper(ArticleFileManager::parseFileExtension($fileName));
-		$archiveFile = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/' . $fileName;
-		$suppFileId = $articleFileManager->copySuppFile($archiveFile, $mimeType);
+
+		$articleFileManager = new ArticleFileManager($articleId);
+		$suppFileId = $articleFileManager->copySuppFile($fileName, $mimeType);
 
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galleys =& $galleyDao->getGalleysByArticle($articleId);
@@ -508,6 +503,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$galley->setLabel($fileExtension);
 		$galley->setLocale(AppLocale::getLocale());
 		$galleyDao->insertGalley($galley);
+
 		return $galley->getId();
 	}
 

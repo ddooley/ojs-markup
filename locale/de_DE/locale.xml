@@ -29,7 +29,6 @@
 	<message key="plugins.generic.markup.archive.status">Dokumenten-Markup-Server antwortet: {$message}</message>
 	<message key="plugins.generic.markup.archive.supp_file_missing">Obwohl ein Eintrag einer "Document Markup Files"-Zusatzdatei existiert, fehlt seine Datei.</message>
 	<message key="plugins.generic.markup.archive.supp_missing">Der Artikel oder der Eintrag seiner "Document Markup Files"-Zusatzdatei fehlen. Versuchen Sie, den Artikel erneut hochzuladen, um die Markup-Dateien zu erzeugen.</message>
-	<message key="plugins.generic.markup.completed">Konvertierung des Dokuments für Artikel {$articleId} abgeschlossen (Job: {$jobId})</message>
 	<message key="plugins.generic.markup.description">Wenn ein/e Autor/in, Lektor/in oder Redakteur/in eine neue Version (im Format odt, doc, docx oder pdf) eines Artikels hochlädt, übermittelt dieses Modul sie an den in der Konfiguration genannten Dokumenten-Markup-Server und erhält eine gezippte Datei mit PDF-, XML- und HTML-Versionen dieses Artikels zusammen mit einem Literaturverzeichnis, das automatisch den Richtlinien der Zeitschrift formatiert ist. Diese gezippte Datei wird in dem Zusatzdateienordner aufbewahrt, damit sie im Begutachtungsprozess untersucht werden kann. Wenn der Artikel veröffentlicht werden kann, werden die PDF-, XML- und HTML-Fahnen ausgepackt und über das Inhaltsverzeichnis der Zeitschrift zugänglich gemacht.</message>
 	<message key="plugins.generic.markup.displayName">Dokumenten-Markup-Plug-In</message>
 	<message key="plugins.generic.markup.error">Fehler!</message>
