@@ -130,6 +130,8 @@ class MarkupPluginUtilities {
 		}
 
 		foreach ($deletes as $delete) {
+			if (!file_exists($delete)) continue;
+
 			if (is_file($delete)) {
 				unlink($delete);
 			} else {
