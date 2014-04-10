@@ -468,9 +468,8 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return void
 	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
-	function _rewriteArticleHTML($articleId, &$galley, $backLinkFlag) {
-		// TODO: https://github.com/pkp/ojs/pull/98#discussion_r5986311
-		if (strtoupper($galley->getLabel()) != 'HTML') return;
+	function _rewriteArticleHTML($articleId, $galley, $backLinkFlag) {
+		if (strtoupper($galley->getLabel()) != 'HTML') { return; }
 
 		$filePath = $galley->getFilePath();
 		$mimeType = MarkupPluginUtilities::getMimeType($filePath);
@@ -487,7 +486,7 @@ class MarkupPlugin extends GenericPlugin {
 			'fileName' => ''
 		);
 
-		// TODO: Replace that with new API call 
+		// TODO: Replace that with new API call
 		//$articleURL = MarkupPluginUtilities::getMarkupURL($args);
 		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
@@ -498,7 +497,7 @@ class MarkupPlugin extends GenericPlugin {
 		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1' . $markupURL . '$4$5', $html);
 
 		// Insert document base url into all relative urls except anchorlinks
-		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1' . $articleURL . '$3$4', $html);
+		//$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1' . $articleURL . '$3$4', $html);
 
 		// Converts remaining file name to path[] param.
 		// Will need 1 more call if media subfolders exist.
@@ -507,16 +506,22 @@ class MarkupPlugin extends GenericPlugin {
 			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
 		}
 
+		// Inject iframe at top of page that enables return to previous page.
 		if ($backLinkFlag == true) {
-			// Inject iframe at top of page that enables return to previous page.
-			$backURL = Request::url(null, null, 'proofGalleyTop', $articleId, null);
-			// TODO: DOM/XPATH
-			$iframe = '<iframe src="' . $backURL . '" noresize="noresize" frameborder="0" scrolling="no" height="40" width="100%"></iframe>';
-			$insertPtr = strpos($html, '<body>') + 6;
-			$html = substr($html, 0, $insertPtr)
-				. "\n\t"
-				. $iframe
-				. substr($html, $insertPtr);
+			$dom = new DOMDocument();
+			$dom->loadHTML($html);
+
+			$iframe = $dom->createElement('iframe');
+			$iframe->setAttribute('src', Request::url(null, null, 'proofGalleyTop', $articleId, null));
+			$iframe->setAttribute('frameborder', 0);
+			$iframe->setAttribute('scrolling', 'no');
+			$iframe->setAttribute('height', '40');
+			$iframe->setAttribute('width', '100%');
+
+			$body = $dom->getElementsByTagName('body')->item(0);
+			$body->insertBefore($iframe, $body->firstChild);
+
+			$html = $dom->saveHTML();
 		}
 
 		echo $html;
