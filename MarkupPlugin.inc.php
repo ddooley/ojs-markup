@@ -311,14 +311,14 @@ class MarkupPlugin extends GenericPlugin {
 		// Trigger only if file uploaded.
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
-		if ($articleFileManager->uploadedFileExists($fileName)) { return; }
+		if (!$articleFileManager->uploadedFileExists($fileName)) { return; }
 
 		// Copy the temporary file
 		$newPath = $this->_copyTempFile($articleFileManager, $fileName);
 		if (!$newPath) { return; }
 
 		// Submit the file for conversion to the markup server
-		$apiResponse = MarkupPluginUtilities::submitFile($this, $fileName, $newPath, $filePath);
+		$apiResponse = MarkupPluginUtilities::submitFile($this, $fileName, $newPath);
 
 		if ($apiResponse['status'] == 'error') {
 			MarkupPluginUtilities::showNotification($apiResponse['error']);
@@ -327,8 +327,8 @@ class MarkupPlugin extends GenericPlugin {
 
 		// Create a new empty supplementary file
 		$suppFile = $this->_suppFile($articleId, $apiResponse['id']);
-
 		$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
+
 		@unlink($newPath);
 	}
 
