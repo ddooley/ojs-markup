@@ -102,7 +102,8 @@ class MarkupPlugin extends GenericPlugin {
 	 * @return string Public plugin CSS path
 	 */
 	function getCssPath() {
-		return '/' . parent::getPluginPath() . '/css/';
+		$baseDir = Core::getBaseDir();
+		return $baseDir . '/' . parent::getPluginPath() . '/css/';
 	}
 
 	/**

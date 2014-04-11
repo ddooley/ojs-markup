@@ -166,10 +166,9 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		// Handles relative urls like "../../css/styles.css"
-		// TODO: Research that
+		// Handles requests for css files
 		if (isset($args['css'])) {
-			$this->_downloadMarkupCSS($journal, $args[1]);
+			$this->_downloadMarkupCSS($journal, $args['css']);
 			return;
 		}
 
@@ -273,7 +272,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return bool Whether or not the CSS file exists
 	 */
-	function _downloadMarkupCSS(&$journal, $fileName) {
+	function _downloadMarkupCSS($journal, $fileName) {
 		import('classes.file.JournalFileManager');
 
 		// Load the journals CSS path

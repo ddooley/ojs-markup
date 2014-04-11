@@ -85,8 +85,10 @@ class MarkupPluginUtilities {
 			);
 		}
 
-		$mimeType = self::getMimeType($fileName);
-		$fileManager->downloadFile($folder . $fileName, $mimeType, true);
+		$mimeType = self::getMimeType($filePath);
+		$fileManager->downloadFile($filePath, $mimeType, true);
+
+		exit;
 	}
 
 	/**
