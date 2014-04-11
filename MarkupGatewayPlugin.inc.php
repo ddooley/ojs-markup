@@ -446,7 +446,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 					__(
 						'plugins.generic.markup.archive.bad_zip',
 						array(
-							'file' => $zipFile,
+							'file' => $htmlZipFile,
 							'error' => $message
 						)
 					),
