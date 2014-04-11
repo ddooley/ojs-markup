@@ -190,7 +190,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Replace supplementary document file with Document Markup Server
 		// conversion archive file. With 'refreshgalley' option. User
 		// permissions don't matter here.
-		if (isset($args['refresh']) or isset($args['refreshgalley'])) {
+		if (isset($args['refresh'])) {
 			$this->_setUserId((int) $args['userId']);
 			$this->_refreshArticleArchive($article, (isset($args['refreshgalley'])));
 			return;
@@ -301,7 +301,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return void
 	 */
-	function _refreshArticleArchive(&$article, $galleyFlag) {
+	function _refreshArticleArchive($article, $galleyFlag) {
 		$journal =& Request::getJournal();
 		$journalId = $journal->getId();
 		$articleId = $article->getId();

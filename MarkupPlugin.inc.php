@@ -258,20 +258,8 @@ class MarkupPlugin extends GenericPlugin {
 		$articleFile =& $articleFileDao->getArticleFile($fileId);
 		if (!isset($articleFile)) return;
 
-		// Submit the article file to the markup server
-		$apiResponse = MarkupPluginUtilities::submitFile(
-			$this,
-			$articleFile->getData('fileName'),
-			$articleFile->getFilePath()
-		);
-
-		if ($apiResponse['status'] == 'error') {
-			MarkupPluginUtilities::showNotification($apiResponse['error']);
-			return;
-		}
-
 		// Create a new empty supplementary file
-		$suppFile = $this->_suppFile($articleId, $apiResponse['id']);
+		$suppFile = $this->_suppFile($articleId);
 
 		// Copy the article as temporary supplementary file till the article is
 		// converted
@@ -282,6 +270,9 @@ class MarkupPlugin extends GenericPlugin {
 			. $articleFileManager->fileStageToPath($articleFile->getFileStage())
 			. '/' . $articleFile->getFileName();
 		$this->_setSuppFileId($suppFile, $articleFilePath, $articleFileManager);
+
+		// Trigger the conversion and retrieval of the converted document
+		$this->_triggerGatewayRetrieval($articleId);
 	}
 
 	/**
@@ -317,19 +308,14 @@ class MarkupPlugin extends GenericPlugin {
 		$newPath = $this->_copyTempFile($articleFileManager, $fileName);
 		if (!$newPath) { return; }
 
-		// Submit the file for conversion to the markup server
-		$apiResponse = MarkupPluginUtilities::submitFile($this, $fileName, $newPath);
-
-		if ($apiResponse['status'] == 'error') {
-			MarkupPluginUtilities::showNotification($apiResponse['error']);
-			return;
-		}
-
 		// Create a new empty supplementary file
-		$suppFile = $this->_suppFile($articleId, $apiResponse['id']);
+		$suppFile = $this->_suppFile($articleId);
 		$this->_setSuppFileId($suppFile, $newPath, $articleFileManager);
 
 		@unlink($newPath);
+
+		// Trigger the conversion and retrieval of the converted document
+		$this->_triggerGatewayRetrieval($articleId, true);
 	}
 
 	/**
@@ -427,7 +413,7 @@ class MarkupPlugin extends GenericPlugin {
 	 *
 	 * @return SuppFile Supplementarty file
 	 */
-	function _suppFile($articleId, $jobId = null) {
+	function _suppFile($articleId) {
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$locale = AppLocale::getLocale();
@@ -436,7 +422,6 @@ class MarkupPlugin extends GenericPlugin {
 			import('classes.article.SuppFile');
 			$suppFile = new SuppFile();
 			$suppFile->setArticleId($articleId);
-			if ($jobId) { MarkupPluginUtilities::saveJobIdSuppFile($suppFile, $jobId); }
 			$suppFile->setTitle(MARKUP_SUPPLEMENTARY_FILE_TITLE, $locale);
 			$suppFile->setType('');
 			$suppFile->setTypeOther('zip', $locale);
@@ -550,4 +535,33 @@ class MarkupPlugin extends GenericPlugin {
 		return $newFilePath;
 	}
 
+	/**
+	 * Triggers the retrieval of the converted document via
+	 * MarkupGatewayPlugin::fetch()
+	 *
+	 * @param $articleId int ArticleId to retrieve converted archive for
+	 * @param $galleyFlag bool Whether or nor to create the galleys too
+	 *
+	 * @return void
+	 */
+	function _triggerGatewayRetrieval($articleId, $galleyFlag = false) {
+		$user = Request::getUser();
+
+		$path = array(
+			MARKUP_GATEWAY_FOLDER,
+			'articleId', $articleId,
+			'refresh', 'true',
+			'refreshGalley', $galleyFlag ? 'true' : 'false',
+			'userId', $user->getId()
+		);
+
+		$url = Request::url(null, 'gateway', 'plugin', $path);
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT_MS, 1000);
+		curl_exec($ch);
+		curl_close($ch);
+    }
 }
