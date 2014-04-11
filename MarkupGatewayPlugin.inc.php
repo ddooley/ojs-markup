@@ -333,9 +333,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		MarkupPluginUtilities::saveJobIdSuppFile($suppFile, $apiResponse['id']);
-
-		$this->_retrieveJobArchive($articleId, $suppFile);
+		$this->_retrieveJobArchive($articleId, $suppFile, $apiResponse['id']);
 
 		// Unzip file and launch galleys only during layout upload
 		if ($galleyFlag) {
@@ -358,18 +356,15 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 * existing supplementary file.
 	 *
 	 * @param $articleId int ArticleId
-	 * @param $journalId int JournalId
-	 * @param $jobId string Conversion jobId
 	 * @param $suppFile Supplementary file to update with the converted file
+	 * @param $jobId string Conversion jobId
 	 *
 	 * @return void
 	 */
-	function _retrieveJobArchive($articleId, $suppFile) {
-		$jobId = MarkupPluginUtilities::getJobIdSuppFile($suppFile);
-
-		// Wait for max 2 minutes for the job to complete
+	function _retrieveJobArchive($articleId, $suppFile, $jobId) {
+		// Wait for max 5 minutes for the job to complete
 		$i = 0;
-		while($i++ < 40) {
+		while($i++ < 60) {
 			$apiResponse = MarkupPluginUtilities::getJobStatus($this, $jobId);
 			if ($apiResponse['jobStatus'] != 0) break; // Jobstatus 0 - pending
 			sleep(5);
@@ -390,7 +385,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		$mimeType = MarkupPluginUtilities::getMimeType($tmpZipFile);
 		$suppFileId = $suppFile->getFileId();
-		MarkupPluginUtilities::removeJobIdSuppFile($suppFile);
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		if ($suppFileId == 0) {
