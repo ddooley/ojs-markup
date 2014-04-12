@@ -155,14 +155,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$args = array_combine($keys, $values);
 
 		if (!$this->getEnabled()) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.enable'));
+			echo __('plugins.generic.markup.archive.enable');
 			return;
 		}
 
 		// Make sure we're within a Journal context
 		$journal =& Request::getJournal();
 		if (!$journal) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_journal'));
+			echo __('plugins.generic.markup.archive.no_journal');
 			return;
 		}
 
@@ -175,14 +175,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Load the article
 		$articleId = isset($args['articleId']) ? (int) $args['articleId'] : false;
 		if (!$articleId) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_articleID'));
+			echo __('plugins.generic.markup.archive.no_articleID');
 			return;
 		}
 
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		$article =& $articleDao->getArticle($articleId);
 		if (!$article) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			echo __('plugins.generic.markup.archive.no_article');
 			return;
 		}
 
@@ -200,20 +200,20 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// constant for now. $fileName should be a file name.
 		// TODO: check that
 		if (false and (int) $args[0] != 0) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_article'));
+			echo __('plugins.generic.markup.archive.no_article');
 			return;
 		}
 
 		$this->import('MarkupPluginUtilities');
 
 		if (!$fileName = $args['fileName']) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.bad_filename'));
+			echo __('plugins.generic.markup.archive.bad_filename');
 			return;
 		}
 
 		$markupFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
 		if (!file_exists($markupFolder . $fileName)) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.no_file'));
+			echo __('plugins.generic.markup.archive.no_file');
 			return;
 		}
 
@@ -229,7 +229,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Article is not published, so access can only be granted if user is
 		// logged in and of the right type / connection to article
 		if (!$user = Request::getUser()) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.login'));
+			echo __('plugins.generic.markup.archive.login');
 			return;
 		}
 
@@ -238,7 +238,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			return;
 		}
 
-		$this->_printXMLMessage(__('plugins.generic.markup.archive.no_access'));
+		echo __('plugins.generic.markup.archive.no_access');
 		return;
 	}
 
@@ -309,7 +309,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFiles =& $suppFileDao->getSuppFilesBySetting('title', MARKUP_SUPPLEMENTARY_FILE_TITLE, $articleId);
 		$suppFile = $suppFiles[0];
 		if (!$suppFile) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.supp_missing'), true);
+			echo __('plugins.generic.markup.archive.supp_missing');
 			return;
 		}
 
@@ -317,7 +317,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// been converted.
 		$suppFileName = $suppFile->getFileName();
 		if (preg_match('/\.zip$/', strtolower($suppFileName))) {
-			$this->_printXMLMessage(__('plugins.generic.markup.archive.is_zip'));
+			echo __('plugins.generic.markup.archive.is_zip');
 			return;
 		}
 
@@ -328,7 +328,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$apiResponse = MarkupPluginUtilities::submitFile($this, $suppFileName, $suppFilePath);
 
 		if ($apiResponse['status'] == 'error') {
-			$this->_printXMLMessage($apiResponse['error'], true);
+			echo $apiResponse['error'];
 			return;
 		}
 
@@ -424,15 +424,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$message = '';
 		$destination = $suppFolder . '/markup';
 		if (!MarkupPluginUtilities::zipArchiveExtract($zipFile, $destination, $message, $validFiles)) {
-			$this->_printXMLMessage(
-				__(
-					'plugins.generic.markup.archive.bad_zip',
-					array(
-						'file' => $zipFile,
-						'error' => $message
-					)
-				),
-				true
+			echo __(
+				'plugins.generic.markup.archive.bad_zip',
+				array(
+					'file' => $zipFile,
+					'error' => $message
+				)
 			);
 			return false;
 		}
@@ -441,15 +438,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$htmlZipFile = $destination . '/html.zip';
 		if (file_exists($htmlZipFile)) {
 			if (!MarkupPluginUtilities::zipArchiveExtract($htmlZipFile, $destination . '/html', $message)) {
-				$this->_printXMLMessage(
-					__(
-						'plugins.generic.markup.archive.bad_zip',
-						array(
-							'file' => $htmlZipFile,
-							'error' => $message
-						)
-					),
-					true
+				echo __(
+					'plugins.generic.markup.archive.bad_zip',
+					array(
+						'file' => $htmlZipFile,
+						'error' => $message
+					)
 				);
 				return false;
 			}
@@ -497,36 +491,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$galleyDao->insertGalley($galley);
 
 		return $galley->getId();
-	}
-
-	/**
-	 * Atom XML template displayed in response to a plugin gateway fetch() where
-	 * a message or error condition is reported (instead of returning a file).
-	 *
-	 * @param $message string Status message
-	 * @param $notification boolean Whether or not a notification should be
-	 * shown to the user
-	 *
-	 * @return void
-	 * TODO: Check if we can remove this.
-	 */
-	function _printXMLMessage($message, $notification = false) {
-		if ($notification == true) {
-			$this->import('MarkupPluginUtilities');
-			// TODO: for now all notifications are success types
-			MarkupPluginUtilities::showNotification(
-				__('plugins.generic.markup.archive.status', array('message' => $message)),
-				true,
-				$this->_getUserId()
-			);
-		}
-		$templateMgr =& TemplateManager::getManager();
-		$templateMgr->assign_by_ref('journal', $journal);
-		$templateMgr->assign('selfUrl', Request::getCompleteUrl());
-		$templateMgr->assign('dateUpdated', Core::getCurrentDate());
-		$templateMgr->assign('description', $message);
-
-		$templateMgr->display($this->getTemplatePath() . '/fetch.tpl', 'application/atom+xml');
 	}
 
 	/**
