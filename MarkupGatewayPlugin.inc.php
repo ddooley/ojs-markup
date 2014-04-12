@@ -406,7 +406,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return bool Wheter or not the extraction was successful
 	 */
-	function _unzipSuppFile($articleId, &$suppFile) {
+	function _unzipSuppFile($articleId, $suppFile) {
 		// We need updated name. It was x.pdf or docx, now its y.zip:
 		$suppFileDao =& DAORegistry::getDAO('SuppFileDAO');
 		$suppFile =& $suppFileDao->getSuppFile($suppFile->getId());
@@ -539,7 +539,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return int RoleId of user in journal and article
 	 **/
-	function getUserPermViewDraft($userId, $articleId, &$journal, $fileName) {
+	function getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
 		$journalId = $journal->getId();
 
 		$roleDao =& DAORegistry::getDAO('RoleDAO');

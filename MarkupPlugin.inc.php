@@ -391,7 +391,7 @@ class MarkupPlugin extends GenericPlugin {
 	 * @param $suppFilePath string Supplementary file path
 	 * @param $articleFileManager object Article file manager
 	 */
-	function _setSuppFileId($suppFile, $suppFilePath, &$articleFileManager) {
+	function _setSuppFileId($suppFile, $suppFilePath, $articleFileManager) {
 		$mimeType = MarkupPluginUtilities::getMimeType($suppFilePath);
 		$suppFileId = $suppFile->getFileId();
 
