@@ -475,7 +475,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$galleys =& $galleyDao->getGalleysByArticle($articleId);
 		foreach ($galleys as $galley) {
 			// Doing by suffix since usually no isXMLGalley() fn
-			// TODO: check if this is legit
 			if ($galley->getLabel() == $fileExtension) {
 				$galley->setFileId($suppFileId);
 				$galleyDao->updateGalley($galley);
