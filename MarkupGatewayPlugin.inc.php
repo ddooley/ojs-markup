@@ -191,7 +191,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// permissions don't matter here.
 		if (isset($args['refresh'])) {
 			$this->_setUserId((int) $args['userId']);
-			$this->_refreshArticleArchive($article, (isset($args['refreshgalley'])));
+			$this->_refreshArticleArchive($article, (isset($args['refreshGalley'])));
 			return;
 		};
 
