@@ -123,29 +123,30 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	// Public plugin methods
 	//
 	/**
-	 * Handles URL request to trigger document markup processing for given
-	 * article; also handles URL requests for xml/pdf/html versions of an
-	 * article as well as the xml/html's image and css files.
+	 * Handles URL requests to trigger document markup processing for given
+	 * article; also handles download requests for xml/pdf/html versions of an
+	 * article as well as the html's css files
 	 *
-	 * URL is usually of form:
-	 * http://.../index.php/chaos/gateway/plugin/markup/...
-	 *     .../0/[articleId]/[fileName]  // eg. document.html/xml/pdf
-	 *     .../css/[fileName]            // get stylesheets
-	 *     .../refresh/[articleid]       // generate zip file
-	 *     .../refreshgalley/[articleid] // updates zip file
+	 * Accepted parameters:
+	 *   articleId/[int],
+	 *   fileName/[string]
+	 *   refresh/[bool]
+	 *   refreshGalley/[bool]
+	 *   css/[string]
+	 *   userId/[int]
 	 *
-	 * When disable_path_info is true URL conveys the above in path[] parameter
-	 * array.
+	 * @param $args Array of url arguments
 	 *
-	 * @param $args Array of relative url folders down from plugin
-	 *
-	 * @return bool Success status
+	 * @return void
 	 */
 	function fetch($args) {
 		// Parse keys and values from arguments
 		$keys = array();
 		$values = array();
 		foreach ($args as $index => $arg) {
+			if ($arg == 'true') $arg = true;
+			if ($arg == 'false') $arg = false;
+
 			if ($index % 2 == 0) {
 				$keys[] = $arg;
 			} else {
@@ -212,14 +213,14 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Check if user can view published article
 		$user =& Request::getUser();
 		if ($article->getStatus() == STATUS_PUBLISHED) {
-			if (MarkupPluginUtilities::getUserPermViewPublished($user, $articleId, $journal, $args['fileName'])) {
+			if ($this->_getUserPermViewPublished($user, $articleId, $journal, $args['fileName'])) {
 				MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
 				exit;
 			}
 		}
 
 		// Article is not published check if user can view draft
-		if ($this->getUserPermViewDraft($user, $articleId, $journal, $args['fileName'])) {
+		if ($this->_getUserPermViewDraft($user, $articleId, $journal, $args['fileName'])) {
 			MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
 			exit;
 		}
@@ -479,6 +480,122 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
+	 * Checks if user is allowed to download this file
+	 *
+	 * @param $user mixed User object
+	 * @param $articleId int ArticleId
+ 	 * @param $journal mixed Journal object
+ 	 * @param $fileName string File to download
+ 	 *
+ 	 * @return boolean Whether or not the user is permitted to download the file
+	 */
+	function _getUserPermViewPublished($user, $articleId, $journal, $fileName) {
+		$journalId = $journal->getId();
+		$articleId = $articleId;
+		$userId = $user ? $user->getId() : 0;
+
+		$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
+		if ($journal->getSetting('enablePublicArticleId')) {
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByBestArticleId($journalId, $articleId, true);
+		} else {
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($articleId, $journalId, true);
+		}
+
+		$issue = null;
+		$article = null;
+		$issueDao =& DAORegistry::getDAO('IssueDAO');
+		if (isset($publishedArticle)) {
+			$issue =& $issueDao->getIssueById($publishedArticle->getIssueId(), $publishedArticle->getJournalId(), true);
+		} else {
+			$articleDao =& DAORegistry::getDAO('ArticleDAO');
+			$article =& $articleDao->getArticle($articleId, $journalId, true);
+		}
+
+		// If this is an editorial user who can view unpublished/unscheduled
+		// articles, bypass further validation. Likewise for its author.
+		if (
+			($article || $publishedArticle) &&
+			(
+				$article && IssueAction::allowedPrePublicationAccess($journal, $article) ||
+				$publishedArticle && IssueAction::allowedPrePublicationAccess($journal, $publishedArticle)
+			)
+		) {
+			return true;
+		}
+
+		// Make sure the reader has rights to view the article/issue.
+		if (!($issue && $issue->getPublished() && $publishedArticle->getStatus() == STATUS_PUBLISHED)) {
+			return false;
+		}
+
+		$subscriptionRequired = IssueAction::subscriptionRequired($issue);
+		$isSubscribedDomain = IssueAction::subscribedDomain($journal, $issue->getId(), $publishedArticle->getId());
+
+		// Check if login is required for viewing.
+		// TODO: this never worked $galleyId hasn't been set at this point this also influences the sections below
+		if (
+			!$isSubscribedDomain &&
+			!Validation::isLoggedIn() &&
+			$journal->getSetting('restrictArticleAccess') &&
+			isset($galleyId) && $galleyId
+		) {
+			return false;
+		}
+
+		// Bypass all validation if subscription based on domain or ip is valid
+		// or if the user is just requesting the abstract
+		if (
+			(!$isSubscribedDomain && $subscriptionRequired) &&
+			(isset($galleyId) && $galleyId)
+		) {
+			// Subscription Access
+			$subscribedUser = IssueAction::subscribedUser($journal, $issue->getId(), $publishedArticle->getId());
+
+			if (
+				!(
+					!$subscriptionRequired ||
+					$publishedArticle->getAccessStatus() == ARTICLE_ACCESS_OPEN ||
+					$subscribedUser
+				)
+			) {
+				// If payment information is enabled
+				import('classes.payment.ojs.OJSPaymentManager');
+				$paymentManager = new OJSPaymentManager($request);
+
+				if ($paymentManager->purchaseArticleEnabled() || $paymentManager->membershipEnabled()) {
+					// If only pdf files are being restricted, then approve all
+					// non-pdf galleys and continue checking if it is a pdf galley
+					if ($paymentManager->onlyPdfEnabled()) {
+						$fileManager = new FileManager();
+						if (strtoupper($fileManager->parseFileExtension($fileName)) == 'PDF') return true;
+					}
+
+					if (!Validation::isLoggedIn()) {
+						return false;
+					}
+
+					// If the article has been paid for then forget about everything else
+					// and just let them access the article
+					$completedPaymentDao =& DAORegistry::getDAO('OJSCompletedPaymentDAO');
+					$dateEndMembership = $user->getSetting('dateEndMembership', 0);
+
+					return (
+						$completedPaymentDao->hasPaidPurchaseArticle($userId, $publishedArticle->getId()) ||
+						$completedPaymentDao->hasPaidPurchaseIssue($userId, $issue->getId()) ||
+						(!is_null($dateEndMembership) && $dateEndMembership > time())
+					);
+				}
+
+				if (!isset($galleyId) || $galleyId) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get a users role for a journal and article
 	 *
 	 * @param $userId int UserId
@@ -488,7 +605,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *
 	 * @return int RoleId of user in journal and article
 	 **/
-	function getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
+	function _getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
 		$journalId = $journal->getId();
 
 		$roleDao =& DAORegistry::getDAO('RoleDAO');
