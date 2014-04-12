@@ -374,9 +374,11 @@ class MarkupPlugin extends GenericPlugin {
 		$article =& $params[0];
 		$galley =& $params[1];
 		$articleId = $article->getId();
-		$this->_rewriteArticleHTML($articleId, $galley, false);
 
-		exit; // Otherwise journal page tacked on end
+		if (strtoupper($galley->getLabel()) != 'HTML') { return; }
+
+		$this->_rewriteArticleHTML($articleId, $galley, false);
+		exit;
 	}
 
 	//
