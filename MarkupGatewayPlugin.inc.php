@@ -490,6 +490,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
  	 * @return boolean Whether or not the user is permitted to download the file
 	 */
 	function _getUserPermViewPublished($user, $articleId, $journal, $fileName) {
+		import('classes.issue.IssueAction');
+
 		$journalId = $journal->getId();
 		$articleId = $articleId;
 		$userId = $user ? $user->getId() : 0;
