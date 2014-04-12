@@ -53,7 +53,7 @@ class MarkupPlugin extends GenericPlugin {
 		),
 		'deleteGalleyMediaCallback' => 'ArticleGalleyDAO::deleteGalleyById',
 		'displayGalleyCallback' => 'TemplateManager::display',
-		'downloadArticleCallback' => 'ArticleHandler::downloadFile',
+		'viewArticleCallback' => 'ArticleHandler::viewFile',
 	);
 
 	//
@@ -362,15 +362,15 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * This hook intercepts user request on public site to download/view an
-	 * article galley HTML / XML / PDF link.
+	 * This hook intercepts user request on public site to view an
+	 * article galley HTML link.
 	 *
 	 * @param $hookName string Name of the hook
 	 * @param $params array [$article, $galley]
 	 *
 	 * @return void
 	 */
-	function downloadArticleCallback($hookName, $params) {
+	function viewArticleCallback($hookName, $params) {
 		$article =& $params[0];
 		$galley =& $params[1];
 		$articleId = $article->getId();
