@@ -382,7 +382,7 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	//
-	// Private helper methods
+	// Protected helper methods
 	//
 	/**
 	 * Make a new supplementary file record or copy over an existing one.
