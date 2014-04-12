@@ -156,34 +156,34 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 
 		if (!$this->getEnabled()) {
 			echo __('plugins.generic.markup.archive.enable');
-			return;
+			exit;
 		}
 
 		// Make sure we're within a Journal context
 		$journal =& Request::getJournal();
 		if (!$journal) {
 			echo __('plugins.generic.markup.archive.no_journal');
-			return;
+			exit;
 		}
 
 		// Handles requests for css files
 		if (isset($args['css'])) {
 			$this->_downloadMarkupCSS($journal, $args['css']);
-			return;
+			exit;
 		}
 
 		// Load the article
 		$articleId = isset($args['articleId']) ? (int) $args['articleId'] : false;
 		if (!$articleId) {
 			echo __('plugins.generic.markup.archive.no_articleID');
-			return;
+			exit;
 		}
 
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		$article =& $articleDao->getArticle($articleId);
-		if (!$article) {
+		if (empty($article)) {
 			echo __('plugins.generic.markup.archive.no_article');
-			return;
+			exit;
 		}
 
 		// Replace supplementary document file with Document Markup Server
@@ -192,54 +192,40 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		if (isset($args['refresh'])) {
 			$this->_setUserId((int) $args['userId']);
 			$this->_refreshArticleArchive($article, (isset($args['refreshGalley'])));
-			return;
+			exit;
 		};
 
 		// Here we deliver any markup file request if its article's publish
-		// state allows it, or if user's credentials allow it. $args[0] is /0/, a
-		// constant for now. $fileName should be a file name.
-		// TODO: check that
-		if (false and (int) $args[0] != 0) {
-			echo __('plugins.generic.markup.archive.no_article');
-			return;
+		// state allows it, or if user's credentials allow it.
+		if (!isset($args['fileName'])) {
+			echo __('plugins.generic.markup.archive.bad_filename');
+			exit;
 		}
 
 		$this->import('MarkupPluginUtilities');
-
-		if (!$fileName = $args['fileName']) {
-			echo __('plugins.generic.markup.archive.bad_filename');
-			return;
-		}
-
 		$markupFolder = MarkupPluginUtilities::getSuppFolder($articleId) . '/markup/';
-		if (!file_exists($markupFolder . $fileName)) {
-			echo __('plugins.generic.markup.archive.no_file');
-			return;
+		if (!file_exists($markupFolder . $args['fileName'])) {
+			echo __('plugins.generic.markup.archive.no_file', array('file' => $args['fileName']));
+			exit;
 		}
 
-		// Most requests come in when an article is in its published state, so
-		// check that first.
+		// Check if user can view published article
+		$user =& Request::getUser();
 		if ($article->getStatus() == STATUS_PUBLISHED) {
-			if (MarkupPluginUtilities::getUserPermViewPublished($user, $articleId, $journal, $fileName)) {
-				MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
-				return;
+			if (MarkupPluginUtilities::getUserPermViewPublished($user, $articleId, $journal, $args['fileName'])) {
+				MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
+				exit;
 			}
 		}
 
-		// Article is not published, so access can only be granted if user is
-		// logged in and of the right type / connection to article
-		if (!$user = Request::getUser()) {
-			echo __('plugins.generic.markup.archive.login');
-			return;
-		}
-
-		if ($this->getUserPermViewDraft($user, $articleId, $journal, $fileName)) {
-			MarkupPluginUtilities::downloadFile($markupFolder, $fileName);
-			return;
+		// Article is not published check if user can view draft
+		if ($this->getUserPermViewDraft($user, $articleId, $journal, $args['fileName'])) {
+			MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
+			exit;
 		}
 
 		echo __('plugins.generic.markup.archive.no_access');
-		return;
+		exit;
 	}
 
 	//
@@ -310,7 +296,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFile = $suppFiles[0];
 		if (!$suppFile) {
 			echo __('plugins.generic.markup.archive.supp_missing');
-			return;
+			exit;
 		}
 
 		// If supplementary file is already a zip, there's nothing to do. It's
@@ -318,7 +304,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$suppFileName = $suppFile->getFileName();
 		if (preg_match('/\.zip$/', strtolower($suppFileName))) {
 			echo __('plugins.generic.markup.archive.is_zip');
-			return;
+			exit;
 		}
 
 		// Submit the file to the markup server for conversion
@@ -431,7 +417,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 					'error' => $message
 				)
 			);
-			return false;
+			exit;
 		}
 
 		// If we got a html.zip extract this to html subdirectory
@@ -445,7 +431,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 						'error' => $message
 					)
 				);
-				return false;
+				exit;
 			}
 			unlink($htmlZipFile);
 		}

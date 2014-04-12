@@ -9,7 +9,7 @@
   * Document Markup plugin localization strings for the en_US (U.S. English) locale.
   -->
 <locale name="en_US" full_name="U.S. English">
-	<message key="plugins.generic.markup.archive.bad_filename">Filename is missing or misformatted. Should be: .../markup/[article Id]/0/[filename]</message>
+	<message key="plugins.generic.markup.archive.bad_filename">Filename is missing</message>
 	<message key="plugins.generic.markup.archive.bad_zip">Error handling zipfile ({$file}): {$error} </message>
 	<message key="plugins.generic.markup.archive.description">This file archive includes parsed and converted NLM-XML, HTML, and PDF copies of your article. It also contains any accompanying images, and structured citation data in BibTeX format (for importing into reference databases such as Zotero or Mendeley).</message>
 	<message key="plugins.generic.markup.archive.downloaded">Document Markup Server. Status: RECEIVED FROM SERVER.</message>
