@@ -493,7 +493,6 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		import('classes.issue.IssueAction');
 
 		$journalId = $journal->getId();
-		$articleId = $articleId;
 		$userId = $user ? $user->getId() : 0;
 
 		$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
