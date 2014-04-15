@@ -26,8 +26,7 @@
 					{fieldLabel name="cslStyle" key="plugins.generic.markup.settings.cslStyle"}
 				</td>
 				<td class="value">
-					<input type="text" name="cslStyleName" id="cslStyleName" value="{$cslStyleName|escape}" class="textField" size="40" />
-					<input name="cslStyle" type="hidden" id="cslStyle" value="{$cslStyle|escape}" />
+					<select name="cslStyle" id="cslStyle"></select>
 					<p>{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}</p>
 				</td>
 			</tr>
@@ -158,45 +157,9 @@
 </div>
 
 <script>
-{*
-	csl.json is an array of csl values obtained from the document markup server directly:
-
-		jsonCallback(
-			{"styles": [
-				{"label":"...","value":"..."},
-				{...}
-			] }
-		)
-// TODO: inline js???
-*}
-{literal}
-$(document).ready(function() {
-	jQuery.support.cors = true;
-	jQuery.ajaxSettings.cache = false;
-
-	jQuery.ajax({
-		url: '{/literal}{$markupHostURL|escape}static/csl-style-index.json?callback=?{literal}',
-		dataType: 'jsonp',
-		jsonpCallback: 'jsonCallback',
-		contentType: 'application/json',
-		error: function(e) { console.log(e.message); },
-		success: function(cslData) {
-			$("#cslStyleName").autocomplete({
-				source: cslData.styles,
-				minLength: 2,
-				html: true,
-				position: { my : 'left bottom', at: 'left top' },
-				select: function( event, ui ) {
-					// Yields ui.item.value & ui.item.label
-					$(this).val(ui.item.label); // Was set to value
-					$("#cslStyle").val(ui.item.value);
-					return false; // Cancels normal setting of value
-				}
-			});
-		}
-	})
-});
-{/literal}
+{* Populate required variables for the citation style select *}
+{literal} var markupHostUrl = '{/literal}{$markupHostURL|escape}{literal}';{/literal}
+{literal} var cslStyleSelection = '{/literal}{$cslStyle|escape}{literal}';{/literal}
 </script>
 
 {include file="common/footer.tpl"}

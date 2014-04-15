@@ -42,7 +42,7 @@
 	<message key="plugins.generic.markup.required.markupHostURL">Angabe der Serveradresse ist zwingend.</message>
 	<message key="plugins.generic.markup.settings">Einstellungen</message>
 	<message key="plugins.generic.markup.settings.cslStyle">Zitationsstil (CSL) auswählen:</message>
-	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Geben Sie einen Teil des Namens einer Organisation oder Publikation ein, um den Zitationsstil aus der lokalen CSL-Datenbank zu suchen (die auf http://citationstyles.org/styles/ basiert).</message>
+	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Spezifiziert den bevorzugten Zitationsstil (Der Dokumenten-Markup-Server muss zuvor spezifiert worden sein).</message>
 	<message key="plugins.generic.markup.settings.cssHeaderImageURL">Header-Bild:</message>
 	<message key="plugins.generic.markup.settings.cssHeaderImageURLHelp">Wenn dieses Plug-In einen Artikel erzeugt, können Sie ein Header-Bild im PNG- oder JPG-Format für den Beginn der ersten Seite angeben. Laden Sie dieses Header-Bild hier hoch. Das Bild sollte maximal 800 Pixel breit und 100 Pixel hoch sein. Um es zu entfernen, benutzen Sie den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.cssStyles">Vorlagen:</message>

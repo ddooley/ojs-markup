@@ -248,14 +248,16 @@ class MarkupPluginUtilities {
 	 * @param $fileName string File name
 	 * @param $filePath string File path
 	 *
-	 * @return mixed API respnse
-	 * TODO: Implement the correct citationStyleHash handling
+	 * @return mixed API response
 	 */
 	function submitFile($plugin, $fileName, $filePath) {
+		$journal = Request::getJournal();
+		$journalId = $journal->getId();
+
 		$params = array(
 			'fileName' => $fileName,
 			'fileContent' => file_get_contents($filePath),
-			'citationStyleHash' => 'c6de5efe3294b26391ea343053c19a84',
+			'citationStyleHash' => $plugin->getSetting($journalId, 'cslStyle'),
 		);
 
 		return self::apiRequest($plugin, 'submit', $params, true);

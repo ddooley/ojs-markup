@@ -42,7 +42,7 @@
 	<message key="plugins.generic.markup.required.markupHostURL">Server address is required.</message>
 	<message key="plugins.generic.markup.settings">Settings</message>
 	<message key="plugins.generic.markup.settings.cslStyle">Select Citation Style (CSL):</message>
-	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Type part of an organization or publication name to look up the citation style from the local CSL database (based on http://citationstyles.org/styles/).</message>
+	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Set preferred citation style for markup. ("Document Markup Server" needs to be set before this can be set).</message>
 	<message key="plugins.generic.markup.settings.cssHeaderImageURL">Header Image:</message>
 	<message key="plugins.generic.markup.settings.cssHeaderImageURLHelp">When this plugin generates an article layout, you can provide a PNG or JPG header image for the top of the first page. Upload this header image here. The image should be a maximum of 800px wide and 100px tall. To remove it, use the <![CDATA[<a href="{$url}" class="action" target="_blank">file manager</a>]]></message>
 	<message key="plugins.generic.markup.settings.cssStyles">Stylesheets:</message>
