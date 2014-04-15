@@ -119,7 +119,7 @@ class SettingsForm extends Form {
 		$templateManager->assign('php5Support', checkPhpVersion('5.0.0') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
 		$templateManager->assign('pathInfo', Request::isPathInfoEnabled() ? __('plugins.generic.markup.settings.enabled') : __('plugins.generic.markup.settings.disabled'));
 
-		$templateManager->assign('additionalHeadData', '<link rel="stylesheet" type="text/css" href="' . $this->plugin->getCssPath() . 'settingsForm.css" />');
+		$templateManager->assign('additionalHeadData', '<link rel="stylesheet" type="text/css" href="/' . $this->plugin->getPluginPath() . '/css/settingsForm.css" />');
 
 		parent::display();
 	}

@@ -8,7 +8,6 @@
 *}
 {strip}
 {assign var="pageTitle" value="plugins.generic.markup.displayName"}
-{assign var=styleFile value="a.css"}
 {include file="common/header.tpl"}
 {/strip}
 
