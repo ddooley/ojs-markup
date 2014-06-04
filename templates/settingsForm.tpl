@@ -41,10 +41,6 @@
 					</div>
 					<br />
 					<a href="{$urlFileManager}/article.css" target="_blank">article.css</a><br/>
-					<a href="{$urlFileManager}/article_font.css" target="_blank">article_font.css</a><br/>
-					<a href="{$urlFileManager}/article_print.css" target="_blank">article_print.css</a><br/>
-					<a href="{$urlFileManager}/article_small.css" target="_blank">article_small.css</a><br/>
-					<a href="{$urlFileManager}/article_wide.css" target="_blank">article_wide.css</a><br/>
 				</td>
 			</tr>
 
