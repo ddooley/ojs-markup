@@ -42,7 +42,6 @@ class SettingsForm extends Form {
 		// Validation checks for this form
 		$this->settings = array(
 			'cslStyle' => 'string',
-			'cssHeaderImageName' => 'string',
 			'markupHostPass' => 'string',
 			'markupHostURL' => 'string',
 			'markupHostUser' => 'string',
@@ -62,8 +61,6 @@ class SettingsForm extends Form {
 		$this->addCheck(new FormValidator($this, 'markupHostURL', 'required', 'plugins.generic.markup.required.markupHostURL'));
 		$this->addCheck(new FormValidator($this, 'markupHostUser', 'optional', 'plugins.generic.markup.optional.markupHostUrl'));
 		$this->addCheck(new FormValidator($this, 'reviewVersion', 'optional', 'plugins.generic.markup.optional.reviewVersion'));
-
-		$this->addCheck(new FormValidatorCustom($this, 'cssHeaderImageName', 'optional', 'plugins.generic.markup.error', $this->_validateImage('cssHeaderImage'), true));
 
 		return parent::validate();
 	}
@@ -87,14 +84,6 @@ class SettingsForm extends Form {
 		}
 
 		$this->setData('cslStyle', $plugin->getSetting($journalId, 'cslStyle'));
-
-		// This field has content only if header image actually exists in the right folder.
-		$journalFileManager = $this->_getJournalFileManager($journal);
-		$folderCssImage = glob($journalFileManager->filesDir . 'css/article_header.{jpg,png}', GLOB_BRACE);
-		if (count($folderCssImage)) {
-			$this->setData('cssHeaderImageName', basename($folderCssImage[0]));
-		}
-
 		$this->setData('markupHostUser', $plugin->getSetting($journalId, 'markupHostUser'));
 		$this->setData('reviewVersion', $plugin->getSetting($journalId, 'reviewVersion'));
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
@@ -130,7 +119,6 @@ class SettingsForm extends Form {
 		$this->readUserVars(
 			array(
 				'cslStyle',
-				'cssHeaderImage',
 				'markupHostPass',
 				'markupHostURL',
 				'markupHostUser',
@@ -164,47 +152,6 @@ class SettingsForm extends Form {
 		$plugin->updateSetting($journalId, 'markupHostUser', $this->getData('markupHostUser'));
 		$plugin->updateSetting($journalId, 'markupHostPass', $this->getData('markupHostPass'));
 		$plugin->updateSetting($journalId, 'reviewVersion', $this->getData('reviewVersion'));
-
-		// Upload article header image if given. Image suffix already validated above.
-		$journalFileManager = $this->_getJournalFileManager();
-		$imageName = 'cssHeaderImage';
-		if ($journalFileManager->uploadedFileExists($imageName)) {
-			$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
-			$journalFileManager->uploadFile('cssHeaderImage', '/css/article_header' . $extension);
-		}
-	}
-
-	/**
-	 * Ensure attached header image is a jpg or png
-	 *
-	 * @param $imageName string File name of the uploaded image file
-	 *
-	 * @return bool Whether or not the image file is a jpg or png
-	 */
-	function _validateImage($imageName) {
-		$journalFileManager = $this->_getJournalFileManager();
-		if ($journalFileManager->uploadedFileExists($imageName)) {
-			$extension = $this->_getUploadedImageFileExtension($imageName, $journalFileManager);
-			if ($extension != '.png' && $extension != '.jpg') {
-				$this->addError('coverPage', __('plugins.generic.markup.optional.cssHeaderImage'));
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Returns the file extension of the uploaded image file
-	 *
-	 * @param $fileName mixed Name of the uploaded image file
-	 * @param $journalFileManager mixed Journal file manager object
-	 *
-	 * @return string File extension
-	 */
-	function _getUploadedImageFileExtension($fileName, &$journalFileManager) {
-		$type = $journalFileManager->getUploadedFileType($fileName);
-		return $journalFileManager->getImageExtension($type);
 	}
 
 	/**

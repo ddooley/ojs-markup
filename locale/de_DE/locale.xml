@@ -34,7 +34,6 @@
 	<message key="plugins.generic.markup.error">Fehler!</message>
 	<message key="plugins.generic.markup.errors.errorMessage">Kann keine XML- und HTML-Versionen von Artikeln holen. Das Dokumenten-Markup-Plug-In muss aktiviert sein, und der Zitationsstil muss in den Zeitschrifteneinstellungen angegeben werden.</message>
 	<message key="plugins.generic.markup.optional.cslStyleName">Der Name des Zitationsstils ist optional.</message>
-	<message key="plugins.generic.markup.optional.cssHeaderImage">Das Headerbild ist optional, muss aber im PNG- oder JPG-Format vorliegen.</message>
 	<message key="plugins.generic.markup.optional.markupHostPass">Passwort ist optional.</message>
 	<message key="plugins.generic.markup.optional.markupHostUser">Benutzer/innenname ist optional.</message>
 	<message key="plugins.generic.markup.optional.reviewVersion">Schalter für die Begutachtungsversion ist optional.</message>
@@ -43,8 +42,6 @@
 	<message key="plugins.generic.markup.settings">Einstellungen</message>
 	<message key="plugins.generic.markup.settings.cslStyle">Zitationsstil (CSL) auswählen:</message>
 	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Spezifiziert den bevorzugten Zitationsstil (Der Dokumenten-Markup-Server muss zuvor spezifiert worden sein).</message>
-	<message key="plugins.generic.markup.settings.cssHeaderImageURL">Header-Bild:</message>
-	<message key="plugins.generic.markup.settings.cssHeaderImageURLHelp">Wenn dieses Plug-In einen Artikel erzeugt, können Sie ein Header-Bild im PNG- oder JPG-Format für den Beginn der ersten Seite angeben. Laden Sie dieses Header-Bild hier hoch. Das Bild sollte maximal 800 Pixel breit und 100 Pixel hoch sein. Um es zu entfernen, benutzen Sie den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.cssStyles">Vorlagen:</message>
 	<message key="plugins.generic.markup.settings.cssStylesHelp">Diese HTML-Vorlagen beeinflussen das Layout von Artikeln, die über dieses Plug-In erzeugt werden. Standarddateien werden automatisch bereitgestellt. Sie können diese mit Ihren eigenen angepassten Versionen ersetzen über den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.curlSupport">PHP-Curl-Unterstützung:</message>

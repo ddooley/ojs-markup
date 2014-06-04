@@ -48,17 +48,6 @@
 				</td>
 			</tr>
 
-			<tr valign="top">
-				<td class="label">
-					{fieldLabel name="cssHeaderImage" id="cssHeaderImage"  key="plugins.generic.markup.settings.cssHeaderImageURL"}
-				</td>
-				<td class="value">
-					<a href="{$urlFileManager}/{$cssHeaderImageName}" target="_blank">{$cssHeaderImageName}</a>
-					<input type="file" name="cssHeaderImage" />
-					<p>{translate key="plugins.generic.markup.settings.cssHeaderImageURLHelp"  url=$urlFileManager}</p>
-				</td>
-			</tr>
-
 			<tr>
 				<td class="label">
 					{fieldLabel key="plugins.generic.markup.settings.reviewVersion"}
