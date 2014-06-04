@@ -60,8 +60,6 @@
 	<message key="plugins.generic.markup.settings.php5Support">PHP 5.x:</message>
 	<message key="plugins.generic.markup.settings.php5SupportHelp">Dieses Plug-In unterstützt nur PHP 5.x.</message>
 	<message key="plugins.generic.markup.settings.requirements">Installations-Anforderungen</message>
-	<message key="plugins.generic.markup.settings.reviewVersion">Gutachter/innen-Version:</message>
-	<message key="plugins.generic.markup.settings.reviewVersionHelp">Wählen Sie diese Option aus, wenn Sie eine gesonderte Version des Artikels ohne Autor/inneninformationen für eine blinde Begutachtung erstellen lassen möchten. Sie steht im "Document Markup Files"-Archiv unter Zusatzdateien zur Verfügung.</message>
 	<message key="plugins.generic.markup.settings.saved">Einstellungen gespeichert!</message>
 	<message key="plugins.generic.markup.settings.zipSupport">PHP-Unzip-Unterstützung:</message>
 	<message key="plugins.generic.markup.settings.zipSupportHelp">PHP zlib muss auf Ihrem OJS-Server installiert sein. Dieses Plug-In benutzt zlib, um die Dateien des Dokumenten-Markup-Servers zu entpacken.</message>

@@ -48,16 +48,6 @@
 				</td>
 			</tr>
 
-			<tr>
-				<td class="label">
-					{fieldLabel key="plugins.generic.markup.settings.reviewVersion"}
-				</td>
-				<td class="value">
-					<input type="checkbox" name="reviewVersion" id="reviewVersion" value="yes" {if $reviewVersion == "yes"}checked="checked"{/if} />
-					{translate key="plugins.generic.markup.settings.reviewVersionHelp"}
-				</td>
-			</tr>
-
 			<tr><td colspan="2"><div class="separator">&nbsp;</div></td></tr>
 
 			<tr>

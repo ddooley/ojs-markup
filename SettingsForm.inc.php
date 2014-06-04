@@ -45,7 +45,6 @@ class SettingsForm extends Form {
 			'markupHostPass' => 'string',
 			'markupHostURL' => 'string',
 			'markupHostUser' => 'string',
-			'reviewVersion' => 'bool',
 		);
 	}
 
@@ -60,7 +59,6 @@ class SettingsForm extends Form {
 		$this->addCheck(new FormValidator($this, 'markupHostPass', 'optional', 'plugins.generic.markup.optional.markupHostPass'));
 		$this->addCheck(new FormValidator($this, 'markupHostURL', 'required', 'plugins.generic.markup.required.markupHostURL'));
 		$this->addCheck(new FormValidator($this, 'markupHostUser', 'optional', 'plugins.generic.markup.optional.markupHostUrl'));
-		$this->addCheck(new FormValidator($this, 'reviewVersion', 'optional', 'plugins.generic.markup.optional.reviewVersion'));
 
 		return parent::validate();
 	}
@@ -85,7 +83,6 @@ class SettingsForm extends Form {
 
 		$this->setData('cslStyle', $plugin->getSetting($journalId, 'cslStyle'));
 		$this->setData('markupHostUser', $plugin->getSetting($journalId, 'markupHostUser'));
-		$this->setData('reviewVersion', $plugin->getSetting($journalId, 'reviewVersion'));
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
 	}
 
@@ -122,7 +119,6 @@ class SettingsForm extends Form {
 				'markupHostPass',
 				'markupHostURL',
 				'markupHostUser',
-				'reviewVersion',
 			)
 		);
 	}
@@ -151,7 +147,6 @@ class SettingsForm extends Form {
 
 		$plugin->updateSetting($journalId, 'markupHostUser', $this->getData('markupHostUser'));
 		$plugin->updateSetting($journalId, 'markupHostPass', $this->getData('markupHostPass'));
-		$plugin->updateSetting($journalId, 'reviewVersion', $this->getData('reviewVersion'));
 	}
 
 	/**
