@@ -107,6 +107,16 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
+	 * Get plugin JS path
+	 *
+	 * @return string Public plugin JS path
+	 */
+	function getJsPath() {
+		$baseDir = Core::getBaseDir();
+		return $baseDir . '/' . parent::getPluginPath() . '/js/';
+	}
+
+	/**
 	 * Display verbs for the management interface.
 	 *
 	 * @return mixed Plugin management verbs
@@ -378,7 +388,6 @@ class MarkupPlugin extends GenericPlugin {
 		if (strtoupper($galley->getLabel()) != 'HTML') { return; }
 
 		$this->_rewriteArticleHTML($articleId, $galley, false);
-		exit;
 	}
 
 	//
@@ -476,13 +485,29 @@ class MarkupPlugin extends GenericPlugin {
 
 		// TODO: Replace that with new API call
 		//$articleURL = MarkupPluginUtilities::getMarkupURL($args);
-		$markupURL = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
+		$markupUrl = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
 		$html = file_get_contents($filePath);
+		libxml_use_internal_errors(true);
+		$dom = new DOMDocument();
+		$dom->loadHTML($html);
+		$xpath = new DOMXpath($dom);
+
+		// Change the path of the article JS
+		$scripts = $xpath->query('//script[@src]');
+		foreach ($scripts as $script) {
+			$script->setAttribute('src', $markupUrl . $script->getAttribute('src'));
+		}
+
+		// Change the path of the article CSS
+		$styleSheets = $xpath->query('//link[@rel="stylesheet"]');
+		foreach ($styleSheets as $styleSheet) {
+			$styleSheet->setAttribute('href', $markupUrl . $styleSheet->getAttribute('href'));
+		}
 
 		// Get rid of relative path to markup root
 		// TODO use DOM/XPATH for that
-		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1' . $markupURL . '$4$5', $html);
+//		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1' . $markupURL . '$4$5', $html);
 
 		// Insert document base url into all relative urls except anchorlinks
 		//$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1' . $articleURL . '$3$4', $html);
@@ -491,13 +516,11 @@ class MarkupPlugin extends GenericPlugin {
 		// Will need 1 more call if media subfolders exist.
 		// TODO: Use Request::url() function to generate urls
 		if (Request::isPathInfoEnabled() == false) {
-			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
+//			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
 		}
 
 		// Inject iframe at top of page that enables return to previous page.
 		if ($backLinkFlag == true) {
-			$dom = new DOMDocument();
-			$dom->loadHTML($html);
 
 			$iframe = $dom->createElement('iframe');
 			$iframe->setAttribute('src', Request::url(null, null, 'proofGalleyTop', $articleId, null));
@@ -512,7 +535,8 @@ class MarkupPlugin extends GenericPlugin {
 			$html = $dom->saveHTML();
 		}
 
-		echo $html;
+		echo $dom->saveHTML();
+		exit;
 	}
 
 	/**
