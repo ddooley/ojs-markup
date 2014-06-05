@@ -90,13 +90,23 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Overwrite the css path with the parent's css path
+	 * Overwrite the JS path with the parent's JS path
 	 *
 	 * @return string CSS path
 	 */
 	function getCssPath() {
 		$plugin =& $this->getMarkupPlugin();
 		return $plugin->getCssPath();
+	}
+
+	/**
+	 * Overwrite the JS path with the parent's JS path
+	 *
+	 * @return string JS path
+	 */
+	function getJsPath() {
+		$plugin =& $this->getMarkupPlugin();
+		return $plugin->getJsPath();
 	}
 
 	/**
@@ -133,6 +143,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	 *   refresh/[bool]
 	 *   refreshGalley/[bool]
 	 *   css/[string]
+	 *   js/[string]
 	 *   userId/[int]
 	 *
 	 * @param $args Array of url arguments
@@ -170,6 +181,12 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		// Handles requests for css files
 		if (isset($args['css'])) {
 			$this->_downloadMarkupCSS($journal, $args['css']);
+			exit;
+		}
+
+		// Handles requests for js files
+		if (isset($args['js'])) {
+			$this->_downloadMarkupJS($args['js']);
 			exit;
 		}
 
@@ -272,6 +289,17 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		}
 
 		return MarkupPluginUtilities::downloadFile($cssFolder, $fileName);
+	}
+
+	/**
+	 * Offers the plugins article JS file for download
+	 *
+	 * @param $fileName string File name of the JS file to fetch
+	 *
+	 * @return bool Whether or not the JS file exists
+	 */
+	function _downloadMarkupJS($fileName) {
+		return MarkupPluginUtilities::downloadFile($this->getJsPath(), $fileName);
 	}
 
 	/**
