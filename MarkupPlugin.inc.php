@@ -483,10 +483,10 @@ class MarkupPlugin extends GenericPlugin {
 			'fileName' => ''
 		);
 
-		// TODO: Replace that with new API call
-		//$articleURL = MarkupPluginUtilities::getMarkupURL($args);
-		$markupUrl = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
+		// Build the URL to the gateway plugin
+		$gatewayUrl = Request::url(null, 'gateway', 'plugin', array(MARKUP_GATEWAY_FOLDER, null), null);
 
+		// Create a DOM document from the HTML
 		$html = file_get_contents($filePath);
 		libxml_use_internal_errors(true);
 		$dom = new DOMDocument();
@@ -496,27 +496,13 @@ class MarkupPlugin extends GenericPlugin {
 		// Change the path of the article JS
 		$scripts = $xpath->query('//script[@src]');
 		foreach ($scripts as $script) {
-			$script->setAttribute('src', $markupUrl . $script->getAttribute('src'));
+			$script->setAttribute('src', $gatewayUrl . $script->getAttribute('src'));
 		}
 
 		// Change the path of the article CSS
 		$styleSheets = $xpath->query('//link[@rel="stylesheet"]');
 		foreach ($styleSheets as $styleSheet) {
-			$styleSheet->setAttribute('href', $markupUrl . $styleSheet->getAttribute('href'));
-		}
-
-		// Get rid of relative path to markup root
-		// TODO use DOM/XPATH for that
-//		$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(\.\./\.\./)([^\"'>]+)([\"'>]+)#", '$1' . $markupURL . '$4$5', $html);
-
-		// Insert document base url into all relative urls except anchorlinks
-		//$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#|http|mailto)([^\"'>]+)([\"'>]+)#", '$1' . $articleURL . '$3$4', $html);
-
-		// Converts remaining file name to path[] param.
-		// Will need 1 more call if media subfolders exist.
-		// TODO: Use Request::url() function to generate urls
-		if (Request::isPathInfoEnabled() == false) {
-//			$html = preg_replace("#((\shref|src)\s*=\s*[\"'])(?!\#)([^\"'>]+index\.php[^\"'>]+)/([^\"\?'>]+)#", '$1$3&path[]=$4', $html);
+			$styleSheet->setAttribute('href', $gatewayUrl . $styleSheet->getAttribute('href'));
 		}
 
 		// Inject iframe at top of page that enables return to previous page.
