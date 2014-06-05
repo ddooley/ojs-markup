@@ -43,7 +43,7 @@
 	<message key="plugins.generic.markup.settings.cslStyle">Zitationsstil (CSL) auswählen:</message>
 	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Spezifiziert den bevorzugten Zitationsstil (Der Dokumenten-Markup-Server muss zuvor spezifiert worden sein).</message>
 	<message key="plugins.generic.markup.settings.cssStyles">Vorlagen:</message>
-	<message key="plugins.generic.markup.settings.cssStylesHelp">Diese HTML-Vorlagen beeinflussen das Layout von Artikeln, die über dieses Plug-In erzeugt werden. Standarddateien werden automatisch bereitgestellt. Sie können diese mit Ihren eigenen angepassten Versionen ersetzen über den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>
+	<message key="plugins.generic.markup.settings.cssStylesHelp">Diese CSS Datei beeinflusst das Layout von Artikeln, die über dieses Plug-In erzeugt werden. Sie können die vom Plugin bereit gestellte Standarddatei mit Ihrer eigenen angepassten Versionen ersetzen über den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.curlSupport">PHP-Curl-Unterstützung:</message>
 	<message key="plugins.generic.markup.settings.curlSupportHelp">PHP curl muss auf Ihrem Server installiert sein. Dieses Plug-In benutzt curl, um die Artikeldateien an den Dokumenten-Markup-Server zur Verarbeitung zu schicken.</message>
 	<message key="plugins.generic.markup.settings.disabled">Deaktiviert</message>
