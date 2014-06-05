@@ -12,6 +12,7 @@
 {/strip}
 
 {url|assign:"urlFileManager" page="manager" op="files" path="css"}
+{url|assign:"gatewayPath" page="gateway" op="plugin" path="markupplugin"}
 
 <div id="markupSettings">
 	<h3>{translate key="plugins.generic.markup.settings"}</h3>
@@ -40,7 +41,7 @@
 						{translate key="plugins.generic.markup.settings.cssStylesHelp"  url=$urlFileManager}
 					</div>
 					<br />
-					<a href="{$urlFileManager}/article.css" target="_blank">article.css</a><br/>
+					<a href="{$gatewayPath}/css/article.css" target="_blank">article.css</a><br/>
 				</td>
 			</tr>
 
