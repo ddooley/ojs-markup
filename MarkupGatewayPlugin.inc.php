@@ -227,17 +227,8 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			exit;
 		}
 
-		// Check if user can view published article
-		$user =& Request::getUser();
-		if ($article->getStatus() == STATUS_PUBLISHED) {
-			if ($this->_getUserPermViewPublished($user, $articleId, $journal, $args['fileName'])) {
-				MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
-				exit;
-			}
-		}
-
-		// Article is not published check if user can view draft
-		if ($this->_getUserPermViewDraft($user, $articleId, $journal, $args['fileName'])) {
+		// Check if user can view the article
+		if ($this->validate($articleId)) {
 			MarkupPluginUtilities::downloadFile($markupFolder, $args['fileName']);
 			exit;
 		}
@@ -508,228 +499,122 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Checks if user is allowed to download this file
+	 * Validate if the user allowed to view the requested document. This method
+	 * is a slightly modified copy of ArticleHandler::validate() and should be
+	 * removed once a proper API is available
 	 *
-	 * @param $user mixed User object
-	 * @param $articleId int ArticleId
- 	 * @param $journal mixed Journal object
- 	 * @param $fileName string File to download
- 	 *
- 	 * @return boolean Whether or not the user is permitted to download the file
+	 * @param $articleId string
+	 *
+	 * TODO: Replace this method with a proper API call
 	 */
-	function _getUserPermViewPublished($user, $articleId, $journal, $fileName) {
+	function validate($articleId) {
+		$request = Registry::get('request');
+
 		import('classes.issue.IssueAction');
 
+		$router =& $request->getRouter();
+		$journal =& $router->getContext($request);
 		$journalId = $journal->getId();
-		$userId = $user ? $user->getId() : 0;
+		$article = $publishedArticle = $issue = null;
+		$user =& $request->getUser();
+		$userId = $user?$user->getId() : 0;
 
 		$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
 		if ($journal->getSetting('enablePublicArticleId')) {
-			$publishedArticle =& $publishedArticleDao->getPublishedArticleByBestArticleId($journalId, $articleId, true);
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByBestArticleId((int) $journalId, $articleId, true);
 		} else {
-			$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($articleId, $journalId, true);
+			$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId((int) $articleId, (int) $journalId, true);
 		}
 
-		$issue = null;
-		$article = null;
 		$issueDao =& DAORegistry::getDAO('IssueDAO');
 		if (isset($publishedArticle)) {
 			$issue =& $issueDao->getIssueById($publishedArticle->getIssueId(), $publishedArticle->getJournalId(), true);
 		} else {
 			$articleDao =& DAORegistry::getDAO('ArticleDAO');
-			$article =& $articleDao->getArticle($articleId, $journalId, true);
+			$article =& $articleDao->getArticle((int) $articleId, $journalId, true);
 		}
 
 		// If this is an editorial user who can view unpublished/unscheduled
 		// articles, bypass further validation. Likewise for its author.
-		if (
-			($article || $publishedArticle) &&
-			(
-				$article && IssueAction::allowedPrePublicationAccess($journal, $article) ||
-				$publishedArticle && IssueAction::allowedPrePublicationAccess($journal, $publishedArticle)
-			)
-		) {
+		if (($article || $publishedArticle) && (($article && IssueAction::allowedPrePublicationAccess($journal, $article) || ($publishedArticle && IssueAction::allowedPrePublicationAccess($journal, $publishedArticle))))) {
 			return true;
 		}
 
 		// Make sure the reader has rights to view the article/issue.
-		if (!($issue && $issue->getPublished() && $publishedArticle->getStatus() == STATUS_PUBLISHED)) {
-			return false;
-		}
+		if ($issue && $issue->getPublished() && $publishedArticle->getStatus() == STATUS_PUBLISHED) {
+			$subscriptionRequired = IssueAction::subscriptionRequired($issue);
+			$isSubscribedDomain = IssueAction::subscribedDomain($journal, $issue->getId(), $publishedArticle->getId());
 
-		$subscriptionRequired = IssueAction::subscriptionRequired($issue);
-		$isSubscribedDomain = IssueAction::subscribedDomain($journal, $issue->getId(), $publishedArticle->getId());
+			// Check if login is required for viewing.
+			if (!$isSubscribedDomain && !Validation::isLoggedIn() && $journal->getSetting('restrictArticleAccess') && isset($galleyId) && $galleyId) {
+				Validation::redirectLogin();
+			}
 
-		// Check if login is required for viewing.
-		// TODO: this never worked $galleyId hasn't been set at this point this also influences the sections below
-		if (
-			!$isSubscribedDomain &&
-			!Validation::isLoggedIn() &&
-			$journal->getSetting('restrictArticleAccess') &&
-			isset($galleyId) && $galleyId
-		) {
-			return false;
-		}
+			// bypass all validation if subscription based on domain or ip is valid
+			// or if the user is just requesting the abstract
+			if ( (!$isSubscribedDomain && $subscriptionRequired) &&
+			     (isset($galleyId) && $galleyId) ) {
 
-		// Bypass all validation if subscription based on domain or ip is valid
-		// or if the user is just requesting the abstract
-		if (
-			(!$isSubscribedDomain && $subscriptionRequired) &&
-			(isset($galleyId) && $galleyId)
-		) {
-			// Subscription Access
-			$subscribedUser = IssueAction::subscribedUser($journal, $issue->getId(), $publishedArticle->getId());
+				// Subscription Access
+				$subscribedUser = IssueAction::subscribedUser($journal, $issue->getId(), $publishedArticle->getId());
 
-			if (
-				!(
-					!$subscriptionRequired ||
-					$publishedArticle->getAccessStatus() == ARTICLE_ACCESS_OPEN ||
-					$subscribedUser
-				)
-			) {
-				// If payment information is enabled
 				import('classes.payment.ojs.OJSPaymentManager');
 				$paymentManager = new OJSPaymentManager($request);
 
-				if ($paymentManager->purchaseArticleEnabled() || $paymentManager->membershipEnabled()) {
-					// If only pdf files are being restricted, then approve all
-					// non-pdf galleys and continue checking if it is a pdf galley
-					if ($paymentManager->onlyPdfEnabled()) {
-						$fileManager = new FileManager();
-						if (strtoupper($fileManager->parseFileExtension($fileName)) == 'PDF') return true;
-					}
-
-					if (!Validation::isLoggedIn()) {
-						return false;
-					}
-
-					// If the article has been paid for then forget about everything else
-					// and just let them access the article
+				$purchasedIssue = false;
+				if (!$subscribedUser && $paymentManager->purchaseIssueEnabled()) {
 					$completedPaymentDao =& DAORegistry::getDAO('OJSCompletedPaymentDAO');
-					$dateEndMembership = $user->getSetting('dateEndMembership', 0);
-
-					return (
-						$completedPaymentDao->hasPaidPurchaseArticle($userId, $publishedArticle->getId()) ||
-						$completedPaymentDao->hasPaidPurchaseIssue($userId, $issue->getId()) ||
-						(!is_null($dateEndMembership) && $dateEndMembership > time())
-					);
+					$purchasedIssue = $completedPaymentDao->hasPaidPurchaseIssue($userId, $issue->getId());
 				}
 
-				if (!isset($galleyId) || $galleyId) {
-					return false;
+				if (!(!$subscriptionRequired || $publishedArticle->getAccessStatus() == ARTICLE_ACCESS_OPEN || $subscribedUser || $purchasedIssue)) {
+
+					if ( $paymentManager->purchaseArticleEnabled() || $paymentManager->membershipEnabled() ) {
+						/* if only pdf files are being restricted, then approve all non-pdf galleys
+						 * and continue checking if it is a pdf galley */
+						if ( $paymentManager->onlyPdfEnabled() ) {
+							$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+							if ($journal->getSetting('enablePublicGalleyId')) {
+								$galley =& $galleyDao->getGalleyByBestGalleyId($galleyId, $publishedArticle->getId());
+							} else {
+								$galley =& $galleyDao->getGalley($galleyId, $publishedArticle->getId());
+							}
+							if ( $galley && !$galley->isPdfGalley() ) {
+								return true;
+							}
+						}
+
+						if (!Validation::isLoggedIn()) {
+							Validation::redirectLogin("payment.loginRequired.forArticle");
+						}
+
+						/* if the article has been paid for then forget about everything else
+						 * and just let them access the article */
+						$completedPaymentDao =& DAORegistry::getDAO('OJSCompletedPaymentDAO');
+						$dateEndMembership = $user->getSetting('dateEndMembership', 0);
+						if ($completedPaymentDao->hasPaidPurchaseArticle($userId, $publishedArticle->getId())
+							|| (!is_null($dateEndMembership) && $dateEndMembership > time())) {
+							return true;
+						} else {
+							$queuedPayment =& $paymentManager->createQueuedPayment($journalId, PAYMENT_TYPE_PURCHASE_ARTICLE, $user->getId(), $publishedArticle->getId(), $journal->getSetting('purchaseArticleFee'));
+							$queuedPaymentId = $paymentManager->queuePayment($queuedPayment);
+
+							$paymentManager->displayPaymentForm($queuedPaymentId, $queuedPayment);
+							exit;
+						}
+					}
+
+					if (!isset($galleyId) || $galleyId) {
+						if (!Validation::isLoggedIn()) {
+							Validation::redirectLogin("reader.subscriptionRequiredLoginText");
+						}
+						$request->redirect(null, 'about', 'subscriptions');
+					}
 				}
 			}
+		} else {
+			$request->redirect(null, 'index');
 		}
-
 		return true;
-	}
-
-	/**
-	 * Get a users role for a journal and article
-	 *
-	 * @param $userId int UserId
-	 * @param $articleId int ArticleId to check roles for
-	 * @param $journal mixed Journal to check roles for
-	 * @param $fileName string File name for reviewer access
-	 *
-	 * @return int RoleId of user in journal and article
-	 **/
-	function _getUserPermViewDraft($userId, $articleId, $journal, $fileName) {
-		$journalId = $journal->getId();
-
-		$roleDao =& DAORegistry::getDAO('RoleDAO');
-		$roles =& $roleDao->getRolesByUserId($userId);
-		foreach ($roles as $role) {
-			$roleType = $role->getRoleId();
-			if ($roleType == ROLE_ID_SITE_ADMIN) return ROLE_ID_SITE_ADMIN;
-
-			if ($role->getJournalId() == $journalId) {
-				switch ($roleType) {
-					// These users get global access
-					case ROLE_ID_JOURNAL_MANAGER :
-					case ROLE_ID_EDITOR :
-						return $roleType;
-						break;
-
-					case ROLE_ID_SECTION_EDITOR :
-						$sectionEditorSubmissionDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
-						$sectionEditorSubmission =& $sectionEditorSubmissionDao->getSectionEditorSubmission($articleId);
-
-						if (
-							$sectionEditorSubmission != null &&
-							$sectionEditorSubmission->getJournalId() == $journalId &&
-							$sectionEditorSubmission->getDateSubmitted() != null
-						) {
-							// If this user isn't the submission's editor, they don't have access.
-							$editAssignments =& $sectionEditorSubmission->getEditAssignments();
-
-							foreach ($editAssignments as $editAssignment) {
-								if ($editAssignment->getEditorId() == $userId) {
-									return $roleType;
-								}
-							}
-						};
-						break;
-
-					case ROLE_ID_LAYOUT_EDITOR :
-						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
-						if ($signoffDao->signoffExists('SIGNOFF_LAYOUT', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
-							return $roleType;
-						}
-						break;
-
-					case ROLE_ID_PROOFREADER :
-						$signoffDao =& DAORegistry::getDAO('SignoffDAO');
-						if ($signoffDao->signoffExists('SIGNOFF_PROOFING', ASSOC_TYPE_ARTICLE, $articleId, $userId)) {
-							return $roleType;
-						}
-						break;
-
-					case ROLE_ID_COPYEDITOR:
-						$sesDao =& DAORegistry::getDAO('SectionEditorSubmissionDAO');
-						if ($sesDao->copyeditorExists($articleId, $userId))
-							return $roleType;
-						break;
-
-					case ROLE_ID_AUTHOR:
-						$articleDao =& DAORegistry::getDAO('ArticleDAO');
-						$article =& $articleDao->getArticle($articleId, $journalId);
-						if (
-							$article &&
-							$article->getUserId() == $userId &&
-							(
-								$article->getStatus() == STATUS_QUEUED ||
-								$article->getStatus() == STATUS_PUBLISHED
-							)
-						) {
-							return $roleType;
-						}
-						break;
-
-					case ROLE_ID_REVIEWER:
-						// Find out if article currently has this reviewer.
-						$reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO');
-						$reviewAssignments = $reviewAssignmentDao->getBySubmissionId($articleId);
-						foreach ($reviewAssignments as $assignment) {
-							if ($assignment->getReviewerId() == $userId) {
-								// REVIEWER ACCESS: If reviewers are not supposed
-								// to see list of authors, REVIEWER ONLY GETS TO
-								// SEE document-review.pdf version, which has
-								// all author information stripped.
-								if (
-									$this->getSetting($journalId, 'reviewVersion') != true ||
-									$fileName == 'document-review.pdf'
-								) {
-									return $roleType;
-								}
-								break;
-							}
-						}
-						break;
-				}
-			}
-		}
-
-		return false;
 	}
 }
