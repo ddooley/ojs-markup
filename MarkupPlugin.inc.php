@@ -463,7 +463,6 @@ class MarkupPlugin extends GenericPlugin {
 	 * back to the refering page
 	 *
 	 * @return void
-	 * TODO: URL regex replacement and iframe injection might not be optimal
 	 */
 	function _rewriteArticleHTML($articleId, $galley, $backLinkFlag) {
 		if (strtoupper($galley->getLabel()) != 'HTML') { return; }
