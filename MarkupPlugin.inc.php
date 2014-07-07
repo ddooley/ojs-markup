@@ -117,6 +117,24 @@ class MarkupPlugin extends GenericPlugin {
 	}
 
 	/**
+	 * Get plugin CSS URL
+	 *
+	 * @return string Public plugin CSS URL
+	 */
+	function getCssUrl() {
+		return Request::getBaseUrl() . '/' . parent::getPluginPath() . '/css/';
+	}
+
+	/**
+	 * Get plugin JS URL
+	 *
+	 * @return string Public plugin JS URL
+	 */
+	function getJsUrl() {
+		return Request::getBaseUrl() . '/' . parent::getPluginPath() . '/js/';
+	}
+
+	/**
 	 * Display verbs for the management interface.
 	 *
 	 * @return mixed Plugin management verbs

@@ -100,8 +100,8 @@ class SettingsForm extends Form {
 		$templateManager->assign('php5Support', checkPhpVersion('5.0.0') ? __('plugins.generic.markup.settings.installed') : __('plugins.generic.markup.settings.notInstalled'));
 		$templateManager->assign('pathInfo', Request::isPathInfoEnabled() ? __('plugins.generic.markup.settings.enabled') : __('plugins.generic.markup.settings.disabled'));
 
-		$additionalHeadData = '<link rel="stylesheet" type="text/css" href="/' . $this->plugin->getPluginPath() . '/css/settingsForm.css" />';
-		$additionalHeadData .= '<script type="text/javascript" src="/' . $this->plugin->getPluginPath() . '/js/settingsForm.js" />';
+		$additionalHeadData = '<link rel="stylesheet" type="text/css" href="' . $this->plugin->getCssUrl() . 'settingsForm.css" />';
+		$additionalHeadData .= '<script type="text/javascript" src="' . $this->plugin->getJsUrl() . 'settingsForm.js" />';
 		$templateManager->assign('additionalHeadData', $additionalHeadData);
 
 		parent::display();
