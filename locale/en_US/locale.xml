@@ -49,7 +49,7 @@
 	<message key="plugins.generic.markup.settings.disabled">Disabled</message>
 	<message key="plugins.generic.markup.settings.enabled">Enabled</message>
 	<message key="plugins.generic.markup.settings.installed">Installed</message>
-	<message key="plugins.generic.markup.settings.markupHostAccountHelp">A user ID is required for us to accurately track our logs and make improvements to the software. You can obtain one for free at <![CDATA[<a href="https://pkp-udev.lib.sfu.ca/" target="_blank">PKP Document Markup Service</a>]]>.</message>
+	<message key="plugins.generic.markup.settings.markupHostAccountHelp">A user ID is required to use the conversion service. You can obtain one for free at <![CDATA[<a href="http://pkp-udev.lib.sfu.ca/" target="_blank">PKP Document Markup Service</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.markupHostPass">Password:</message>
 	<message key="plugins.generic.markup.settings.markupHostURL">Document Markup Server:</message>
 	<message key="plugins.generic.markup.settings.markupHostURLHelp">The journal will retrieve converted documents from this server URL. Normally you should not change this setting.</message>
@@ -59,7 +59,6 @@
 	<message key="plugins.generic.markup.settings.pathInfoHelp">"Enabled" is the default selection if supported by your server. If set to "Disabled," images may be missing from HTML version of articles.</message>
 	<message key="plugins.generic.markup.settings.php5Support">PHP 5.x:</message>
 	<message key="plugins.generic.markup.settings.php5SupportHelp">This plugin only supports PHP 5+.</message>
-	<message key="plugins.generic.markup.settings.requirements">Installation Requirements</message>
 	<message key="plugins.generic.markup.settings.saved">Settings saved!</message>
 	<message key="plugins.generic.markup.settings.zipSupport">PHP Unzip Support:</message>
 	<message key="plugins.generic.markup.settings.zipSupportHelp">PHP zlib needs to be installed on your OJS server. This plugin uses zlib to unzip the Document Markup Server files.</message>

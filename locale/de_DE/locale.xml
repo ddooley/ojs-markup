@@ -49,7 +49,7 @@
 	<message key="plugins.generic.markup.settings.disabled">Deaktiviert</message>
 	<message key="plugins.generic.markup.settings.enabled">Aktiviert</message>
 	<message key="plugins.generic.markup.settings.installed">Installiert</message>
-	<message key="plugins.generic.markup.settings.markupHostAccountHelp">Dieses Plug-In kann einen Gastaccount benutzen (beschränkt auf 10 Konvertierungen pro Woche) oder einen unbegrenzten Account. Lassen Sie die das Feld für die Nutzer/innen-ID leer, um den Gastaccount zu benutzen. Um mehr Informationen zu erhalten, besuchen Sie den <![CDATA[<a href="https://pkpservices.sfu.ca/" target="_blank">PKP Document Markup Service</a>]]>.</message>
+	<message key="plugins.generic.markup.settings.markupHostAccountHelp">Sie benötigen einen Account um den Markup Server benutzen zu können. Sie koennen diesen umsonst hier einrichten: <![CDATA[<a href="http://pkp-udev.lib.sfu.ca/" target="_blank">PKP Documenten Markup Service</a>]]>.</message>
 	<message key="plugins.generic.markup.settings.markupHostPass">Passwort:</message>
 	<message key="plugins.generic.markup.settings.markupHostURL">Dokumenten-Markup-Server:</message>
 	<message key="plugins.generic.markup.settings.markupHostURLHelp">Die Zeitschrift wird konvertierte Dokumente von der URL dieses Servers beziehen. Normalerweise sollten Sie diese Einstellung nicht ändern.</message>
@@ -59,7 +59,6 @@
 	<message key="plugins.generic.markup.settings.pathInfoHelp">"Aktiviert" ist die bevorzugte und übliche Auswahl. Sie meint, dass Seiten und Dokumente in OJS als Pfade in URLs aufgerufen werden. "Deaktiviert" meint, dass OJS URL-Parameter benutzt, um auf Seiten und Dokumente zuzugreifen. Ein Nachteil der Deaktivierung ist im Moment, dass das Anzeigen von HTML-Fahnen (über den Link Korrekturfahnen anzeigen), die mit dem Plug-In erzeugt worden sind, einige Medien nicht anzeigen könnte.</message>
 	<message key="plugins.generic.markup.settings.php5Support">PHP 5.x:</message>
 	<message key="plugins.generic.markup.settings.php5SupportHelp">Dieses Plug-In unterstützt nur PHP 5.x.</message>
-	<message key="plugins.generic.markup.settings.requirements">Installations-Anforderungen</message>
 	<message key="plugins.generic.markup.settings.saved">Einstellungen gespeichert!</message>
 	<message key="plugins.generic.markup.settings.zipSupport">PHP-Unzip-Unterstützung:</message>
 	<message key="plugins.generic.markup.settings.zipSupportHelp">PHP zlib muss auf Ihrem OJS-Server installiert sein. Dieses Plug-In benutzt zlib, um die Dateien des Dokumenten-Markup-Servers zu entpacken.</message>
