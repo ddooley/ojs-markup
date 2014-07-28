@@ -3,6 +3,8 @@
 	vertical-align: top;
 }
 
+#cslStyleRow { display: none; }
+
 #cslStyle {
 	max-width: 500px;
 }

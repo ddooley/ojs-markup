@@ -41,6 +41,7 @@
 	<message key="plugins.generic.markup.required.markupHostURL">Angabe der Serveradresse ist zwingend.</message>
 	<message key="plugins.generic.markup.settings">Einstellungen</message>
 	<message key="plugins.generic.markup.settings.cslStyle">Zitationsstil (CSL) auswählen:</message>
+	<message key="plugins.generic.markup.settings.cslStyleSubmitErrorMessage">Inkorrekter Documenten Markup Server! Bitte spezifizieren sie die korrekte URL.</message>
 	<message key="plugins.generic.markup.settings.cslStyleFieldHelp">Spezifiziert den bevorzugten Zitationsstil (Der Dokumenten-Markup-Server muss zuvor spezifiert worden sein).</message>
 	<message key="plugins.generic.markup.settings.cssStyles">Vorlagen:</message>
 	<message key="plugins.generic.markup.settings.cssStylesHelp">Diese CSS Datei beeinflusst das Layout von Artikeln, die über dieses Plug-In erzeugt werden. Sie können die vom Plugin bereit gestellte Standarddatei mit Ihrer eigenen angepassten Versionen ersetzen über den <![CDATA[<a href="{$url}" class="action" target="_blank">Dateimanager</a>]]>.</message>

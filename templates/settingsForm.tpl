@@ -15,42 +15,10 @@
 {url|assign:"gatewayPath" page="gateway" op="plugin" path="markupplugin"}
 
 <div id="markupSettings">
-	<h3>{translate key="plugins.generic.markup.settings"}</h3>
-
 	<form method="post" action="{plugin_url path="settings"}"  enctype="multipart/form-data" autocomplete="off">
 	{include file="common/formErrors.tpl"}
 
 		<table class="data">
-
-			<tr valign="top">
-				<td class="label">
-					{fieldLabel name="cslStyle" key="plugins.generic.markup.settings.cslStyle"}
-				</td>
-				<td class="value">
-					<select name="cslStyle" id="cslStyle"></select>
-					<p>{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}</p>
-				</td>
-			</tr>
-
-			<tr valign="top">
-				<td class="label">
-					{fieldLabel name="cssStyles" key="plugins.generic.markup.settings.cssStyles"}
-				</td>
-				<td class="value">
-					<div>
-						{translate key="plugins.generic.markup.settings.cssStylesHelp"  url=$urlFileManager}
-					</div>
-					<br />
-					<a href="{$gatewayPath}/css/article.css" target="_blank">article.css</a><br/>
-				</td>
-			</tr>
-
-			<tr><td colspan="2"><div class="separator">&nbsp;</div></td></tr>
-
-			<tr>
-				<td colspan="2"><h3>{fieldLabel key="plugins.generic.markup.settings.requirements"}</h3></td>
-			</tr>
-
 			<tr>
 				<td class="label"></td>
 				<td class="value">
@@ -83,6 +51,16 @@
 				<td class="value">
 					<input type="text" name="markupHostURL" id="markupHostURL" value="{$markupHostURL|escape}" class="textField" size="40" />
 					<p>{translate key="plugins.generic.markup.settings.markupHostURLHelp"}</p>
+				</td>
+			</tr>
+
+			<tr valign="top" id="cslStyleRow">
+				<td class="label">
+					{fieldLabel name="cslStyle" key="plugins.generic.markup.settings.cslStyle"}
+				</td>
+				<td class="value">
+					<select name="cslStyle" id="cslStyle"></select>
+					<p>{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}</p>
 				</td>
 			</tr>
 
@@ -125,6 +103,22 @@
 					<p>{translate key="plugins.generic.markup.settings.pathInfoHelp"}</p>
 				</td>
 			</tr>
+
+			<tr valign="top">
+				<td class="label">
+					{fieldLabel name="cssStyles" key="plugins.generic.markup.settings.cssStyles"}
+				</td>
+				<td class="value">
+					<div>
+						{translate key="plugins.generic.markup.settings.cssStylesHelp"  url=$urlFileManager}
+					</div>
+					<br />
+					<a href="{$gatewayPath}/css/article.css" target="_blank">article.css</a><br/>
+				</td>
+			</tr>
+
+			<tr><td colspan="2"><div class="separator">&nbsp;</div></td></tr>
+
 		</table>
 
 		<input type="submit" name="save" class="button defaultButton" value="{translate key="common.save"}"/>
@@ -134,8 +128,8 @@
 
 <script>
 {* Populate required variables for the citation style select *}
-{literal} var markupHostUrl = '{/literal}{$markupHostURL|escape}{literal}';{/literal}
-{literal} var cslStyleSelection = '{/literal}{$cslStyle|escape}{literal}';{/literal}
+{literal}var cslStyleSelection = '{/literal}{$cslStyle|escape}{literal}';{/literal}
+{literal}var submitErrorMessage = '{/literal}{translate key="plugins.generic.markup.settings.cslStyleSubmitErrorMessage"}{literal}';{/literal}
 </script>
 
 {include file="common/footer.tpl"}
