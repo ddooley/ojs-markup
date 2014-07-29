@@ -11,7 +11,8 @@ function CslStyle() {
 	this.$cslStyleRow = $('#cslStyleRow');
 	this.cslStyleSelectorPopulated = false;
 
-	if (this.$markupHostInput.val() != '') {
+	// Initialzie the dropdown on first page load
+	if (this.$markupHostInput.val() !== '') {
 		this.populateDropdown();
 	}
 
@@ -23,7 +24,7 @@ function CslStyle() {
 		}
 	}, this));
 
-	this.$markupHostInput.keyup($.proxy(function(e) { this.populateDropdown(); }, this));
+	this.$markupHostInput.keyup($.proxy(function() { this.populateDropdown(); }, this));
 }
 
 /**
@@ -34,7 +35,7 @@ CslStyle.prototype.setCslStyleUrl = function() {
 
 	this.cslStyleUrl = $.trim(this.cslStyleUrl).replace(/\/$/, '');
 	this.cslStyleUrl += '/api/job/citationStyleList';
-}
+};
 
 /**
 * Populate the citation style dropdown with a list of valid ciation styles
@@ -64,15 +65,17 @@ CslStyle.prototype.populateDropdown = function() {
 
 					var citationStyles = response.citationStyles;
 					for (var hash in citationStyles) {
-						var $option = $('<option></option>')
-							.attr('value', hash)
-							.text(citationStyles[hash]);
+						if (citationStyles.hasOwnProperty(hash)) {
+							var $option = $('<option></option>')
+								.attr('value', hash)
+								.text(citationStyles[hash]);
 
-						if (cslStyleSelection == hash) {
-							$option.attr('selected', 'selected');
+							if (cslStyleSelection == hash) {
+								$option.attr('selected', 'selected');
+							}
+
+							this.$cslStyleSelector.append($option);
 						}
-
-						this.$cslStyleSelector.append($option);
 					}
 
 					this.cslStyleSelectorPopulated = true;
@@ -82,18 +85,18 @@ CslStyle.prototype.populateDropdown = function() {
 			}, this)
 		}
 	);
-}
+};
 
 /**
 * Hides/shows the citation style dropdown after an update
 */
-CslStyle.prototype.cslUpdateHandler = function(e) {
+CslStyle.prototype.cslUpdateHandler = function() {
 	if (this.cslStyleSelectorPopulated) {
 		this.$cslStyleRow.fadeIn();
 	} else {
 		this.$cslStyleRow.fadeOut();
 	}
-}
+};
 
 // Initalize submission style form handling
 $(function() { var cslStyle = new CslStyle(); });
