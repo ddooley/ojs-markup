@@ -63,6 +63,49 @@
 					<p>{fieldLabel key="plugins.generic.markup.settings.cslStyleFieldHelp"}</p>
 				</td>
 			</tr>
+            
+            <tr>
+                <td class="label">
+                    {fieldLabel key="plugins.generic.markup.settings.overrideGalley"}
+                </td>
+                <td class="value">
+                    <input type="radio" name="overrideGalley" id="overrideGalleyNo" value="0" {if $overrideGalley == 0}checked="checked"{/if} /> 
+                    {fieldLabel name="overrideGalleyNo" key="plugins.generic.markup.settings.overrideGalleyNo"}
+                    <br />
+                    <input type="radio" name="overrideGalley" id="overrideGalleyYes" value="1" {if $overrideGalley == 1}checked="checked"{/if} />
+                    {fieldLabel name="overrideGalleyYes" key="plugins.generic.markup.settings.overrideGalleyYes"}
+					<p>{fieldLabel key="plugins.generic.markup.settings.overrideGalleyFieldHelp"}</p>
+				</td>
+			</tr>
+            
+            <tr>
+                <td class="label">
+                    {fieldLabel key="plugins.generic.markup.settings.wantedFormats"}
+                </td>
+                <td class="value">
+                    <label>
+                        <input type="checkbox" name="wantedFormats[]" id="markupDocFormatXml" value="xml" {if 'xml'|in_array:$wantedFormats} checked="checked" {/if} /> XML
+                    </label>
+                    <br />
+                    
+                    <label>
+                        <input type="checkbox" name="wantedFormats[]" id="markupDocFormatHtml" value="html" {if 'html'|in_array:$wantedFormats} checked="checked" {/if} /> HTML
+                    </label>
+                    <br />
+                    
+                    <label>
+                        <input type="checkbox" name="wantedFormats[]" id="markupDocFormatPdf" value="pdf" {if 'pdf'|in_array:$wantedFormats} checked="checked" {/if} /> PDF
+                    </label>
+                    <br />
+                    
+                    <label>
+                        <input type="checkbox" name="wantedFormats[]" id="markupDocFormatEpub" value="epub" {if 'epub'|in_array:$wantedFormats} checked="checked" {/if} /> EPUB
+                    </label>
+                    <br />
+                    
+					<p>{fieldLabel key="plugins.generic.markup.settings.wantedFormatsHelp"}</p>
+				</td>
+			</tr>
 
 			<tr>
 				<td class="label">

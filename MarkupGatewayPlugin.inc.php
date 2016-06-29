@@ -345,9 +345,31 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 			if (!$this->_unzipSuppFile($articleId, $suppFile)) {
 				return;
 			}
-			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/html/document.html');
-			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.pdf');
-			$this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.xml');
+            
+            // get journal id
+            $request = Registry::get('request');
+            $router =& $request->getRouter();
+            $journal =& $router->getContext($request);
+            $journalId = $journal->getId();
+            
+            $plugin =& $this->getMarkupPlugin();
+            $wantedFormats = $plugin->getSetting($journalId, 'wantedFormats');
+            $overrideGalley = (bool) intval($plugin->getSetting($journalId, 'overrideGalley'));
+        
+            if (in_array('html', $wantedFormats)) {
+                $this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/html/document.html', $overrideGalley);
+            }
+            
+            if (in_array('pdf', $wantedFormats)) {
+                $this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.pdf', $overrideGalley);
+            }
+            
+            if (in_array('xml', $wantedFormats)) {
+                $this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.xml', $overrideGalley);
+            }
+            if (in_array('epub', $wantedFormats)) {
+                $this->_setupGalleyForMarkup($articleId, $suppFolder . '/markup/document.epub', $overrideGalley);
+            }
 		} else {
 			// If we're not launching a galley, then if there are no galley
 			// links left in place for XML or HTML content, then make sure
@@ -371,7 +393,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$i = 0;
 		while($i++ < 60) {
 			$apiResponse = MarkupPluginUtilities::getJobStatus($this, $jobId);
-            if (($apiResponse['jobStatus'] != 0) && ($apiResponse['jobStatus'] != 1)) break; // Jobstatus 0 - pending ; Jobstatus 1 - Processing
+			if (($apiResponse['jobStatus'] != 0) && ($apiResponse['jobStatus'] != 1)) break; // Jobstatus 0 - pending ; Jobstatus 1 - Processing
 			sleep(5);
 		}
 
@@ -423,6 +445,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$validFiles = array(
 			'document.pdf',
 			'document.xml',
+			'document.epub',
 			'html.zip',
 		);
 
@@ -460,33 +483,39 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 	}
 
 	/**
-	 * Populates an article with galley files for document.html, document.xml
+	 * Populates an article with galley files for document.html, document.xml, document.epub
 	 * and document.pdf
 	 *
 	 * @param $articleId int Article Id
 	 * @param $fileName string File to process
+	 * @param $overrideGalley boolean whether galley should be overriden
 	 *
 	 * @return int Id of new galley link
 	 */
-	function _setupGalleyForMarkup($articleId, $fileName) {
+	function _setupGalleyForMarkup($articleId, $fileName, $overrideGalley) {
 		import('classes.file.ArticleFileManager');
 
 		$mimeType = MarkupPluginUtilities::getMimeType($fileName);
 		$fileExtension = strtoupper(ArticleFileManager::parseFileExtension($fileName));
-
+        
+        $plugin =& $this->getMarkupPlugin();
+        
 		$articleFileManager = new ArticleFileManager($articleId);
 		$suppFileId = $articleFileManager->copySuppFile($fileName, $mimeType);
 
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galleys =& $galleyDao->getGalleysByArticle($articleId);
-		foreach ($galleys as $galley) {
-			// Doing by suffix since usually no isXMLGalley() fn
-			if ($galley->getLabel() == $fileExtension) {
-				$galley->setFileId($suppFileId);
-				$galleyDao->updateGalley($galley);
-				return true;
-			}
-		}
+        
+        if ($overrideGalley) {
+            $galleys =& $galleyDao->getGalleysByArticle($articleId);
+            foreach ($galleys as $galley) {
+                // Doing by suffix since usually no isXMLGalley() fn
+                if ($galley->getLabel() == $fileExtension) {
+                    $galley->setFileId($suppFileId);
+                    $galleyDao->updateGalley($galley);
+                    return true;
+                }
+            }
+        }
 
 		$galley = new ArticleGalley();
 		$galley->setArticleId($articleId);

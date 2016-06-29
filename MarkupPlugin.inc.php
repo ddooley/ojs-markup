@@ -106,6 +106,14 @@ class MarkupPlugin extends GenericPlugin {
 		return $baseDir . '/' . parent::getPluginPath() . '/css/';
 	}
 
+    /**
+     * @see PKPPlugin::getContextSpecificPluginSettingsFile()
+     * @return string
+     */
+    function getContextSpecificPluginSettingsFile() {
+        return $this->getPluginPath() . '/settings.xml';
+    }
+
 	/**
 	 * Get plugin JS path
 	 *

@@ -63,4 +63,10 @@
 	<message key="plugins.generic.markup.settings.saved">Settings saved!</message>
 	<message key="plugins.generic.markup.settings.zipSupport">PHP Unzip Support:</message>
 	<message key="plugins.generic.markup.settings.zipSupportHelp">PHP zlib needs to be installed on your OJS server. This plugin uses zlib to unzip the Document Markup Server files.</message>
+	<message key="plugins.generic.markup.settings.overrideGalley">Galley override:</message>
+	<message key="plugins.generic.markup.settings.overrideGalleyNo">Do not override documents</message>
+	<message key="plugins.generic.markup.settings.overrideGalleyYes">Override documents</message>
+	<message key="plugins.generic.markup.settings.overrideGalleyFieldHelp">Whether existing documents in galley must be overridden or not on new layout upload.</message>
+    <message key="plugins.generic.markup.settings.wantedFormats">Document formats:</message>
+	<message key="plugins.generic.markup.settings.wantedFormatsHelp">Select documents formats.</message>
 </locale>

@@ -45,6 +45,8 @@ class SettingsForm extends Form {
 			'markupHostPass' => 'string',
 			'markupHostURL' => 'string',
 			'markupHostUser' => 'string',
+			'overrideGalley' => 'bool',
+			'wantedFormats' => 'object',
 		);
 	}
 
@@ -59,6 +61,8 @@ class SettingsForm extends Form {
 		$this->addCheck(new FormValidator($this, 'markupHostPass', 'optional', 'plugins.generic.markup.optional.markupHostPass'));
 		$this->addCheck(new FormValidator($this, 'markupHostURL', 'required', 'plugins.generic.markup.required.markupHostURL'));
 		$this->addCheck(new FormValidator($this, 'markupHostUser', 'optional', 'plugins.generic.markup.optional.markupHostUrl'));
+		$this->addCheck(new FormValidator($this, 'overrideGalley', 'required', 'plugins.generic.markup.required.overrideGalley'));
+		$this->addCheck(new FormValidator($this, 'wantedFormats', 'required', 'plugins.generic.markup.required.wantedFormats'));
 
 		return parent::validate();
 	}
@@ -84,6 +88,8 @@ class SettingsForm extends Form {
 		$this->setData('cslStyle', $plugin->getSetting($journalId, 'cslStyle'));
 		$this->setData('markupHostUser', $plugin->getSetting($journalId, 'markupHostUser'));
 		$this->setData('markupHostURL', $plugin->getSetting($journalId, 'markupHostURL'));
+		$this->setData('overrideGalley', $plugin->getSetting($journalId, 'overrideGalley'));
+		$this->setData('wantedFormats', $plugin->getSetting($journalId, 'wantedFormats'));
 	}
 
 	/**
@@ -119,6 +125,8 @@ class SettingsForm extends Form {
 				'markupHostPass',
 				'markupHostURL',
 				'markupHostUser',
+				'overrideGalley',
+				'wantedFormats',
 			)
 		);
 	}
@@ -147,6 +155,9 @@ class SettingsForm extends Form {
 
 		$plugin->updateSetting($journalId, 'markupHostUser', $this->getData('markupHostUser'));
 		$plugin->updateSetting($journalId, 'markupHostPass', $this->getData('markupHostPass'));
+
+		$plugin->updateSetting($journalId, 'overrideGalley', $this->getData('overrideGalley'));
+		$plugin->updateSetting($journalId, 'wantedFormats', $this->getData('wantedFormats'));
 	}
 
 	/**
