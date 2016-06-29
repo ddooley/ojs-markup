@@ -371,7 +371,7 @@ class MarkupGatewayPlugin extends GatewayPlugin {
 		$i = 0;
 		while($i++ < 60) {
 			$apiResponse = MarkupPluginUtilities::getJobStatus($this, $jobId);
-			if ($apiResponse['jobStatus'] != 0) break; // Jobstatus 0 - pending
+            if (($apiResponse['jobStatus'] != 0) && ($apiResponse['jobStatus'] != 1)) break; // Jobstatus 0 - pending ; Jobstatus 1 - Processing
 			sleep(5);
 		}
 
