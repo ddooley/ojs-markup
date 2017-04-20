@@ -3,7 +3,7 @@ Welcome to the Document Markup Plugin
 Copyright (c) 2003-2013 John Willinsky
 Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 
-This README file contains a general description of this module's functionality (also available at http://http://pkp.sfu.ca/wiki/index.php/XML_Publishing).  All settings required for its functionality are managed on its plugin settings page (after installation).
+This README file contains a general description of this module's functionality (also available at http://pkp.sfu.ca/wiki/index.php/XML_Publishing).  All settings required for its functionality are managed on its plugin settings page (after installation).
 
 Requirements: OJS 2.4 or greater, PHP 5.x, PHP CURL, PHP Zlib
 
